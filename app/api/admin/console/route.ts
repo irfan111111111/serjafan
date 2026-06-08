@@ -3,6 +3,7 @@ import { db } from "@/db";
 import { partnerProfiles, user } from "@/db/schema";
 import { defaultAdminConsole, getAdminConsoleSettings, saveAdminConsoleSettings } from "@/lib/admin-console";
 import { ok, readJson, requireRole } from "@/lib/api";
+import { ensurePartnerPaymentColumns } from "@/lib/partner-payments";
 
 export const runtime = "nodejs";
 
@@ -11,6 +12,7 @@ type AdminConsoleBody = Partial<typeof defaultAdminConsole>;
 export async function GET() {
   const { response } = await requireRole(["ADMIN"]);
   if (response) return response;
+  await ensurePartnerPaymentColumns();
 
   const [settings, customers, partners] = await Promise.all([
     getAdminConsoleSettings(),

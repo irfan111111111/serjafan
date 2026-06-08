@@ -3,3 +3,7 @@ node_modules
 .env
 local.db
 *.log
+.vercel
+tmp-db-env.txt
+auth
+auth-wal

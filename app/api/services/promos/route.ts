@@ -10,9 +10,13 @@ export async function GET() {
     .filter((promo) => promo.active)
     .map((promo) => ({
       code: promo.code,
-      title: promo.note || `Promo ${promo.code}`,
+      title: promo.title || promo.note || `Promo ${promo.code}`,
+      description: promo.description || promo.note || "Promo aktif dari admin SERJAFAN.",
+      note: promo.note,
       discount: promo.discount,
       categoryId: "SC-DUPLIKAT",
+      mediaUrl: promo.mediaUrl ?? null,
+      mediaType: promo.mediaType ?? null,
       active: promo.active
     }));
 

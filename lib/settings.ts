@@ -8,6 +8,12 @@ export type SerjafanSettings = {
   promoDiscount: number;
   serviceArea: string;
   supportPhone: string;
+  manualBankName: string;
+  manualBankAccount: string;
+  manualBankHolder: string;
+  manualDanaNumber: string;
+  manualDanaName: string;
+  manualQrisName: string;
 };
 
 export const defaultSettings: SerjafanSettings = {
@@ -15,13 +21,24 @@ export const defaultSettings: SerjafanSettings = {
   promoCode: "",
   promoDiscount: 0,
   serviceArea: "Kota Padang",
-  supportPhone: "+62xxxxxxxxxx"
+  supportPhone: "+62xxxxxxxxxx",
+  manualBankName: "Bank SERJAFAN",
+  manualBankAccount: "Isi nomor rekening usaha SERJAFAN di admin",
+  manualBankHolder: "SERJAFAN",
+  manualDanaNumber: "Isi nomor DANA SERJAFAN di admin",
+  manualDanaName: "Isi nama akun DANA SERJAFAN di admin",
+  manualQrisName: "QRIS usaha SERJAFAN"
 };
 
 export async function getAppSettings() {
-  const row = await db.query.appSettings.findFirst({
-    where: eq(appSettings.key, "global")
-  });
+  let row;
+  try {
+    row = await db.query.appSettings.findFirst({
+      where: eq(appSettings.key, "global")
+    });
+  } catch {
+    return defaultSettings;
+  }
 
   if (!row) return defaultSettings;
 
@@ -33,12 +50,19 @@ export async function getAppSettings() {
 }
 
 export async function saveAppSettings(settings: SerjafanSettings) {
+  const merged = { ...defaultSettings, ...settings };
   const next = {
     ...defaultSettings,
-    ...settings,
-    promoCode: settings.promoCode.trim().toUpperCase(),
-    serviceArea: settings.serviceArea.trim(),
-    supportPhone: settings.supportPhone.trim()
+    ...merged,
+    promoCode: merged.promoCode.trim().toUpperCase(),
+    serviceArea: merged.serviceArea.trim(),
+    supportPhone: merged.supportPhone.trim(),
+    manualBankName: merged.manualBankName.trim(),
+    manualBankAccount: merged.manualBankAccount.trim(),
+    manualBankHolder: merged.manualBankHolder.trim(),
+    manualDanaNumber: merged.manualDanaNumber.trim(),
+    manualDanaName: merged.manualDanaName.trim(),
+    manualQrisName: merged.manualQrisName.trim()
   };
   await db
     .insert(appSettings)

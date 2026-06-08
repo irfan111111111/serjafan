@@ -2,6 +2,7 @@ import { and, eq } from "drizzle-orm";
 import { db } from "@/db";
 import { messages, notifications, orders, partnerProfiles } from "@/db/schema";
 import { createId, fail, ok, requireRole } from "@/lib/api";
+import { sendPushToUser } from "@/lib/push";
 
 export const runtime = "nodejs";
 
@@ -35,6 +36,13 @@ export async function POST(_request: Request, { params }: { params: Promise<{ id
     targetUrl: `/orders/${order.id}`,
     createdAt: now,
     updatedAt: now
+  });
+  await sendPushToUser(order.customerId, {
+    title: "Pesanan ditolak mitra",
+    body: `${partner.name} belum bisa memproses pesanan ini.`,
+    url: "/customer",
+    tag: `order-${order.id}`,
+    kind: "notification"
   });
 
   await db.insert(messages).values({

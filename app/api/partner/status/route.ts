@@ -1,9 +1,10 @@
 import { eq } from "drizzle-orm";
 import { db } from "@/db";
-import { partnerProfiles } from "@/db/schema";
+import { partnerProfiles, wallets } from "@/db/schema";
 import { fail, ok, readJson, requireRole } from "@/lib/api";
 
 export const runtime = "nodejs";
+const MIN_PARTNER_WORK_BALANCE = 20_000;
 
 type StatusBody = {
   status?: "ONLINE" | "BUSY" | "OFFLINE";
@@ -21,6 +22,15 @@ export async function PUT(request: Request) {
   });
 
   if (!partner) return fail("Partner profile not found.", 404);
+
+  if (body.status === "ONLINE") {
+    const wallet = await db.query.wallets.findFirst({
+      where: eq(wallets.userId, session.user.id)
+    });
+    if (!wallet || wallet.balance < MIN_PARTNER_WORK_BALANCE) {
+      return fail("Saldo deposit partner minimal Rp 20.000 sebelum bisa online dan mencari customer.", 422);
+    }
+  }
 
   const updated = await db
     .update(partnerProfiles)

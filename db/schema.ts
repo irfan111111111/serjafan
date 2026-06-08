@@ -78,12 +78,19 @@ export const partnerProfiles = sqliteTable(
     userId: text("user_id").references(() => user.id, { onDelete: "set null" }),
     name: text("name").notNull(),
     category: text("category").notNull(),
+    contactPhone: text("contact_phone"),
     distanceKm: real("distance_km").notNull().default(0),
     rating: real("rating").notNull().default(0),
     reviewCount: integer("review_count").notNull().default(0),
     completedOrders: integer("completed_orders").notNull().default(0),
     etaMinutes: integer("eta_minutes").notNull().default(15),
     priceFrom: integer("price_from").notNull().default(0),
+    paymentBankName: text("payment_bank_name"),
+    paymentBankAccount: text("payment_bank_account"),
+    paymentBankHolder: text("payment_bank_holder"),
+    paymentDanaNumber: text("payment_dana_number"),
+    paymentDanaName: text("payment_dana_name"),
+    acceptsCash: integer("accepts_cash", { mode: "boolean" }).notNull().default(true),
     status: text("status", { enum: ["ONLINE", "BUSY", "OFFLINE"] }).notNull().default("ONLINE"),
     verificationStatus: text("verification_status", { enum: ["PENDING", "APPROVED", "REJECTED"] })
       .notNull()
@@ -92,6 +99,37 @@ export const partnerProfiles = sqliteTable(
     ...timestamps
   },
   (table) => [index("partner_verification_status_idx").on(table.verificationStatus)]
+);
+
+export const partnerRegistrationDocuments = sqliteTable(
+  "partner_registration_documents",
+  {
+    id: text("id").primaryKey(),
+    partnerId: text("partner_id")
+      .notNull()
+      .references(() => partnerProfiles.id, { onDelete: "cascade" }),
+    type: text("type", { enum: ["SERVICE_PHOTO", "SELF_PHOTO", "KTP", "PORTFOLIO", "BUSINESS_ADDRESS"] }).notNull(),
+    label: text("label").notNull(),
+    value: text("value").notNull(),
+    status: text("status", { enum: ["PENDING", "APPROVED", "REJECTED"] }).notNull().default("PENDING"),
+    ...timestamps
+  },
+  (table) => [index("partner_documents_partner_id_idx").on(table.partnerId)]
+);
+
+export const partnerActivationTokens = sqliteTable(
+  "partner_activation_tokens",
+  {
+    id: text("id").primaryKey(),
+    partnerId: text("partner_id")
+      .notNull()
+      .references(() => partnerProfiles.id, { onDelete: "cascade" }),
+    tokenHash: text("token_hash").notNull(),
+    tokenLast4: text("token_last4").notNull(),
+    active: integer("active", { mode: "boolean" }).notNull().default(true),
+    ...timestamps
+  },
+  (table) => [uniqueIndex("partner_activation_partner_unique").on(table.partnerId)]
 );
 
 export const addresses = sqliteTable(
@@ -128,7 +166,7 @@ export const orders = sqliteTable(
     scheduleTitle: text("schedule_title").notNull(),
     scheduleSubtitle: text("schedule_subtitle").notNull(),
     note: text("note"),
-    paymentMethod: text("payment_method", { enum: ["SERJAFAN_PAY", "CARD", "CASH"] }).notNull(),
+    paymentMethod: text("payment_method", { enum: ["SERJAFAN_PAY", "DIRECT_TRANSFER", "CARD", "CASH"] }).notNull(),
     promoCode: text("promo_code"),
     serviceFee: integer("service_fee").notNull(),
     platformFee: integer("platform_fee").notNull(),
@@ -199,6 +237,33 @@ export const walletTransactions = sqliteTable(
   (table) => [index("wallet_transactions_wallet_id_idx").on(table.walletId)]
 );
 
+export const paymentIntents = sqliteTable(
+  "payment_intents",
+  {
+    id: text("id").primaryKey(),
+    userId: text("user_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    walletId: text("wallet_id")
+      .notNull()
+      .references(() => wallets.id, { onDelete: "cascade" }),
+    provider: text("provider").notNull(),
+    providerReference: text("provider_reference"),
+    channel: text("channel").notNull(),
+    amount: integer("amount").notNull(),
+    status: text("status", { enum: ["PENDING", "PAID", "FAILED", "EXPIRED"] }).notNull().default("PENDING"),
+    checkoutUrl: text("checkout_url"),
+    qrString: text("qr_string"),
+    rawPayload: text("raw_payload"),
+    ...timestamps
+  },
+  (table) => [
+    index("payment_intents_user_id_idx").on(table.userId),
+    index("payment_intents_wallet_id_idx").on(table.walletId),
+    uniqueIndex("payment_intents_provider_reference_unique").on(table.providerReference)
+  ]
+);
+
 export const notifications = sqliteTable(
   "notifications",
   {
@@ -216,6 +281,39 @@ export const notifications = sqliteTable(
   (table) => [index("notifications_user_id_idx").on(table.userId), index("notifications_is_read_idx").on(table.isRead)]
 );
 
+export const notificationPreferences = sqliteTable(
+  "notification_preferences",
+  {
+    id: text("id").primaryKey(),
+    userId: text("user_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    soundEnabled: integer("sound_enabled", { mode: "boolean" }).notNull().default(true),
+    vibrationEnabled: integer("vibration_enabled", { mode: "boolean" }).notNull().default(true),
+    soundTone: text("sound_tone", { enum: ["classic", "soft", "urgent", "custom"] }).notNull().default("classic"),
+    customRingtoneName: text("custom_ringtone_name"),
+    customRingtoneData: text("custom_ringtone_data"),
+    ...timestamps
+  },
+  (table) => [uniqueIndex("notification_preferences_user_unique").on(table.userId)]
+);
+
+export const pushSubscriptions = sqliteTable(
+  "push_subscriptions",
+  {
+    id: text("id").primaryKey(),
+    userId: text("user_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    endpoint: text("endpoint").notNull(),
+    p256dh: text("p256dh").notNull(),
+    auth: text("auth").notNull(),
+    userAgent: text("user_agent"),
+    ...timestamps
+  },
+  (table) => [index("push_subscriptions_user_id_idx").on(table.userId), uniqueIndex("push_subscriptions_endpoint_unique").on(table.endpoint)]
+);
+
 export const messages = sqliteTable(
   "messages",
   {
@@ -226,10 +324,20 @@ export const messages = sqliteTable(
     sender: text("sender").notNull(),
     title: text("title").notNull(),
     body: text("body").notNull(),
+    orderId: text("order_id"),
+    partnerId: text("partner_id"),
+    partnerName: text("partner_name"),
+    serviceName: text("service_name"),
+    attachmentImage: text("attachment_image"),
     unread: integer("unread", { mode: "boolean" }).notNull().default(true),
     ...timestamps
   },
-  (table) => [index("messages_user_id_idx").on(table.userId), index("messages_unread_idx").on(table.unread)]
+  (table) => [
+    index("messages_user_id_idx").on(table.userId),
+    index("messages_order_id_idx").on(table.orderId),
+    index("messages_partner_id_idx").on(table.partnerId),
+    index("messages_unread_idx").on(table.unread)
+  ]
 );
 
 export const appSettings = sqliteTable("app_settings", {
@@ -260,6 +368,82 @@ export const verificationAuditLogs = sqliteTable(
   (table) => [index("verification_audit_partner_id_idx").on(table.partnerId)]
 );
 
+export const auditLogs = sqliteTable(
+  "audit_logs",
+  {
+    id: text("id").primaryKey(),
+    actorId: text("actor_id"),
+    actorRole: text("actor_role"),
+    action: text("action").notNull(),
+    entityType: text("entity_type").notNull(),
+    entityId: text("entity_id"),
+    severity: text("severity", { enum: ["INFO", "WARN", "ERROR", "CRITICAL"] }).notNull().default("INFO"),
+    ipAddress: text("ip_address"),
+    userAgent: text("user_agent"),
+    metadata: text("metadata"),
+    createdAt: integer("created_at", { mode: "timestamp" })
+      .$defaultFn(() => new Date())
+      .notNull()
+  },
+  (table) => [
+    index("audit_logs_actor_id_idx").on(table.actorId),
+    index("audit_logs_action_idx").on(table.action),
+    index("audit_logs_entity_idx").on(table.entityType, table.entityId),
+    index("audit_logs_created_at_idx").on(table.createdAt)
+  ]
+);
+
+export const errorLogs = sqliteTable(
+  "error_logs",
+  {
+    id: text("id").primaryKey(),
+    source: text("source").notNull(),
+    message: text("message").notNull(),
+    stack: text("stack"),
+    severity: text("severity", { enum: ["INFO", "WARN", "ERROR", "CRITICAL"] }).notNull().default("ERROR"),
+    requestPath: text("request_path"),
+    actorId: text("actor_id"),
+    metadata: text("metadata"),
+    resolved: integer("resolved", { mode: "boolean" }).notNull().default(false),
+    createdAt: integer("created_at", { mode: "timestamp" })
+      .$defaultFn(() => new Date())
+      .notNull()
+  },
+  (table) => [
+    index("error_logs_source_idx").on(table.source),
+    index("error_logs_severity_idx").on(table.severity),
+    index("error_logs_resolved_idx").on(table.resolved),
+    index("error_logs_created_at_idx").on(table.createdAt)
+  ]
+);
+
+export const fraudFlags = sqliteTable(
+  "fraud_flags",
+  {
+    id: text("id").primaryKey(),
+    userId: text("user_id"),
+    entityType: text("entity_type").notNull(),
+    entityId: text("entity_id"),
+    reason: text("reason").notNull(),
+    riskScore: integer("risk_score").notNull().default(0),
+    status: text("status", { enum: ["OPEN", "REVIEWED", "DISMISSED"] }).notNull().default("OPEN"),
+    metadata: text("metadata"),
+    createdAt: integer("created_at", { mode: "timestamp" })
+      .$defaultFn(() => new Date())
+      .notNull(),
+    updatedAt: integer("updated_at", { mode: "timestamp" })
+      .$defaultFn(() => new Date())
+      .$onUpdateFn(() => new Date())
+      .notNull()
+  },
+  (table) => [
+    index("fraud_flags_user_id_idx").on(table.userId),
+    index("fraud_flags_entity_idx").on(table.entityType, table.entityId),
+    index("fraud_flags_status_idx").on(table.status),
+    index("fraud_flags_risk_score_idx").on(table.riskScore)
+  ]
+);
+
 export const userRelations = relations(user, ({ many }) => ({
   sessions: many(session),
   accounts: many(account),
@@ -284,11 +468,20 @@ export const orderRelations = relations(orders, ({ one, many }) => ({
 
 export const walletRelations = relations(wallets, ({ one, many }) => ({
   user: one(user, { fields: [wallets.userId], references: [user.id] }),
-  transactions: many(walletTransactions)
+  transactions: many(walletTransactions),
+  paymentIntents: many(paymentIntents)
 }));
 
 export const notificationRelations = relations(notifications, ({ one }) => ({
   user: one(user, { fields: [notifications.userId], references: [user.id] })
+}));
+
+export const notificationPreferenceRelations = relations(notificationPreferences, ({ one }) => ({
+  user: one(user, { fields: [notificationPreferences.userId], references: [user.id] })
+}));
+
+export const pushSubscriptionRelations = relations(pushSubscriptions, ({ one }) => ({
+  user: one(user, { fields: [pushSubscriptions.userId], references: [user.id] })
 }));
 
 export const messageRelations = relations(messages, ({ one }) => ({
@@ -301,13 +494,21 @@ export const schema = {
   account,
   verification,
   partnerProfiles,
+  partnerRegistrationDocuments,
+  partnerActivationTokens,
   addresses,
   orders,
   orderTrackingEvents,
   wallets,
   walletTransactions,
+  paymentIntents,
   notifications,
+  notificationPreferences,
+  pushSubscriptions,
   messages,
   appSettings,
-  verificationAuditLogs
+  verificationAuditLogs,
+  auditLogs,
+  errorLogs,
+  fraudFlags
 };

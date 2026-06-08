@@ -1,16 +1,33 @@
+import { and, asc, eq, gte } from "drizzle-orm";
 import { db } from "@/db";
-import { partnerProfiles } from "@/db/schema";
+import { partnerProfiles, wallets } from "@/db/schema";
 import { ok } from "@/lib/api";
-import { promos, serviceCategories } from "@/lib/catalog";
-import { asc } from "drizzle-orm";
+import { getAdminConsoleSettings } from "@/lib/admin-console";
 
 export const runtime = "nodejs";
+const MIN_PARTNER_WORK_BALANCE = 20_000;
 
 export async function GET(request: Request) {
   const url = new URL(request.url);
   const query = (url.searchParams.get("q") ?? "").trim().toLowerCase();
+  const consoleSettings = await getAdminConsoleSettings();
+  const categories = consoleSettings.services
+    .filter((service) => service.active)
+    .map((service) => ({
+      id: service.id,
+      name: service.name,
+      description: service.description,
+      basePrice: service.fee
+    }));
+  const promos = consoleSettings.promos.filter((promo) => promo.active);
 
-  const partners = await db.select().from(partnerProfiles).orderBy(asc(partnerProfiles.distanceKm));
+  const partnerRows = await db
+    .select()
+    .from(partnerProfiles)
+    .innerJoin(wallets, eq(wallets.userId, partnerProfiles.userId))
+    .where(and(eq(partnerProfiles.verificationStatus, "APPROVED"), eq(partnerProfiles.status, "ONLINE"), gte(wallets.balance, MIN_PARTNER_WORK_BALANCE)))
+    .orderBy(asc(partnerProfiles.distanceKm));
+  const partners = partnerRows.map((row) => row.partner_profiles);
 
   const matchedPartners = query
     ? partners.filter((partner) =>
@@ -21,14 +38,14 @@ export async function GET(request: Request) {
     : partners;
 
   const matchedCategories = query
-    ? serviceCategories.filter((category) =>
+    ? categories.filter((category) =>
         [category.name, category.description].some((value) => value.toLowerCase().includes(query))
       )
-    : serviceCategories;
+    : categories;
 
   const matchedPromos = query
     ? promos.filter((promo) =>
-        [promo.code, promo.title, promo.description].some((value) => value.toLowerCase().includes(query))
+        [promo.code, promo.note].some((value) => value.toLowerCase().includes(query))
       )
     : promos;
 

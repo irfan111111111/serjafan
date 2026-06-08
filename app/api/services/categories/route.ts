@@ -1,12 +1,11 @@
 import { ok } from "@/lib/api";
-import { serviceCategories } from "@/lib/catalog";
 import { getAdminConsoleSettings } from "@/lib/admin-console";
 
 export const runtime = "nodejs";
 
 export async function GET() {
   const consoleSettings = await getAdminConsoleSettings();
-  const adminCategories = consoleSettings.services
+  const categories = consoleSettings.services
     .filter((service) => service.active)
     .map((service) => ({
       id: service.id,
@@ -16,5 +15,5 @@ export async function GET() {
       description: service.description
     }));
 
-  return ok({ categories: [...adminCategories, ...serviceCategories] });
+  return ok({ categories });
 }

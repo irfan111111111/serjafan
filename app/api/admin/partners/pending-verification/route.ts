@@ -1,6 +1,6 @@
 import { eq } from "drizzle-orm";
 import { db } from "@/db";
-import { partnerProfiles } from "@/db/schema";
+import { partnerProfiles, partnerRegistrationDocuments } from "@/db/schema";
 import { ok, requireRole } from "@/lib/api";
 
 export const runtime = "nodejs";
@@ -14,5 +14,14 @@ export async function GET() {
     .from(partnerProfiles)
     .where(eq(partnerProfiles.verificationStatus, "PENDING"));
 
-  return ok({ partners });
+  const documents = partners.length
+    ? await db.select().from(partnerRegistrationDocuments)
+    : [];
+
+  return ok({
+    partners: partners.map((partner) => ({
+      ...partner,
+      documents: documents.filter((document) => document.partnerId === partner.id)
+    }))
+  });
 }

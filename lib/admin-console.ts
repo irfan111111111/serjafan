@@ -1,21 +1,46 @@
 import { eq } from "drizzle-orm";
 import { db } from "@/db";
 import { appSettings } from "@/db/schema";
+import { serviceCategories } from "@/lib/catalog";
 
 export type AdminConsoleSettings = {
   services: { id: string; name: string; fee: number; active: boolean; description: string }[];
-  promos: { code: string; discount: number; active: boolean; note: string }[];
+  promos: {
+    code: string;
+    discount: number;
+    active: boolean;
+    note: string;
+    title?: string;
+    description?: string;
+    mediaUrl?: string;
+    mediaType?: "image" | "video" | null;
+  }[];
   partnerRequirements: { id: string; label: string; required: boolean }[];
   partnerFeatureCopy: { headline: string; description: string };
   customerFeatureCopy: { headline: string; description: string };
 };
 
 export const defaultAdminConsole: AdminConsoleSettings = {
-  services: [
-    { id: "svc_key", name: "Duplikat Kunci", fee: 30000, active: true, description: "Panggilan jasa duplikat kunci ke lokasi customer." },
-    { id: "svc_shoes", name: "Cuci Sepatu", fee: 45000, active: true, description: "Jasa cuci sepatu pickup/dropoff." },
-    { id: "svc_fan", name: "Servis Kipas", fee: 65000, active: true, description: "Perbaikan kipas dan elektronik ringan." }
-  ],
+  services: serviceCategories.map((service) => ({
+    id: service.id,
+    name: service.name,
+    fee:
+      service.id === "SC-DUPLIKAT"
+        ? 30000
+        : service.id === "SC-CUCI-SEPATU"
+          ? 45000
+          : service.id === "SC-SERVIS-KIPAS"
+            ? 65000
+            : service.id === "SC-FOTOKOPI"
+              ? 5000
+              : service.id === "SC-PLAT-NOMOR"
+                ? 85000
+                : service.id === "SC-CLEANING"
+                  ? 75000
+                  : 25000,
+    active: true,
+    description: service.description
+  })),
   promos: [],
   partnerRequirements: [
     { id: "photo_service", label: "Foto tempat/foto jasa", required: true },
@@ -34,10 +59,24 @@ export const defaultAdminConsole: AdminConsoleSettings = {
 };
 
 export async function getAdminConsoleSettings() {
-  const row = await db.query.appSettings.findFirst({ where: eq(appSettings.key, "admin_console") });
+  let row;
+  try {
+    row = await db.query.appSettings.findFirst({ where: eq(appSettings.key, "admin_console") });
+  } catch {
+    return defaultAdminConsole;
+  }
   if (!row) return defaultAdminConsole;
   try {
-    return { ...defaultAdminConsole, ...(JSON.parse(row.value) as Partial<AdminConsoleSettings>) };
+    const stored = JSON.parse(row.value) as Partial<AdminConsoleSettings>;
+    return {
+      ...defaultAdminConsole,
+      ...stored,
+      services: stored.services?.length ? stored.services : defaultAdminConsole.services,
+      promos: stored.promos ?? defaultAdminConsole.promos,
+      partnerRequirements: stored.partnerRequirements?.length
+        ? stored.partnerRequirements
+        : defaultAdminConsole.partnerRequirements
+    };
   } catch {
     return defaultAdminConsole;
   }
