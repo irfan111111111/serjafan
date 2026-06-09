@@ -1,6 +1,6 @@
 import { fail, getSession, ok, readJson } from "@/lib/api";
 import { writeAuditLog } from "@/lib/audit";
-import { uploadDataUrlToCloudinary, UploadConfigurationError, type UploadPurpose } from "@/lib/uploads";
+import { uploadDataUrlToStorage, UploadConfigurationError, type UploadPurpose } from "@/lib/uploads";
 
 export const runtime = "nodejs";
 
@@ -23,7 +23,7 @@ export async function POST(request: Request) {
   }
 
   try {
-    const upload = await uploadDataUrlToCloudinary({
+    const upload = await uploadDataUrlToStorage({
       dataUrl: body.dataUrl,
       purpose: body.purpose,
       folder: body.folder

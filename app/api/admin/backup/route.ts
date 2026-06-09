@@ -17,10 +17,11 @@ import {
 } from "@/db/schema";
 import { ok, requireRole } from "@/lib/api";
 import { writeAuditLog } from "@/lib/audit";
+import { uploadJsonBackup } from "@/lib/cloud-backup";
 
 export const runtime = "nodejs";
 
-export async function GET() {
+export async function GET(request: Request) {
   const { session, response } = await requireRole(["ADMIN"]);
   if (response || !session) return response;
 
@@ -45,16 +46,19 @@ export async function GET() {
     }
   };
 
+  const upload = new URL(request.url).searchParams.get("cloud") === "1" ? await uploadJsonBackup({ name: "manual-admin-backup", payload: backup }) : null;
+
   await writeAuditLog({
     session,
-    action: "DATABASE_BACKUP_EXPORTED",
+    action: upload ? "DATABASE_BACKUP_EXPORTED_TO_CLOUD" : "DATABASE_BACKUP_EXPORTED",
     entityType: "backup",
-    entityId: exportedAt.toISOString(),
+    entityId: upload?.key ?? exportedAt.toISOString(),
     severity: "WARN",
     metadata: {
-      tables: Object.keys(backup.tables)
+      tables: Object.keys(backup.tables),
+      cloudUrl: upload?.url ?? null
     }
   });
 
-  return ok({ backup });
+  return ok({ backup, cloudBackup: upload });
 }

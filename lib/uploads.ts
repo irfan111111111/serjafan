@@ -1,4 +1,5 @@
 import crypto from "node:crypto";
+import { objectStorageReady, putObject } from "@/lib/object-storage";
 
 export type UploadPurpose = "profile" | "partner-document" | "topup-proof" | "chat" | "promo" | "ringtone";
 
@@ -22,11 +23,11 @@ const allowedMimePrefixes: Record<UploadPurpose, string[]> = {
 
 export class UploadConfigurationError extends Error {
   constructor() {
-    super("Cloudinary belum dikonfigurasi. Isi CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, dan CLOUDINARY_API_SECRET di Vercel.");
+    super("Upload cloud belum dikonfigurasi. Isi Cloudinary atau S3/R2 environment variables di Vercel.");
   }
 }
 
-function parseDataUrl(dataUrl: string) {
+export function parseUploadDataUrl(dataUrl: string) {
   const match = dataUrl.match(/^data:([^;,]+);base64,(.+)$/);
   if (!match) throw new Error("File upload harus dikirim sebagai data URL base64 yang valid.");
   const mime = match[1];
@@ -51,7 +52,7 @@ function cloudinaryResourceType(mime: string) {
 }
 
 export function uploadProviderReady() {
-  return Boolean(process.env.CLOUDINARY_CLOUD_NAME && process.env.CLOUDINARY_API_KEY && process.env.CLOUDINARY_API_SECRET);
+  return Boolean(process.env.CLOUDINARY_CLOUD_NAME && process.env.CLOUDINARY_API_KEY && process.env.CLOUDINARY_API_SECRET) || objectStorageReady();
 }
 
 export async function uploadDataUrlToCloudinary(input: {
@@ -60,7 +61,7 @@ export async function uploadDataUrlToCloudinary(input: {
   folder?: string;
   publicId?: string;
 }) {
-  const { mime, buffer } = parseDataUrl(input.dataUrl);
+  const { mime, buffer } = parseUploadDataUrl(input.dataUrl);
   assertAllowed(input.purpose, mime, buffer.byteLength);
 
   if (!uploadProviderReady()) throw new UploadConfigurationError();
@@ -107,6 +108,54 @@ export async function uploadDataUrlToCloudinary(input: {
     publicId: payload.public_id,
     resourceType: payload.resource_type ?? resourceType,
     bytes: payload.bytes ?? buffer.byteLength,
+    mime
+  };
+}
+
+function extensionForMime(mime: string) {
+  const map: Record<string, string> = {
+    "image/jpeg": "jpg",
+    "image/png": "png",
+    "image/webp": "webp",
+    "image/gif": "gif",
+    "video/mp4": "mp4",
+    "audio/mpeg": "mp3",
+    "audio/mp4": "m4a",
+    "audio/wav": "wav",
+    "application/pdf": "pdf"
+  };
+  return map[mime] ?? mime.split("/")[1]?.replace(/[^a-z0-9]/gi, "") ?? "bin";
+}
+
+export async function uploadDataUrlToStorage(input: {
+  dataUrl: string;
+  purpose: UploadPurpose;
+  folder?: string;
+  publicId?: string;
+}) {
+  const preferS3 = (process.env.UPLOAD_PROVIDER || "").toLowerCase() === "s3";
+  if (!preferS3 && process.env.CLOUDINARY_CLOUD_NAME && process.env.CLOUDINARY_API_KEY && process.env.CLOUDINARY_API_SECRET) {
+    return uploadDataUrlToCloudinary(input);
+  }
+
+  const { mime, buffer } = parseUploadDataUrl(input.dataUrl);
+  assertAllowed(input.purpose, mime, buffer.byteLength);
+  if (!objectStorageReady()) throw new UploadConfigurationError();
+
+  const folder = `serjafan/${(input.folder || input.purpose).replace(/[^a-z0-9/_-]/gi, "-").toLowerCase()}`;
+  const id = input.publicId?.replace(/[^a-z0-9/_-]/gi, "-").toLowerCase() || crypto.randomUUID().replaceAll("-", "");
+  const object = await putObject({
+    key: `${folder}/${id}.${extensionForMime(mime)}`,
+    body: buffer,
+    contentType: mime,
+    cacheControl: input.purpose === "promo" ? "public, max-age=31536000, immutable" : "private, max-age=0"
+  });
+
+  return {
+    url: object.url,
+    publicId: object.key,
+    resourceType: mime.startsWith("video/") ? "video" : mime.startsWith("audio/") ? "audio" : mime === "application/pdf" ? "raw" : "image",
+    bytes: object.bytes,
     mime
   };
 }

@@ -9,6 +9,23 @@ function hasRealValue(value: string | undefined, placeholder: string) {
   return Boolean(value && value.trim() && !value.includes(placeholder) && !value.startsWith("replace-with"));
 }
 
+function cloudinaryReady() {
+  return (
+    hasRealValue(process.env.CLOUDINARY_CLOUD_NAME, "replace-with") &&
+    hasRealValue(process.env.CLOUDINARY_API_KEY, "replace-with") &&
+    hasRealValue(process.env.CLOUDINARY_API_SECRET, "replace-with")
+  );
+}
+
+function s3Ready() {
+  return (
+    hasRealValue(process.env.S3_BUCKET, "replace-with") &&
+    hasRealValue(process.env.S3_REGION, "replace-with") &&
+    hasRealValue(process.env.S3_ACCESS_KEY_ID, "replace-with") &&
+    hasRealValue(process.env.S3_SECRET_ACCESS_KEY, "replace-with")
+  );
+}
+
 export function getProductionReadiness() {
   const checks: ProductionCheck[] = [
     {
@@ -50,11 +67,14 @@ export function getProductionReadiness() {
     {
       id: "uploads",
       label: "Upload file production",
-      ready:
-        hasRealValue(process.env.CLOUDINARY_CLOUD_NAME, "replace-with") &&
-        hasRealValue(process.env.CLOUDINARY_API_KEY, "replace-with") &&
-        hasRealValue(process.env.CLOUDINARY_API_SECRET, "replace-with"),
-      detail: "CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, dan CLOUDINARY_API_SECRET wajib untuk menyimpan foto/bukti transfer di cloud."
+      ready: cloudinaryReady() || s3Ready(),
+      detail: "Isi Cloudinary atau S3/R2 env agar foto, bukti transfer, promo media, chat image, dan ringtone tersimpan di cloud."
+    },
+    {
+      id: "cloud-backup",
+      label: "Backup cloud storage",
+      ready: s3Ready() && process.env.BACKUP_TO_OBJECT_STORAGE === "1",
+      detail: "Isi S3/R2 env dan BACKUP_TO_OBJECT_STORAGE=1 agar checkpoint/backup JSON tersimpan ke object storage."
     },
     {
       id: "push",
