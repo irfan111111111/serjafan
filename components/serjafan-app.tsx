@@ -724,6 +724,20 @@ function storeSession(session: StoredSession) {
   window.localStorage.setItem(sessionStorageKey(session.role), JSON.stringify(session));
 }
 
+function clearStoredSession(role: "CUSTOMER" | "PARTNER" | "ADMIN") {
+  if (typeof window === "undefined") return;
+  window.localStorage.removeItem(sessionStorageKey(role));
+}
+
+class ApiRequestError extends Error {
+  status: number;
+
+  constructor(status: number) {
+    super(`Request failed: ${status}`);
+    this.status = status;
+  }
+}
+
 async function apiFetch(path: string, role: "CUSTOMER" | "PARTNER" | "ADMIN", init: RequestInit = {}) {
   const headers = new Headers(init.headers);
   const session = getStoredSession(role);
@@ -740,7 +754,7 @@ async function apiFetch(path: string, role: "CUSTOMER" | "PARTNER" | "ADMIN", in
 
 async function readApi<T>(path: string, role: "CUSTOMER" | "PARTNER" | "ADMIN") {
   const response = await apiFetch(path, role);
-  if (!response.ok) throw new Error(`Request failed: ${response.status}`);
+  if (!response.ok) throw new ApiRequestError(response.status);
   return (await parseJsonResponse(response)) as { data: T };
 }
 
@@ -926,6 +940,22 @@ export function SerjafanApp({ appRole = "switcher" }: { appRole?: AppRole }) {
   const notify = (kind: ToastKind, message: string) => {
     setToast({ kind, message });
     window.setTimeout(() => setToast(null), 3200);
+  };
+
+  const handleAuthFailure = (error: unknown, roleToClear = role) => {
+    if (!(error instanceof ApiRequestError) || ![401, 403].includes(error.status)) return false;
+    clearStoredSession(roleToClear);
+    setAuthSession(null);
+    setAuthReady(true);
+    if (appRole === "partner") {
+      setScreen("partner");
+      setPartnerProfile(null);
+      setPartnerOrders([]);
+      setPartnerWalletBalance(0);
+      setPartnerWalletTransactions([]);
+    }
+    notify("error", "Sesi akun sudah tidak aktif. Silakan login atau daftar akun lagi.");
+    return true;
   };
 
   const playBell = (tone: NotificationPreferences["soundTone"] = notificationPreferences.soundTone, sourcePreferences: NotificationPreferences = notificationPreferences) => {
@@ -1412,7 +1442,8 @@ export function SerjafanApp({ appRole = "switcher" }: { appRole?: AppRole }) {
     try {
       const data = await readApi<{ orders: any[] }>("/api/partner/orders", "PARTNER");
       setPartnerOrders(data.data.orders);
-    } catch {
+    } catch (error) {
+      if (handleAuthFailure(error, "PARTNER")) return;
       setPartnerOrders([]);
     } finally {
       if (!silent) setLoadingPanel(null);
@@ -1427,7 +1458,8 @@ export function SerjafanApp({ appRole = "switcher" }: { appRole?: AppRole }) {
       ]);
       setPartnerWalletBalance(wallet.data.wallet.balance);
       setPartnerWalletTransactions(transactions.data.transactions);
-    } catch {
+    } catch (error) {
+      if (handleAuthFailure(error, "PARTNER")) return;
       setPartnerWalletBalance(0);
       setPartnerWalletTransactions([]);
       if (!silent) notify("error", "Gagal memuat dompet partner.");
@@ -1438,7 +1470,8 @@ export function SerjafanApp({ appRole = "switcher" }: { appRole?: AppRole }) {
     try {
       const data = await readApi<{ partner: any }>("/api/partner/me", "PARTNER");
       setPartnerProfile(data.data.partner);
-    } catch {
+    } catch (error) {
+      if (handleAuthFailure(error, "PARTNER")) return;
       setPartnerProfile(null);
       if (!silent) notify("error", "Gagal memuat profil partner.");
     }
