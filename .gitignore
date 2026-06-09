@@ -7,3 +7,4 @@ local.db
 tmp-db-env.txt
 auth
 auth-wal
+.codex/

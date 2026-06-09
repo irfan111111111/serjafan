@@ -3083,12 +3083,12 @@ function LiveTracking({
             </Button>
           </div>
 
-          <div className="mt-4 grid grid-cols-1 gap-2 min-[380px]:grid-cols-2">
-            <a href={googleMapsDirectionsUrl(route)} target="_blank" rel="noreferrer" className="inline-flex h-12 items-center justify-center gap-2 rounded-[15px] bg-navy px-4 text-xs font-extrabold text-white">
+          <div className="mt-4 grid grid-cols-1 gap-2 min-[430px]:grid-cols-2">
+            <a href={googleMapsDirectionsUrl(route)} target="_blank" rel="noreferrer" className="inline-flex min-h-12 items-center justify-center gap-2 rounded-[15px] bg-navy px-4 py-3 text-center text-xs font-extrabold leading-tight text-white">
               <Navigation className="h-4 w-4" /> Buka Google Maps
             </a>
-            <Button variant="outline" className="h-12 border-2 border-navy text-xs font-extrabold text-navy" onClick={() => onNavigate(backTarget)}>
-              <ArrowLeft className="h-4 w-4" /> {backLabel}
+            <Button variant="outline" className="min-h-12 whitespace-normal border-2 border-navy px-3 py-3 text-center text-[11px] font-extrabold leading-tight text-navy" onClick={() => onNavigate(backTarget)}>
+              <ArrowLeft className="h-4 w-4 shrink-0" /> <span className="line-clamp-2">{backLabel}</span>
             </Button>
           </div>
         </div>
@@ -4927,7 +4927,7 @@ function AdminControlCenter({
         <h2 className="text-sm font-extrabold">Pusat Kontrol Admin</h2>
         {dirty && <span className="rounded-full bg-amber-50 px-3 py-1 text-[10px] font-extrabold text-amber-700">Belum disimpan</span>}
       </div>
-      <div className="rounded-[18px] bg-white p-3 shadow-soft">
+      <div className="overflow-hidden rounded-[18px] bg-white p-3 shadow-soft">
         <div className="flex gap-1 overflow-x-auto rounded-[14px] bg-cloud p-1 no-scrollbar">
           {[
             ["customer", "Customer"],
@@ -4955,7 +4955,14 @@ function AdminControlCenter({
               description={draft.customerFeatureCopy.description}
               onChange={(patch) => mutateDraft((current) => ({ ...current, customerFeatureCopy: { ...current.customerFeatureCopy, ...patch } }))}
             />
-            <EntityList title="Customer Terdaftar" items={consoleData.customers.map((customer) => `${customer.name} - ${customer.email}`)} empty="Belum ada customer." />
+            <EntityList
+              title="Customer Terdaftar"
+              items={consoleData.customers.map((customer) => ({
+                primary: customer.name || "Customer",
+                secondary: customer.email || "-"
+              }))}
+              empty="Belum ada customer."
+            />
           </div>
         )}
 
@@ -4971,16 +4978,16 @@ function AdminControlCenter({
               <p className="mb-3 text-xs font-extrabold uppercase text-slate-500">Partner Terdaftar & Data Pembayaran</p>
               <div className="grid gap-2">
                 {consoleData.partners.map((partner) => (
-                  <div key={partner.id} className="rounded-[14px] border border-slate-100 bg-cloud p-3">
-                    <p className="text-sm font-extrabold text-navy">{partner.name} - {partner.category}</p>
-                    <p className="mt-1 text-[11px] font-bold text-slate-500">Status: {partner.verificationStatus} / {partner.status}</p>
+                  <div key={partner.id} className="overflow-hidden rounded-[14px] border border-slate-100 bg-cloud p-3">
+                    <p className="line-clamp-1 text-sm font-extrabold text-navy">{partner.name} - {partner.category}</p>
+                    <p className="mt-1 truncate text-[11px] font-bold text-slate-500">Status: {partner.verificationStatus} / {partner.status}</p>
                     <div className="mt-2 grid gap-1 text-[11px] font-bold text-slate-600">
-                      <p>Bank: <span className="text-navy">{partner.paymentBankName || "-"}</span></p>
-                      <p>Rekening: <span className="text-navy">{partner.paymentBankAccount || "-"}</span></p>
-                      <p>Pemilik: <span className="text-navy">{partner.paymentBankHolder || "-"}</span></p>
-                      <p>DANA: <span className="text-navy">{partner.paymentDanaNumber || "-"}</span></p>
-                      <p>Nama DANA: <span className="text-navy">{partner.paymentDanaName || "-"}</span></p>
-                      <p>Cash: <span className="text-navy">{partner.acceptsCash === false ? "Tidak aktif" : "Aktif"}</span></p>
+                      <p className="truncate">Bank: <span className="text-navy">{partner.paymentBankName || "-"}</span></p>
+                      <p className="truncate">Rekening: <span className="text-navy">{partner.paymentBankAccount || "-"}</span></p>
+                      <p className="truncate">Pemilik: <span className="text-navy">{partner.paymentBankHolder || "-"}</span></p>
+                      <p className="truncate">DANA: <span className="text-navy">{partner.paymentDanaNumber || "-"}</span></p>
+                      <p className="truncate">Nama DANA: <span className="text-navy">{partner.paymentDanaName || "-"}</span></p>
+                      <p className="truncate">Cash: <span className="text-navy">{partner.acceptsCash === false ? "Tidak aktif" : "Aktif"}</span></p>
                     </div>
                   </div>
                 ))}
@@ -5211,17 +5218,29 @@ function PromoMediaField({
   );
 }
 
-function EntityList({ title, items, empty }: { title: string; items: string[]; empty: string }) {
+function EntityList({
+  title,
+  items,
+  empty
+}: {
+  title: string;
+  items: Array<string | { primary: string; secondary?: string }>;
+  empty: string;
+}) {
   return (
-    <div className="rounded-[14px] border border-slate-100 p-3">
+    <div className="overflow-hidden rounded-[14px] border border-slate-100 p-3">
       <p className="mb-2 text-xs font-extrabold">{title}</p>
       <div className="grid gap-2">
         {items.length ? (
-          items.slice(0, 6).map((item) => (
-            <div key={item} className="rounded-[12px] bg-cloud px-3 py-2 text-[11px] font-bold text-slate-600">
-              {item}
-            </div>
-          ))
+          items.slice(0, 6).map((item) => {
+            const value = typeof item === "string" ? { primary: item } : item;
+            return (
+              <div key={`${value.primary}-${value.secondary ?? ""}`} className="min-w-0 overflow-hidden rounded-[12px] bg-cloud px-3 py-2">
+                <p className="truncate text-[11px] font-extrabold text-slate-700">{value.primary}</p>
+                {value.secondary && <p className="mt-0.5 truncate text-[10px] font-bold text-slate-500">{value.secondary}</p>}
+              </div>
+            );
+          })
         ) : (
           <p className="text-xs text-slate-500">{empty}</p>
         )}
