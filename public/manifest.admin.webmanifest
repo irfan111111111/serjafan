@@ -1,0 +1,22 @@
+{
+  "name": "SERJAFAN Admin",
+  "short_name": "Admin",
+  "id": "id.serjafan.admin",
+  "description": "Dashboard admin SERJAFAN untuk operasional, verifikasi mitra, audit, wallet, maps, promo, dan konfigurasi.",
+  "start_url": "/admin",
+  "scope": "/admin",
+  "display": "standalone",
+  "display_override": ["window-controls-overlay", "standalone", "browser"],
+  "background_color": "#f4f7fb",
+  "theme_color": "#0b1f3a",
+  "orientation": "portrait",
+  "categories": ["business", "productivity"],
+  "icons": [
+    {
+      "src": "/serjafan-logo.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

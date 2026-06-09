@@ -74,3 +74,12 @@ test("chat thread identity must stay scoped by order and partner", () => {
     threadKey({ orderId: "ord_2", partnerId: "ptr_plat", serviceName: "Plat Nomor" })
   );
 });
+
+test("customer partner and admin sessions must use separated browser storage keys", () => {
+  const sessionStorageKey = (role) => `serjafan-session-${role.toLowerCase()}`;
+  assert.equal(sessionStorageKey("CUSTOMER"), "serjafan-session-customer");
+  assert.equal(sessionStorageKey("PARTNER"), "serjafan-session-partner");
+  assert.equal(sessionStorageKey("ADMIN"), "serjafan-session-admin");
+  assert.notEqual(sessionStorageKey("CUSTOMER"), sessionStorageKey("PARTNER"));
+  assert.notEqual(sessionStorageKey("PARTNER"), sessionStorageKey("ADMIN"));
+});

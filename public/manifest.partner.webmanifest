@@ -1,0 +1,22 @@
+{
+  "name": "SERJAFAN Partner",
+  "short_name": "Partner",
+  "id": "id.serjafan.partner",
+  "description": "Aplikasi partner SERJAFAN untuk menerima pesanan, mengatur status, top up deposit, chat, dan navigasi customer.",
+  "start_url": "/partner",
+  "scope": "/partner",
+  "display": "standalone",
+  "display_override": ["window-controls-overlay", "standalone", "browser"],
+  "background_color": "#f4f7fb",
+  "theme_color": "#0b1f3a",
+  "orientation": "portrait",
+  "categories": ["business", "productivity"],
+  "icons": [
+    {
+      "src": "/serjafan-logo.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

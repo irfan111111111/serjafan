@@ -34,6 +34,8 @@ const roleMeta = {
   }
 } as const;
 
+const sessionStorageKey = (role: "CUSTOMER" | "PARTNER" | "ADMIN") => `serjafan-session-${role.toLowerCase()}`;
+
 export function LoginPage({ role }: { role: LoginRole }) {
   const router = useRouter();
   const meta = roleMeta[role];
@@ -55,7 +57,7 @@ export function LoginPage({ role }: { role: LoginRole }) {
       if (!response.ok) throw new Error(payload?.error?.message ?? "Login gagal.");
 
       const session = payload.data.session;
-      window.localStorage.setItem("serjafan-session", JSON.stringify(session));
+      window.localStorage.setItem(sessionStorageKey(session.role), JSON.stringify(session));
       setStatus({ kind: "success", message: "Login berhasil. Mengalihkan ke beranda..." });
       window.setTimeout(() => router.push(session.home ?? meta.home), 500);
     } catch (error) {

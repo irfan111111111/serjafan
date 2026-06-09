@@ -1,0 +1,22 @@
+{
+  "name": "SERJAFAN Customer",
+  "short_name": "Customer",
+  "id": "id.serjafan.customer",
+  "description": "Aplikasi customer SERJAFAN untuk cari jasa, pesan mitra, bayar, chat, telepon, dan tracking.",
+  "start_url": "/customer",
+  "scope": "/customer",
+  "display": "standalone",
+  "display_override": ["window-controls-overlay", "standalone", "browser"],
+  "background_color": "#f4f7fb",
+  "theme_color": "#0b1f3a",
+  "orientation": "portrait",
+  "categories": ["business", "utilities"],
+  "icons": [
+    {
+      "src": "/serjafan-logo.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

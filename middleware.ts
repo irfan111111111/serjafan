@@ -74,15 +74,30 @@ function applySecurityHeaders(response: NextResponse) {
   );
 }
 
+function applyAppBoundaryHeaders(request: NextRequest, response: NextResponse) {
+  const pathname = request.nextUrl.pathname;
+  if (pathname.startsWith("/customer")) {
+    response.headers.set("X-SERJAFAN-App", "customer");
+  } else if (pathname.startsWith("/partner")) {
+    response.headers.set("X-SERJAFAN-App", "partner");
+    response.headers.set("X-Robots-Tag", "noindex, nofollow");
+  } else if (pathname.startsWith("/admin")) {
+    response.headers.set("X-SERJAFAN-App", "admin");
+    response.headers.set("X-Robots-Tag", "noindex, nofollow");
+  }
+}
+
 export function middleware(request: NextRequest) {
   const limited = rateLimit(request);
   if (limited) {
     applySecurityHeaders(limited);
+    applyAppBoundaryHeaders(request, limited);
     return limited;
   }
 
   const response = NextResponse.next();
   applySecurityHeaders(response);
+  applyAppBoundaryHeaders(request, response);
   return response;
 }
 

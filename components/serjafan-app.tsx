@@ -692,15 +692,18 @@ type CustomerGuestResponse = {
   error?: { message?: string };
 };
 
+const sessionStorageKey = (role: "CUSTOMER" | "PARTNER" | "ADMIN") => `serjafan-session-${role.toLowerCase()}`;
+
 function getStoredSession(role: "CUSTOMER" | "PARTNER" | "ADMIN") {
   if (typeof window === "undefined") return null;
   try {
-    const session = JSON.parse(window.localStorage.getItem("serjafan-session") ?? "null") as StoredSession | null;
+    const session = JSON.parse(window.localStorage.getItem(sessionStorageKey(role)) ?? window.localStorage.getItem("serjafan-session") ?? "null") as StoredSession | null;
     if (!session?.token || session.role !== role) return null;
     if (session.expiresAt && new Date(session.expiresAt).getTime() <= Date.now()) {
-      window.localStorage.removeItem("serjafan-session");
+      window.localStorage.removeItem(sessionStorageKey(role));
       return null;
     }
+    window.localStorage.setItem(sessionStorageKey(role), JSON.stringify(session));
     return session;
   } catch {
     return null;
@@ -718,7 +721,7 @@ function getOrCreateDeviceId() {
 
 function storeSession(session: StoredSession) {
   if (typeof window === "undefined") return;
-  window.localStorage.setItem("serjafan-session", JSON.stringify(session));
+  window.localStorage.setItem(sessionStorageKey(session.role), JSON.stringify(session));
 }
 
 async function apiFetch(path: string, role: "CUSTOMER" | "PARTNER" | "ADMIN", init: RequestInit = {}) {
@@ -5345,7 +5348,7 @@ function RoleAuthGate({ role, onAuthenticated }: { role: GateRole; onAuthenticat
       const payload = await parseJsonResponse(response);
       if (!response.ok) throw new Error(payload?.error?.message ?? "Login gagal.");
       const session = payload.data.session as StoredSession;
-      window.localStorage.setItem("serjafan-session", JSON.stringify(session));
+      storeSession(session);
       showStatus("success", "Login sukses. Membuka beranda akun...");
       window.setTimeout(() => onAuthenticated(session), 350);
     } catch (error) {
