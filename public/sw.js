@@ -20,8 +20,20 @@ self.addEventListener("push", (event) => {
     icon: "/serjafan-logo.png",
     badge: "/serjafan-logo.png",
     tag: payload.tag || "serjafan-notification",
+    renotify: true,
+    requireInteraction: payload.kind === "order" || payload.kind === "call",
     data: { url: payload.url || "/" },
-    vibrate: [180, 90, 180]
+    vibrate: payload.kind === "call" ? [300, 120, 300, 120, 300] : [180, 90, 180],
+    actions: [
+      {
+        action: "open",
+        title: "Buka SERJAFAN"
+      },
+      {
+        action: "close",
+        title: "Tutup"
+      }
+    ]
   };
 
   event.waitUntil(self.registration.showNotification(title, options));
@@ -29,6 +41,7 @@ self.addEventListener("push", (event) => {
 
 self.addEventListener("notificationclick", (event) => {
   event.notification.close();
+  if (event.action === "close") return;
   const targetUrl = event.notification.data && event.notification.data.url ? event.notification.data.url : "/";
   event.waitUntil(
     self.clients.matchAll({ type: "window", includeUncontrolled: true }).then((clients) => {

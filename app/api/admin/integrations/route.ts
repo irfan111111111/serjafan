@@ -64,6 +64,18 @@ export async function GET(request: Request) {
     backup: {
       configured: cloudBackupReady(),
       objectStorageConfigured: objectStorageReady()
+    },
+    nativeNotifications: {
+      androidConfigured: present(process.env.FCM_PROJECT_ID) && present(process.env.FCM_CLIENT_EMAIL) && present(process.env.FCM_PRIVATE_KEY),
+      iosConfigured:
+        present(process.env.APPLE_TEAM_ID) &&
+        present(process.env.APPLE_KEY_ID) &&
+        present(process.env.APPLE_PRIVATE_KEY) &&
+        present(process.env.APPLE_BUNDLE_ID),
+      androidPackage: process.env.NATIVE_ANDROID_PACKAGE ?? "id.serjafan.app",
+      iosBundleId: process.env.NATIVE_IOS_BUNDLE_ID ?? "id.serjafan.app",
+      detail:
+        "PWA web push aktif, tetapi notifikasi setara aplikasi native membutuhkan Android FCM dan iOS APNs melalui shell native/TWA/Capacitor."
     }
   };
 

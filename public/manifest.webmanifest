@@ -1,18 +1,45 @@
 {
   "name": "SERJAFAN",
   "short_name": "SERJAFAN",
+  "id": "id.serjafan.app",
   "description": "SERJAFAN customer, partner, and admin app.",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
+  "display_override": ["window-controls-overlay", "standalone", "browser"],
   "background_color": "#f4f7fb",
   "theme_color": "#0b1f3a",
+  "orientation": "portrait",
+  "categories": ["business", "utilities", "productivity"],
   "icons": [
     {
       "src": "/serjafan-logo.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "SERJAFAN Customer",
+      "short_name": "Customer",
+      "description": "Buka aplikasi customer SERJAFAN.",
+      "url": "/customer",
+      "icons": [{ "src": "/serjafan-logo.png", "sizes": "512x512", "type": "image/png" }]
+    },
+    {
+      "name": "SERJAFAN Partner",
+      "short_name": "Partner",
+      "description": "Buka aplikasi partner SERJAFAN.",
+      "url": "/partner",
+      "icons": [{ "src": "/serjafan-logo.png", "sizes": "512x512", "type": "image/png" }]
+    },
+    {
+      "name": "SERJAFAN Admin",
+      "short_name": "Admin",
+      "description": "Buka dashboard admin SERJAFAN.",
+      "url": "/admin",
+      "icons": [{ "src": "/serjafan-logo.png", "sizes": "512x512", "type": "image/png" }]
     }
   ]
 }
