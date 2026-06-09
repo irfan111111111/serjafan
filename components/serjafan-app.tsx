@@ -729,6 +729,24 @@ function clearStoredSession(role: "CUSTOMER" | "PARTNER" | "ADMIN") {
   window.localStorage.removeItem(sessionStorageKey(role));
 }
 
+async function ensureCustomerGuestSession() {
+  if (typeof window === "undefined") return null;
+  const existing = getStoredSession("CUSTOMER");
+  if (existing?.token) return existing;
+
+  const response = await fetch("/api/customer/guest", {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ deviceId: getOrCreateDeviceId() })
+  });
+  const payload = (await parseJsonResponse(response)) as { data?: { session?: StoredSession }; error?: { message?: string } };
+  if (!response.ok || !payload.data?.session) {
+    throw new Error(payload.error?.message ?? "Gagal menyiapkan akses customer.");
+  }
+  storeSession(payload.data.session);
+  return payload.data.session;
+}
+
 class ApiRequestError extends Error {
   status: number;
 
@@ -1273,10 +1291,20 @@ export function SerjafanApp({ appRole = "switcher" }: { appRole?: AppRole }) {
   const submitProfile = async (profile: { name: string; phone: string; location: string; profilePhoto?: string | null }) => {
     try {
       const firstCustomerSetup = appRole === "customer" && !customerProfileComplete;
-      const response = await apiFetch("/api/me", "CUSTOMER", {
+      if (appRole === "customer") await ensureCustomerGuestSession();
+
+      let response = await apiFetch("/api/me", "CUSTOMER", {
         method: "PUT",
         body: JSON.stringify(profile)
       });
+      if (appRole === "customer" && response.status === 401) {
+        clearStoredSession("CUSTOMER");
+        await ensureCustomerGuestSession();
+        response = await apiFetch("/api/me", "CUSTOMER", {
+          method: "PUT",
+          body: JSON.stringify(profile)
+        });
+      }
       const payload = (await parseJsonResponse(response)) as { data?: { user?: CurrentUser }; error?: { message?: string } };
       if (!response.ok) throw new Error(payload.error?.message ?? "Profil gagal diperbarui.");
       setAccountUser((user) => ({
