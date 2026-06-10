@@ -797,8 +797,7 @@ export function AppLauncher() {
       Icon: Wrench,
       tone: "bg-emerald-50 text-emerald-700",
       actions: [
-        { href: "/partner", label: "Buka Partner", primary: true },
-        { href: "/login/partner", label: "Login" },
+        { href: "/login/partner", label: "Buka Login Partner", primary: true },
         { href: "/register/partner", label: "Daftar Mitra" }
       ]
     },
@@ -809,8 +808,7 @@ export function AppLauncher() {
       Icon: ShieldCheck,
       tone: "bg-orange-50 text-orange-700",
       actions: [
-        { href: "/admin", label: "Buka Admin", primary: true },
-        { href: "/login/admin", label: "Login" },
+        { href: "/login/admin", label: "Buka Login Admin", primary: true },
         { href: "/register/admin", label: "Daftar Admin" }
       ]
     }
@@ -5393,6 +5391,7 @@ const gateCopy: Record<GateRole, { title: string; subtitle: string; registerTitl
 
 function RoleAuthGate({ role, onAuthenticated }: { role: GateRole; onAuthenticated: (session: StoredSession) => void }) {
   const copy = gateCopy[role];
+  const registerPath = role === "PARTNER" ? "/register/partner" : role === "ADMIN" ? "/register/admin" : "/register/customer";
   const [mode, setMode] = useState<GateMode>("login");
   const [status, setStatus] = useState<{ kind: "idle" | "success" | "error"; message: string }>({ kind: "idle", message: "" });
   const [saving, setSaving] = useState(false);
@@ -5500,36 +5499,15 @@ function RoleAuthGate({ role, onAuthenticated }: { role: GateRole; onAuthenticat
             <p className="mt-2 text-sm leading-6 text-white/70">{copy.subtitle}</p>
           </div>
 
-          <div className="grid grid-cols-2 gap-2 p-3">
-            <Button variant={mode === "login" ? "orange" : "outline"} className={cn(mode !== "login" && "border-2 border-navy text-navy")} onClick={() => setMode("login")}>
-              <LogIn className="h-4 w-4" /> Login
-            </Button>
-            <Button variant={mode === "register" ? "orange" : "outline"} className={cn(mode !== "register" && "border-2 border-navy text-navy")} onClick={() => setMode("register")}>
-              <UserPlus className="h-4 w-4" /> Daftar Akun
-            </Button>
-          </div>
-
-          <div className="grid gap-3 p-4 pt-1">
-            {mode === "login" ? (
-              <>
-                <div className="rounded-[16px] bg-orange-50 p-3">
-                  <p className="text-xs font-extrabold text-orange-800">Masukkan ID dan sandi</p>
-                  <p className="mt-1 text-[11px] leading-5 text-orange-700">Kalau data benar, sistem langsung membuka dashboard akun.</p>
-                </div>
-                <AuthField label="ID / Email" type="email" value={login.email} onChange={(email) => setLogin((current) => ({ ...current, email }))} />
-                <AuthField label="Sandi / Password" type="password" value={login.password} onChange={(password) => setLogin((current) => ({ ...current, password }))} />
-              </>
-            ) : (
-              <RegisterFields
-                role={role}
-                customer={customer}
-                partner={partner}
-                admin={admin}
-                setCustomer={setCustomer}
-                setPartner={setPartner}
-                setAdmin={setAdmin}
-              />
-            )}
+          <div className="grid gap-3 p-4">
+            <div className="rounded-[16px] bg-orange-50 p-3">
+              <p className="text-xs font-extrabold text-orange-800">Login akun {role === "PARTNER" ? "partner" : role === "ADMIN" ? "admin" : "customer"}</p>
+              <p className="mt-1 text-[11px] leading-5 text-orange-700">
+                Belum punya akun? Daftar dulu lewat tombol daftar, setelah selesai sistem kembali ke halaman login ini.
+              </p>
+            </div>
+            <AuthField label="ID / Email" type="email" value={login.email} onChange={(email) => setLogin((current) => ({ ...current, email }))} />
+            <AuthField label="Sandi / Password" type="password" value={login.password} onChange={(password) => setLogin((current) => ({ ...current, password }))} />
 
             {status.kind !== "idle" && (
               <div className={cn("rounded-[14px] p-3 text-sm font-bold", status.kind === "success" ? "bg-emerald-50 text-emerald-700" : "bg-red-50 text-red-700")}>
@@ -5537,21 +5515,18 @@ function RoleAuthGate({ role, onAuthenticated }: { role: GateRole; onAuthenticat
               </div>
             )}
 
-            <Button variant="orange" size="lg" disabled={saving} onClick={mode === "login" ? submitLogin : submitRegister}>
-              {mode === "login" ? <LogIn className="h-4 w-4" /> : <UserPlus className="h-4 w-4" />}
-              {saving ? "Memproses..." : mode === "login" ? "Masuk Dashboard" : copy.registerTitle}
+            <Button variant="orange" size="lg" disabled={saving} onClick={submitLogin}>
+              <LogIn className="h-4 w-4" />
+              {saving ? "Memeriksa..." : "Masuk Dashboard"}
             </Button>
 
-            <button
-              type="button"
-              className="text-center text-sm font-extrabold text-flame"
-              onClick={() => {
-                setStatus({ kind: "idle", message: "" });
-                setMode(mode === "login" ? "register" : "login");
-              }}
+            <Link
+              href={registerPath}
+              className="inline-flex h-11 items-center justify-center gap-2 rounded-[14px] border-2 border-navy text-sm font-extrabold text-navy"
             >
-              {mode === "login" ? "Belum punya akun? Daftar akun" : "Sudah punya akun? Kembali ke login"}
-            </button>
+              <UserPlus className="h-4 w-4" />
+              {role === "ADMIN" ? "Belum punya admin? Daftar admin pertama" : role === "PARTNER" ? "Belum punya akun? Daftar mitra" : "Belum punya akun? Daftar"}
+            </Link>
           </div>
         </div>
       </div>
