@@ -32,6 +32,7 @@ import {
   Sparkles,
   Star,
   Tag,
+  Trash2,
   Upload,
   ListOrdered,
   UserCircle,
@@ -241,6 +242,7 @@ type AdminConsoleData = {
     partnerRequirements: { id: string; label: string; required: boolean }[];
     partnerFeatureCopy: { headline: string; description: string };
     customerFeatureCopy: { headline: string; description: string };
+    partnerRegistrationLimited: boolean;
   };
   customers: any[];
   partners: any[];
@@ -507,7 +509,8 @@ const initialAdminConsole: AdminConsoleData = {
     promos: [],
     partnerRequirements: [],
     partnerFeatureCopy: { headline: "Gabung Partner SERJAFAN", description: "" },
-    customerFeatureCopy: { headline: "Customer App", description: "" }
+    customerFeatureCopy: { headline: "Customer App", description: "" },
+    partnerRegistrationLimited: false
   },
   customers: [],
   partners: []
@@ -1767,6 +1770,62 @@ export function SerjafanApp({ appRole = "switcher" }: { appRole?: AppRole }) {
     }
   };
 
+  const updateAdminCustomer = async (customerId: string, payload: any) => {
+    try {
+      const response = await apiFetch(`/api/admin/customers/${customerId}`, "ADMIN", {
+        method: "PUT",
+        body: JSON.stringify(payload)
+      });
+      const result = (await parseJsonResponse(response)) as { error?: { message?: string } };
+      if (!response.ok) throw new Error(result.error?.message ?? "Data customer gagal disimpan.");
+      notify("success", "Data customer berhasil diperbarui.");
+      await loadAdminData(true);
+    } catch (error) {
+      notify("error", error instanceof Error ? error.message : "Data customer gagal disimpan.");
+    }
+  };
+
+  const deleteAdminCustomer = async (customerId: string) => {
+    if (!window.confirm("Hapus customer ini beserta data terkait?")) return;
+    try {
+      const response = await apiFetch(`/api/admin/customers/${customerId}`, "ADMIN", { method: "DELETE" });
+      const result = (await parseJsonResponse(response)) as { error?: { message?: string } };
+      if (!response.ok) throw new Error(result.error?.message ?? "Customer gagal dihapus.");
+      notify("success", "Customer berhasil dihapus.");
+      await loadAdminData(true);
+    } catch (error) {
+      notify("error", error instanceof Error ? error.message : "Customer gagal dihapus.");
+    }
+  };
+
+  const updateAdminPartner = async (partnerId: string, payload: any) => {
+    try {
+      const response = await apiFetch(`/api/admin/partners/${partnerId}`, "ADMIN", {
+        method: "PUT",
+        body: JSON.stringify(payload)
+      });
+      const result = (await parseJsonResponse(response)) as { error?: { message?: string } };
+      if (!response.ok) throw new Error(result.error?.message ?? "Data partner gagal disimpan.");
+      notify("success", "Data partner berhasil diperbarui.");
+      await loadAdminData(true);
+    } catch (error) {
+      notify("error", error instanceof Error ? error.message : "Data partner gagal disimpan.");
+    }
+  };
+
+  const deleteAdminPartner = async (partnerId: string) => {
+    if (!window.confirm("Hapus partner ini beserta akun, order, dan data terkait?")) return;
+    try {
+      const response = await apiFetch(`/api/admin/partners/${partnerId}`, "ADMIN", { method: "DELETE" });
+      const result = (await parseJsonResponse(response)) as { error?: { message?: string } };
+      if (!response.ok) throw new Error(result.error?.message ?? "Partner gagal dihapus.");
+      notify("success", "Partner berhasil dihapus.");
+      await loadAdminData(true);
+    } catch (error) {
+      notify("error", error instanceof Error ? error.message : "Partner gagal dihapus.");
+    }
+  };
+
   const acceptOrder = async (orderId: string) => {
     try {
       const acceptedOrder = partnerOrders.find((order) => order.id === orderId) ?? null;
@@ -2282,6 +2341,10 @@ export function SerjafanApp({ appRole = "switcher" }: { appRole?: AppRole }) {
             onReviewPartner={reviewPartner}
             onSaveSettings={saveAdminSettings}
             onSaveConsole={saveAdminConsole}
+            onUpdateCustomer={updateAdminCustomer}
+            onDeleteCustomer={deleteAdminCustomer}
+            onUpdatePartner={updateAdminPartner}
+            onDeletePartner={deleteAdminPartner}
             onAdjustWallet={(payload) => void adjustAdminWallet(payload)}
             onOpenMessages={() => void openMessages()}
             onOpenNotificationSettings={() => setDrawer("notificationSettings")}
@@ -4319,6 +4382,10 @@ function AdminDashboard({
   onReviewPartner,
   onSaveSettings,
   onSaveConsole,
+  onUpdateCustomer,
+  onDeleteCustomer,
+  onUpdatePartner,
+  onDeletePartner,
   onAdjustWallet,
   onOpenMessages,
   onOpenNotificationSettings
@@ -4335,6 +4402,10 @@ function AdminDashboard({
   onReviewPartner: (partnerId: string, action: "approve" | "reject") => Promise<void>;
   onSaveSettings: (settings: AdminSettings) => Promise<void>;
   onSaveConsole: (settings: AdminConsoleData["settings"]) => Promise<void>;
+  onUpdateCustomer: (customerId: string, payload: any) => Promise<void>;
+  onDeleteCustomer: (customerId: string) => Promise<void>;
+  onUpdatePartner: (partnerId: string, payload: any) => Promise<void>;
+  onDeletePartner: (partnerId: string) => Promise<void>;
   onAdjustWallet: (payload: { userId?: string; amount?: number; description: string; action?: "ADJUST" | "APPROVE_TOPUP" | "REJECT_TOPUP"; paymentIntentId?: string }) => void;
   onOpenMessages: () => void;
   onOpenNotificationSettings: () => void;
@@ -4378,7 +4449,14 @@ function AdminDashboard({
       </div>
 
       <AdminEditCenter settings={settings} onSave={onSaveSettings} />
-      <AdminControlCenter consoleData={consoleData} onSave={onSaveConsole} />
+      <AdminControlCenter
+        consoleData={consoleData}
+        onSave={onSaveConsole}
+        onUpdateCustomer={onUpdateCustomer}
+        onDeleteCustomer={onDeleteCustomer}
+        onUpdatePartner={onUpdatePartner}
+        onDeletePartner={onDeletePartner}
+      />
       <AdminWalletControl walletData={walletData} onAdjustWallet={onAdjustWallet} />
       <AdminFinancialAudit auditData={auditData} />
 
@@ -4922,10 +5000,18 @@ function AdminMapsCenter({ mapData }: { mapData: AdminMapData }) {
 
 function AdminControlCenter({
   consoleData,
-  onSave
+  onSave,
+  onUpdateCustomer,
+  onDeleteCustomer,
+  onUpdatePartner,
+  onDeletePartner
 }: {
   consoleData: AdminConsoleData;
   onSave: (settings: AdminConsoleData["settings"]) => Promise<void>;
+  onUpdateCustomer: (customerId: string, payload: any) => Promise<void>;
+  onDeleteCustomer: (customerId: string) => Promise<void>;
+  onUpdatePartner: (partnerId: string, payload: any) => Promise<void>;
+  onDeletePartner: (partnerId: string) => Promise<void>;
 }) {
   const [tab, setTab] = useState<"customer" | "partner" | "services" | "promo" | "registration">("services");
   const [draft, setDraft] = useState<AdminConsoleData["settings"]>(consoleData.settings);
@@ -5061,14 +5147,20 @@ function AdminControlCenter({
               description={draft.customerFeatureCopy.description}
               onChange={(patch) => mutateDraft((current) => ({ ...current, customerFeatureCopy: { ...current.customerFeatureCopy, ...patch } }))}
             />
-            <EntityList
-              title="Customer Terdaftar"
-              items={consoleData.customers.map((customer) => ({
-                primary: customer.name || "Customer",
-                secondary: customer.email || "-"
-              }))}
-              empty="Belum ada customer."
-            />
+            <div className="rounded-[16px] bg-white p-4 shadow-soft">
+              <p className="mb-3 text-xs font-extrabold uppercase text-slate-500">Edit / Hapus Customer</p>
+              <div className="grid gap-3">
+                {consoleData.customers.map((customer) => (
+                  <AdminCustomerEditor
+                    key={customer.id}
+                    customer={customer}
+                    onSave={(payload) => onUpdateCustomer(customer.id, payload)}
+                    onDelete={() => onDeleteCustomer(customer.id)}
+                  />
+                ))}
+                {!consoleData.customers.length && <p className="text-xs text-slate-500">Belum ada customer.</p>}
+              </div>
+            </div>
           </div>
         )}
 
@@ -5084,18 +5176,12 @@ function AdminControlCenter({
               <p className="mb-3 text-xs font-extrabold uppercase text-slate-500">Partner Terdaftar & Data Pembayaran</p>
               <div className="grid gap-2">
                 {consoleData.partners.map((partner) => (
-                  <div key={partner.id} className="overflow-hidden rounded-[14px] border border-slate-100 bg-cloud p-3">
-                    <p className="line-clamp-1 text-sm font-extrabold text-navy">{partner.name} - {partner.category}</p>
-                    <p className="mt-1 truncate text-[11px] font-bold text-slate-500">Status: {partner.verificationStatus} / {partner.status}</p>
-                    <div className="mt-2 grid gap-1 text-[11px] font-bold text-slate-600">
-                      <p className="truncate">Bank: <span className="text-navy">{partner.paymentBankName || "-"}</span></p>
-                      <p className="truncate">Rekening: <span className="text-navy">{partner.paymentBankAccount || "-"}</span></p>
-                      <p className="truncate">Pemilik: <span className="text-navy">{partner.paymentBankHolder || "-"}</span></p>
-                      <p className="truncate">DANA: <span className="text-navy">{partner.paymentDanaNumber || "-"}</span></p>
-                      <p className="truncate">Nama DANA: <span className="text-navy">{partner.paymentDanaName || "-"}</span></p>
-                      <p className="truncate">Cash: <span className="text-navy">{partner.acceptsCash === false ? "Tidak aktif" : "Aktif"}</span></p>
-                    </div>
-                  </div>
+                  <AdminPartnerEditor
+                    key={partner.id}
+                    partner={partner}
+                    onSave={(payload) => onUpdatePartner(partner.id, payload)}
+                    onDelete={() => onDeletePartner(partner.id)}
+                  />
                 ))}
                 {!consoleData.partners.length && <p className="text-xs text-slate-500">Belum ada partner.</p>}
               </div>
@@ -5207,6 +5293,18 @@ function AdminControlCenter({
               <p className="text-xs font-extrabold text-orange-800">Pendaftaran Partner</p>
               <p className="mt-1 text-[11px] leading-5 text-orange-700">Dokumen berikut menjadi syarat akun partner baru sebelum admin verifikasi.</p>
             </div>
+            <div className="flex items-center justify-between gap-3 rounded-[14px] border border-slate-100 bg-white p-3">
+              <div>
+                <p className="text-xs font-extrabold text-navy">Batasi pendaftaran partner</p>
+                <p className="mt-1 text-[11px] font-bold leading-5 text-slate-500">
+                  Jika aktif, orang yang daftar partner akan ditolak dengan notifikasi kuota mitra sudah cukup.
+                </p>
+              </div>
+              <Switch
+                checked={draft.partnerRegistrationLimited}
+                onCheckedChange={(partnerRegistrationLimited) => mutateDraft((current) => ({ ...current, partnerRegistrationLimited }))}
+              />
+            </div>
             {draft.partnerRequirements.map((item, index) => (
               <div key={item.id} className="flex items-center gap-3 rounded-[14px] border border-slate-100 p-3">
                 <Input value={item.label} onChange={(event) => updateRequirement(index, { label: event.target.value })} />
@@ -5224,6 +5322,162 @@ function AdminControlCenter({
             {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />} {saving ? "Menyimpan..." : dirty ? "Simpan Pusat Kontrol" : "Data Sudah Tersimpan"}
           </Button>
         </div>
+      </div>
+    </div>
+  );
+}
+
+function AdminCustomerEditor({
+  customer,
+  onSave,
+  onDelete
+}: {
+  customer: any;
+  onSave: (payload: any) => Promise<void>;
+  onDelete: () => Promise<void>;
+}) {
+  const [draft, setDraft] = useState({
+    name: customer.name ?? "",
+    email: customer.email ?? "",
+    phone: customer.phone ?? "",
+    location: customer.location ?? "",
+    image: customer.image ?? null
+  });
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    setDraft({
+      name: customer.name ?? "",
+      email: customer.email ?? "",
+      phone: customer.phone ?? "",
+      location: customer.location ?? "",
+      image: customer.image ?? null
+    });
+  }, [customer]);
+
+  return (
+    <div className="rounded-[14px] border border-slate-100 bg-cloud p-3">
+      <div className="grid gap-2">
+        <Input value={draft.name} onChange={(event) => setDraft((current) => ({ ...current, name: event.target.value }))} placeholder="Nama customer" />
+        <Input value={draft.email} onChange={(event) => setDraft((current) => ({ ...current, email: event.target.value }))} placeholder="Email customer" type="email" />
+        <Input value={draft.phone} onChange={(event) => setDraft((current) => ({ ...current, phone: event.target.value }))} placeholder="Nomor HP" inputMode="tel" />
+        <textarea
+          value={draft.location}
+          onChange={(event) => setDraft((current) => ({ ...current, location: event.target.value }))}
+          placeholder="Alamat customer"
+          className="min-h-16 w-full rounded-[12px] border border-slate-200 bg-white p-3 text-xs font-semibold outline-none focus:ring-2 focus:ring-flame"
+        />
+      </div>
+      <div className="mt-3 grid grid-cols-2 gap-2">
+        <Button variant="outline" className="border-2 border-red-600 text-red-600" onClick={() => void onDelete()}>
+          <Trash2 className="h-4 w-4" /> Hapus
+        </Button>
+        <Button
+          variant="orange"
+          disabled={saving}
+          onClick={async () => {
+            setSaving(true);
+            await onSave(draft);
+            setSaving(false);
+          }}
+        >
+          {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />} Simpan
+        </Button>
+      </div>
+    </div>
+  );
+}
+
+function AdminPartnerEditor({
+  partner,
+  onSave,
+  onDelete
+}: {
+  partner: any;
+  onSave: (payload: any) => Promise<void>;
+  onDelete: () => Promise<void>;
+}) {
+  const [draft, setDraft] = useState({
+    name: partner.name ?? "",
+    category: partner.category ?? "",
+    contactPhone: partner.contactPhone ?? "",
+    priceFrom: String(partner.priceFrom ?? 0),
+    status: partner.status ?? "OFFLINE",
+    verificationStatus: partner.verificationStatus ?? "PENDING",
+    paymentBankName: partner.paymentBankName ?? "",
+    paymentBankAccount: partner.paymentBankAccount ?? "",
+    paymentBankHolder: partner.paymentBankHolder ?? "",
+    paymentDanaNumber: partner.paymentDanaNumber ?? "",
+    paymentDanaName: partner.paymentDanaName ?? "",
+    acceptsCash: partner.acceptsCash !== false
+  });
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    setDraft({
+      name: partner.name ?? "",
+      category: partner.category ?? "",
+      contactPhone: partner.contactPhone ?? "",
+      priceFrom: String(partner.priceFrom ?? 0),
+      status: partner.status ?? "OFFLINE",
+      verificationStatus: partner.verificationStatus ?? "PENDING",
+      paymentBankName: partner.paymentBankName ?? "",
+      paymentBankAccount: partner.paymentBankAccount ?? "",
+      paymentBankHolder: partner.paymentBankHolder ?? "",
+      paymentDanaNumber: partner.paymentDanaNumber ?? "",
+      paymentDanaName: partner.paymentDanaName ?? "",
+      acceptsCash: partner.acceptsCash !== false
+    });
+  }, [partner]);
+
+  return (
+    <div className="rounded-[14px] border border-slate-100 bg-cloud p-3">
+      <div className="grid gap-2">
+        <div className="grid gap-2 min-[420px]:grid-cols-2">
+          <Input value={draft.name} onChange={(event) => setDraft((current) => ({ ...current, name: event.target.value }))} placeholder="Nama usaha/jasa" />
+          <Input value={draft.category} onChange={(event) => setDraft((current) => ({ ...current, category: event.target.value }))} placeholder="Kategori jasa" />
+        </div>
+        <div className="grid gap-2 min-[420px]:grid-cols-2">
+          <Input value={draft.contactPhone} onChange={(event) => setDraft((current) => ({ ...current, contactPhone: event.target.value }))} placeholder="Nomor HP partner" />
+          <Input value={draft.priceFrom} onChange={(event) => setDraft((current) => ({ ...current, priceFrom: event.target.value }))} placeholder="Harga mulai" inputMode="numeric" />
+        </div>
+        <div className="grid gap-2 min-[420px]:grid-cols-2">
+          <select className="h-10 rounded-[12px] border border-slate-200 bg-white px-3 text-xs font-bold" value={draft.status} onChange={(event) => setDraft((current) => ({ ...current, status: event.target.value }))}>
+            <option value="ONLINE">ONLINE</option>
+            <option value="BUSY">BUSY</option>
+            <option value="OFFLINE">OFFLINE</option>
+          </select>
+          <select className="h-10 rounded-[12px] border border-slate-200 bg-white px-3 text-xs font-bold" value={draft.verificationStatus} onChange={(event) => setDraft((current) => ({ ...current, verificationStatus: event.target.value }))}>
+            <option value="PENDING">PENDING</option>
+            <option value="APPROVED">APPROVED</option>
+            <option value="REJECTED">REJECTED</option>
+          </select>
+        </div>
+        <Input value={draft.paymentBankName} onChange={(event) => setDraft((current) => ({ ...current, paymentBankName: event.target.value }))} placeholder="Nama bank partner" />
+        <Input value={draft.paymentBankAccount} onChange={(event) => setDraft((current) => ({ ...current, paymentBankAccount: event.target.value }))} placeholder="Nomor rekening partner" />
+        <Input value={draft.paymentBankHolder} onChange={(event) => setDraft((current) => ({ ...current, paymentBankHolder: event.target.value }))} placeholder="Nama pemilik rekening" />
+        <Input value={draft.paymentDanaNumber} onChange={(event) => setDraft((current) => ({ ...current, paymentDanaNumber: event.target.value }))} placeholder="Nomor DANA partner" />
+        <Input value={draft.paymentDanaName} onChange={(event) => setDraft((current) => ({ ...current, paymentDanaName: event.target.value }))} placeholder="Nama akun DANA partner" />
+        <div className="flex items-center justify-between rounded-[12px] bg-white p-3">
+          <span className="text-xs font-extrabold text-slate-600">Terima pembayaran tunai</span>
+          <Switch checked={draft.acceptsCash} onCheckedChange={(acceptsCash) => setDraft((current) => ({ ...current, acceptsCash }))} />
+        </div>
+      </div>
+      <div className="mt-3 grid grid-cols-2 gap-2">
+        <Button variant="outline" className="border-2 border-red-600 text-red-600" onClick={() => void onDelete()}>
+          <Trash2 className="h-4 w-4" /> Hapus
+        </Button>
+        <Button
+          variant="orange"
+          disabled={saving}
+          onClick={async () => {
+            setSaving(true);
+            await onSave({ ...draft, priceFrom: Number(draft.priceFrom || 0) });
+            setSaving(false);
+          }}
+        >
+          {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />} Simpan
+        </Button>
       </div>
     </div>
   );

@@ -2,6 +2,7 @@ import { eq } from "drizzle-orm";
 import { db } from "@/db";
 import { account, partnerProfiles, partnerRegistrationDocuments, user } from "@/db/schema";
 import { createId, fail, ok, readJson } from "@/lib/api";
+import { getAdminConsoleSettings } from "@/lib/admin-console";
 import { ensureRegistrationDatabase } from "@/lib/db-bootstrap";
 import { hashAppPassword } from "@/lib/password";
 
@@ -66,6 +67,11 @@ export async function POST(request: Request) {
     const portfolio = body.portfolio?.trim() ? cleanPhoto(body.portfolio, "Portofolio") : "";
 
     await ensureRegistrationDatabase();
+
+    const settings = await getAdminConsoleSettings();
+    if (settings.partnerRegistrationLimited) {
+      return fail("Pendaftaran partner sedang dibatasi. Kuota mitra SERJAFAN sudah cukup, silakan coba lagi setelah admin membuka pendaftaran.", 403);
+    }
 
     const existing = await db.query.user.findFirst({ where: eq(user.email, email) });
     if (existing) return fail("Email sudah terdaftar.", 409);

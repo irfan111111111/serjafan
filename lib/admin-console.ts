@@ -18,6 +18,7 @@ export type AdminConsoleSettings = {
   partnerRequirements: { id: string; label: string; required: boolean }[];
   partnerFeatureCopy: { headline: string; description: string };
   customerFeatureCopy: { headline: string; description: string };
+  partnerRegistrationLimited: boolean;
 };
 
 export const defaultAdminConsole: AdminConsoleSettings = {
@@ -55,7 +56,8 @@ export const defaultAdminConsole: AdminConsoleSettings = {
   customerFeatureCopy: {
     headline: "Customer App",
     description: "Alur customer sederhana seperti aplikasi layanan on-demand: cari jasa, pesan, tracking, chat, telepon, dan bayar."
-  }
+  },
+  partnerRegistrationLimited: false
 };
 
 export async function getAdminConsoleSettings() {
