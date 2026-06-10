@@ -750,6 +750,31 @@ async function ensureCustomerGuestSession() {
   return payload.data.session;
 }
 
+async function saveCustomerAccessProfile(profile: { name: string; phone: string; location: string; profilePhoto?: string | null }) {
+  if (typeof window === "undefined") return null;
+  const response = await fetch("/api/customer/access", {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ ...profile, deviceId: getOrCreateDeviceId() })
+  });
+  const payload = (await parseJsonResponse(response)) as {
+    data?: {
+      session?: StoredSession;
+      user?: CurrentUser;
+      deviceId?: string;
+    };
+    error?: { message?: string };
+  };
+  if (!response.ok || !payload.data?.session || !payload.data?.user) {
+    throw new Error(payload.error?.message ?? "Akses customer gagal disimpan.");
+  }
+  const session = payload.data.session;
+  const user = payload.data.user;
+  if (payload.data.deviceId) window.localStorage.setItem("serjafan-customer-device", payload.data.deviceId);
+  storeSession(session);
+  return { session, user, deviceId: payload.data.deviceId };
+}
+
 class ApiRequestError extends Error {
   status: number;
 
@@ -1332,6 +1357,29 @@ export function SerjafanApp({ appRole = "switcher" }: { appRole?: AppRole }) {
   const submitProfile = async (profile: { name: string; phone: string; location: string; profilePhoto?: string | null }) => {
     try {
       const firstCustomerSetup = appRole === "customer" && !customerProfileComplete;
+      if (firstCustomerSetup) {
+        const access = await saveCustomerAccessProfile(profile);
+        if (!access) throw new Error("Akses customer gagal disimpan.");
+        setAuthSession(access.session);
+        setAccountUser((user) => ({
+          ...user,
+          id: access.user?.id || access.session.userId || user.id,
+          name: access.user?.name ?? profile.name,
+          phone: access.user?.phone ?? profile.phone,
+          location: access.user?.location ?? profile.location,
+          image: access.user?.image ?? profile.profilePhoto ?? user.image,
+          walletBalance: user.walletBalance
+        }));
+        setOrderDraft((draft) => ({
+          ...draft,
+          address: profile.location,
+          addressNote: `Nomor HP customer: ${profile.phone}`
+        }));
+        notify("success", "Data customer tersimpan. Membuka beranda customer...");
+        goTo("home");
+        return;
+      }
+
       if (appRole === "customer") {
         const session = await ensureCustomerGuestSession();
         if (session) setAuthSession(session);
