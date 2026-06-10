@@ -787,21 +787,32 @@ export function AppLauncher() {
       title: "SERJAFAN Customer",
       description: "Aplikasi pelanggan untuk cari layanan, pesan mitra, bayar, dan tracking.",
       Icon: Home,
-      tone: "bg-blue-50 text-blue-700"
+      tone: "bg-blue-50 text-blue-700",
+      actions: [{ href: "/customer", label: "Buka Customer", primary: true }]
     },
     {
       href: "/partner",
       title: "SERJAFAN Partner",
       description: "Aplikasi mitra untuk status online, menerima pesanan, dan mengelola pekerjaan.",
       Icon: Wrench,
-      tone: "bg-emerald-50 text-emerald-700"
+      tone: "bg-emerald-50 text-emerald-700",
+      actions: [
+        { href: "/partner", label: "Buka Partner", primary: true },
+        { href: "/login/partner", label: "Login" },
+        { href: "/register/partner", label: "Daftar Mitra" }
+      ]
     },
     {
       href: "/admin",
       title: "SERJAFAN Admin",
       description: "Dashboard operasional untuk memantau sistem, verifikasi mitra, dan edit konfigurasi.",
       Icon: ShieldCheck,
-      tone: "bg-orange-50 text-orange-700"
+      tone: "bg-orange-50 text-orange-700",
+      actions: [
+        { href: "/admin", label: "Buka Admin", primary: true },
+        { href: "/login/admin", label: "Login" },
+        { href: "/register/admin", label: "Daftar Admin" }
+      ]
     }
   ];
 
@@ -815,17 +826,28 @@ export function AppLauncher() {
           <p className="mt-2 text-sm text-white/70">Customer, Partner, dan Admin sekarang dipisah sebagai aplikasi sendiri.</p>
         </div>
         <div className="grid gap-3 md:grid-cols-3">
-          {apps.map(({ href, title, description, Icon, tone }) => (
-            <Link key={href} href={href} className="rounded-[16px] bg-white p-4 shadow-soft transition hover:-translate-y-0.5">
+          {apps.map(({ href, title, description, Icon, tone, actions }) => (
+            <div key={href} className="rounded-[16px] bg-white p-4 shadow-soft transition hover:-translate-y-0.5">
               <span className={cn("mb-4 flex h-12 w-12 items-center justify-center rounded-[14px]", tone)}>
                 <Icon className="h-6 w-6" />
               </span>
               <h2 className="text-base font-extrabold">{title}</h2>
               <p className="mt-2 text-xs leading-5 text-slate-500">{description}</p>
-              <span className="mt-4 flex items-center gap-1 text-xs font-extrabold text-flame">
-                Buka aplikasi <ChevronRight className="h-4 w-4" />
-              </span>
-            </Link>
+              <div className="mt-4 grid gap-2">
+                {actions.map((action) => (
+                  <Link
+                    key={action.href}
+                    href={action.href}
+                    className={cn(
+                      "inline-flex h-10 items-center justify-center gap-1 rounded-[12px] text-xs font-extrabold",
+                      action.primary ? "bg-navy text-white" : "border border-slate-200 text-navy"
+                    )}
+                  >
+                    {action.label} <ChevronRight className="h-4 w-4" />
+                  </Link>
+                ))}
+              </div>
+            </div>
           ))}
         </div>
         <div className="mt-6 flex flex-wrap justify-center gap-3 text-xs font-semibold text-slate-500">
@@ -961,7 +983,9 @@ export function SerjafanApp({ appRole = "switcher" }: { appRole?: AppRole }) {
   };
 
   const handleAuthFailure = (error: unknown, roleToClear = role) => {
-    if (!(error instanceof ApiRequestError) || ![401, 403].includes(error.status)) return false;
+    if (!(error instanceof ApiRequestError)) return false;
+    const shouldResetSession = [401, 403].includes(error.status) || (appRole === "partner" && roleToClear === "PARTNER" && error.status === 404);
+    if (!shouldResetSession) return false;
     clearStoredSession(roleToClear);
     setAuthSession(null);
     setAuthReady(true);
@@ -1291,7 +1315,10 @@ export function SerjafanApp({ appRole = "switcher" }: { appRole?: AppRole }) {
   const submitProfile = async (profile: { name: string; phone: string; location: string; profilePhoto?: string | null }) => {
     try {
       const firstCustomerSetup = appRole === "customer" && !customerProfileComplete;
-      if (appRole === "customer") await ensureCustomerGuestSession();
+      if (appRole === "customer") {
+        const session = await ensureCustomerGuestSession();
+        if (session) setAuthSession(session);
+      }
 
       let response = await apiFetch("/api/me", "CUSTOMER", {
         method: "PUT",
@@ -1299,7 +1326,8 @@ export function SerjafanApp({ appRole = "switcher" }: { appRole?: AppRole }) {
       });
       if (appRole === "customer" && response.status === 401) {
         clearStoredSession("CUSTOMER");
-        await ensureCustomerGuestSession();
+        const session = await ensureCustomerGuestSession();
+        if (session) setAuthSession(session);
         response = await apiFetch("/api/me", "CUSTOMER", {
           method: "PUT",
           body: JSON.stringify(profile)
