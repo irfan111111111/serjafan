@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, LogIn, ShieldCheck, UserPlus } from "lucide-react";
@@ -43,6 +43,23 @@ export function LoginPage({ role }: { role: LoginRole }) {
   const [password, setPassword] = useState("");
   const [status, setStatus] = useState<{ kind: "idle" | "success" | "error"; message: string }>({ kind: "idle", message: "" });
   const [saving, setSaving] = useState(false);
+  const [adminCanRegister, setAdminCanRegister] = useState(role !== "admin");
+
+  useEffect(() => {
+    if (role !== "admin") return;
+    let active = true;
+    fetch("/api/register/admin", { cache: "no-store" })
+      .then((response) => readResponseJson(response))
+      .then((payload) => {
+        if (active) setAdminCanRegister(Boolean(payload?.data?.canRegister));
+      })
+      .catch(() => {
+        if (active) setAdminCanRegister(false);
+      });
+    return () => {
+      active = false;
+    };
+  }, [role]);
 
   const submit = async () => {
     setSaving(true);
@@ -94,10 +111,16 @@ export function LoginPage({ role }: { role: LoginRole }) {
             <Button variant="orange" size="lg" onClick={submit} disabled={saving}>
               <LogIn className="h-4 w-4" /> {saving ? "Memeriksa..." : "Masuk"}
             </Button>
-            <Link href={meta.register} className="inline-flex h-11 items-center justify-center gap-2 rounded-[14px] border-2 border-navy text-sm font-extrabold text-navy">
-              {role === "admin" ? <ShieldCheck className="h-4 w-4" /> : <UserPlus className="h-4 w-4" />}
-              {role === "admin" ? "Daftar admin pertama" : "Belum punya akun? Daftar"}
-            </Link>
+            {role !== "admin" || adminCanRegister ? (
+              <Link href={meta.register} className="inline-flex h-11 items-center justify-center gap-2 rounded-[14px] border-2 border-navy text-sm font-extrabold text-navy">
+                {role === "admin" ? <ShieldCheck className="h-4 w-4" /> : <UserPlus className="h-4 w-4" />}
+                {role === "admin" ? "Daftar admin pertama" : "Belum punya akun? Daftar"}
+              </Link>
+            ) : (
+              <div className="rounded-[14px] bg-slate-50 p-3 text-center text-xs font-bold leading-5 text-slate-500">
+                Admin SERJAFAN sudah dibuat. Aplikasi admin hanya memiliki satu akun admin.
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>

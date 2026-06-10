@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, FileText, ImageIcon, ShieldCheck, Sparkles, Upload, UserPlus, Wrench, X } from "lucide-react";
@@ -50,8 +50,29 @@ export function RegisterPage({ role }: { role: RegisterRole }) {
   const [admin, setAdmin] = useState(initialAdmin);
   const [status, setStatus] = useState<{ kind: "idle" | "success" | "error"; message: string }>({ kind: "idle", message: "" });
   const [saving, setSaving] = useState(false);
+  const [adminCanRegister, setAdminCanRegister] = useState(role !== "admin");
+  const [checkingAdmin, setCheckingAdmin] = useState(role === "admin");
   const isPartner = role === "partner";
   const isAdmin = role === "admin";
+
+  useEffect(() => {
+    if (!isAdmin) return;
+    let active = true;
+    fetch("/api/register/admin", { cache: "no-store" })
+      .then((response) => readResponseJson(response))
+      .then((payload) => {
+        if (active) setAdminCanRegister(Boolean(payload?.data?.canRegister));
+      })
+      .catch(() => {
+        if (active) setAdminCanRegister(false);
+      })
+      .finally(() => {
+        if (active) setCheckingAdmin(false);
+      });
+    return () => {
+      active = false;
+    };
+  }, [isAdmin]);
 
   const submit = async () => {
     setSaving(true);
@@ -98,6 +119,20 @@ export function RegisterPage({ role }: { role: RegisterRole }) {
           </p>
         </div>
 
+        {isAdmin && !checkingAdmin && !adminCanRegister ? (
+          <Card className="rounded-[18px] border-slate-100">
+            <CardContent className="grid gap-3 p-4 text-center">
+              <ShieldCheck className="mx-auto h-10 w-10 text-flame" />
+              <h2 className="text-lg font-extrabold text-navy">Admin sudah ada</h2>
+              <p className="text-sm leading-6 text-slate-500">
+                SERJAFAN hanya mengizinkan satu akun admin. Pendaftaran admin baru sudah ditutup.
+              </p>
+              <Link href="/login/admin" className="inline-flex h-11 items-center justify-center rounded-[14px] bg-navy text-sm font-extrabold text-white">
+                Kembali ke Login Admin
+              </Link>
+            </CardContent>
+          </Card>
+        ) : (
         <div className="grid gap-4 md:grid-cols-[1.4fr_0.8fr]">
           <Card className="rounded-[18px] border-slate-100">
             <CardContent className="grid gap-3 p-4">
@@ -186,6 +221,7 @@ export function RegisterPage({ role }: { role: RegisterRole }) {
             </Link>
           </div>
         </div>
+        )}
       </div>
     </main>
   );

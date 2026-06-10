@@ -781,6 +781,22 @@ export default function HomePage() {
 }
 
 export function AppLauncher() {
+  const [adminCanRegister, setAdminCanRegister] = useState(false);
+  useEffect(() => {
+    let active = true;
+    fetch("/api/register/admin", { cache: "no-store" })
+      .then((response) => parseJsonResponse(response))
+      .then((payload) => {
+        if (active) setAdminCanRegister(Boolean(payload?.data?.canRegister));
+      })
+      .catch(() => {
+        if (active) setAdminCanRegister(false);
+      });
+    return () => {
+      active = false;
+    };
+  }, []);
+
   const apps = [
     {
       href: "/customer",
@@ -809,7 +825,7 @@ export function AppLauncher() {
       tone: "bg-orange-50 text-orange-700",
       actions: [
         { href: "/login/admin", label: "Buka Login Admin", primary: true },
-        { href: "/register/admin", label: "Daftar Admin" }
+        ...(adminCanRegister ? [{ href: "/register/admin", label: "Daftar Admin" }] : [])
       ]
     }
   ];

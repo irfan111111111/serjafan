@@ -22,6 +22,28 @@ function cleanOptionalPhoto(value?: string) {
   return photo;
 }
 
+export async function GET() {
+  try {
+    await ensureRegistrationDatabase();
+    const firstAdmin = await db.query.user.findFirst({ where: eq(user.role, "ADMIN") });
+    const firstAdminAccount = firstAdmin
+      ? await db.query.account.findFirst({
+          where: and(eq(account.userId, firstAdmin.id), eq(account.providerId, "credential"))
+        })
+      : null;
+
+    return ok({
+      canRegister: !firstAdminAccount?.password,
+      adminExists: Boolean(firstAdminAccount?.password)
+    });
+  } catch {
+    return ok({
+      canRegister: false,
+      adminExists: true
+    });
+  }
+}
+
 export async function POST(request: Request) {
   try {
     const body = await readJson<AdminRegisterBody>(request);
