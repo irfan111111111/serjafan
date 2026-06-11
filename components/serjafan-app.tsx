@@ -410,6 +410,20 @@ const serviceIconByName = (name: string) => {
 
 const serviceDisplayName = (name: string) => (name.toLowerCase().startsWith("jasa ") ? name : `Jasa ${name}`);
 
+const customerCategoryLabel = (name: string) => {
+  const normalized = serviceDisplayName(name).replace(/^Jasa\s+/i, "");
+  const aliases: Record<string, string> = {
+    "Duplikat Kunci": "Kunci",
+    "Cuci Sepatu": "Cuci Sepatu",
+    "Servis Kipas": "Servis Kipas",
+    "Plat Nomor": "Plat Nomor",
+    "Foto Kopi": "Fotokopi",
+    Fotocopy: "Fotokopi",
+    Fotokopi: "Fotokopi"
+  };
+  return aliases[normalized] ?? normalized;
+};
+
 const serviceCategoryKey = (name: string) => name.trim().toLowerCase().replace(/^jasa\s+/, "");
 
 const serviceShortCopy = (service: ServiceItem) =>
@@ -2456,7 +2470,7 @@ function CustomerHome({
 
   return (
     <section className="animate-in fade-in slide-in-from-bottom-3 bg-white pb-4 duration-300">
-      <div className="relative overflow-hidden bg-[#0648bd] px-5 pb-28 pt-5 text-white">
+      <div className="relative overflow-hidden bg-[#0648bd] px-5 pb-20 pt-5 text-white">
         <div className="absolute -right-20 top-16 h-56 w-56 rounded-full bg-white/10" />
         <div className="relative flex items-center justify-between gap-4">
           <BrandMark light />
@@ -2471,15 +2485,14 @@ function CustomerHome({
           <span className="text-sm font-semibold text-slate-400">Cari layanan yang Anda butuhkan...</span>
         </button>
         <div className="relative mt-5 min-h-[168px] overflow-hidden rounded-[24px] bg-[#075bdd] p-5 shadow-[0_18px_40px_rgba(3,36,96,0.22)]">
-          <div className="absolute inset-y-0 right-0 w-[46%] bg-gradient-to-l from-[#003b9c] to-transparent" />
-          <div className="absolute bottom-0 right-[-6px] h-[132px] w-[190px] opacity-95">
-            <div className="absolute bottom-0 left-8 h-20 w-32 rounded-t-[18px] bg-[#0d2550]" />
-            <div className="absolute bottom-14 left-2 h-16 w-44 -skew-x-[24deg] rounded-tl-[70px] rounded-tr-[18px] bg-[#4b3324] shadow-[inset_0_8px_0_rgba(255,255,255,0.22)]" />
-            <div className="absolute bottom-16 left-24 h-20 w-20 skew-x-[18deg] rounded-tr-[70px] bg-[#2a241f] shadow-[inset_0_8px_0_rgba(255,255,255,0.18)]" />
-            <div className="absolute bottom-20 left-36 h-24 w-8 -skew-x-[8deg] rounded-t-full bg-[#1f2937]" />
-            <div className="absolute bottom-20 left-5 h-20 w-8 skew-x-[8deg] rounded-t-full bg-[#1f2937]" />
-          </div>
-          <div className="relative max-w-[58%]">
+          <img
+            src="/rumah-gadang-padang.svg"
+            alt="Rumah Gadang Padang"
+            className="absolute inset-y-0 right-0 h-full w-[52%] object-cover object-center opacity-95"
+          />
+          <div className="absolute inset-y-0 right-[38%] w-[34%] bg-gradient-to-r from-[#075bdd] via-[#075bdd]/92 to-transparent" />
+          <div className="absolute inset-y-0 left-0 w-[68%] bg-gradient-to-r from-[#075bdd] via-[#075bdd]/96 to-[#075bdd]/28" />
+          <div className="relative max-w-[62%]">
             <p className="text-[34px] font-black leading-none tracking-tight">Semua Jasa</p>
             <p className="mt-2 text-2xl font-black text-[#ffd34d]">Dalam Satu Aplikasi</p>
             <p className="mt-3 text-sm font-semibold text-white/82">Cepat - Mudah - Terpercaya</p>
@@ -2487,7 +2500,7 @@ function CustomerHome({
         </div>
       </div>
 
-      <div className="-mt-24 px-5">
+      <div className="-mt-14 px-5">
         <div className="rounded-[22px] bg-white p-4 shadow-[0_12px_32px_rgba(15,23,42,0.10)]">
           <div className="mb-4 flex items-center justify-between">
             <h2 className="text-lg font-black text-slate-950">Kategori Layanan</h2>
@@ -2507,7 +2520,7 @@ function CustomerHome({
               <span className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-[#eef5ff] text-[#075bdd] transition group-active:scale-95">
                 <Icon className="h-6 w-6" />
               </span>
-              <span className="mt-2 block truncate text-xs font-extrabold text-slate-800">{serviceDisplayName(service.name).replace("Jasa ", "")}</span>
+              <span className="mt-2 block text-balance-mobile text-xs font-extrabold leading-4 text-slate-800">{customerCategoryLabel(service.name)}</span>
               <span className="sr-only">{count ? `${count} mitra aktif` : "Belum ada mitra"}</span>
             </button>
             );
@@ -2529,7 +2542,7 @@ function CustomerHome({
                     <Icon className="h-10 w-10" />
                   </div>
                   <div className="p-3">
-                    <p className="line-clamp-2 min-h-[34px] text-sm font-black leading-4 text-slate-950">{serviceDisplayName(service.name).replace("Jasa ", "")}</p>
+                    <p className="line-clamp-2 min-h-[34px] text-sm font-black leading-4 text-slate-950">{customerCategoryLabel(service.name)}</p>
                     <p className="mt-2 flex items-center gap-1 text-xs font-black text-slate-700">
                       <Star className="h-3.5 w-3.5 fill-[#ffc43d] text-[#ffc43d]" /> 4.9
                     </p>
