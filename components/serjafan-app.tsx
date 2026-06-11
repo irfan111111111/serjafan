@@ -60,7 +60,6 @@ type Screen =
   | "profile"
   | "wallet"
   | "topup"
-  | "transfer"
   | "walletHistory"
   | "editProfile"
   | "partnerWallet"
@@ -866,6 +865,14 @@ export function AppLauncher() {
           <p className="mt-4 text-xs font-bold text-white/65">SERJAFAN SUPER APP</p>
           <h1 className="mt-1 text-2xl font-extrabold">Pilih aplikasi</h1>
           <p className="mt-2 text-sm text-white/70">Customer, Partner, dan Admin sekarang dipisah sebagai aplikasi sendiri.</p>
+          <div className="mt-4 inline-flex max-w-full flex-wrap items-center gap-2 rounded-full border border-white/15 bg-white/10 px-3 py-2 text-[11px] font-extrabold text-white/80">
+            <ShieldCheck className="h-3.5 w-3.5 shrink-0 text-flame" />
+            <span className="uppercase tracking-[0.12em]">Founder</span>
+            <span className="h-1 w-1 rounded-full bg-white/35" />
+            <span>Rahmad Irfan</span>
+            <span className="h-1 w-1 rounded-full bg-white/35" />
+            <span className="text-white/65">Padang, Sumatera Barat</span>
+          </div>
         </div>
         <div className="grid gap-3 md:grid-cols-3">
           {apps.map(({ href, title, description, Icon, tone, actions }) => (
@@ -1022,6 +1029,18 @@ export function SerjafanApp({ appRole = "switcher" }: { appRole?: AppRole }) {
   const notify = (kind: ToastKind, message: string) => {
     setToast({ kind, message });
     window.setTimeout(() => setToast(null), 3200);
+  };
+
+  const logoutCurrentUser = () => {
+    clearStoredSession(role);
+    setAuthSession(null);
+    setAccountUser(currentUser);
+    setCustomerOrders([]);
+    setWalletTransactions([]);
+    setMessages([]);
+    setNotifications([]);
+    setScreen(initialScreenByRole[appRole]);
+    notify("success", "Akun berhasil keluar dari perangkat ini.");
   };
 
   const handleAuthFailure = (error: unknown, roleToClear = role) => {
@@ -1334,23 +1353,6 @@ export function SerjafanApp({ appRole = "switcher" }: { appRole?: AppRole }) {
       goTo("wallet");
     } catch (error) {
       notify("error", error instanceof Error ? error.message : "Top Up gagal dibuat.");
-    }
-  };
-
-  const submitTransfer = async (target: string, amount: number, note: string) => {
-    try {
-      const response = await apiFetch("/api/wallet/transfer", "CUSTOMER", {
-        method: "POST",
-        body: JSON.stringify({ target, amount, note })
-      });
-      const payload = (await parseJsonResponse(response)) as { data?: { wallet?: { balance: number }; transaction?: WalletTransaction }; error?: { message?: string } };
-      if (!response.ok) throw new Error(payload.error?.message ?? "Transfer gagal diproses.");
-      setAccountUser((user) => ({ ...user, walletBalance: payload.data?.wallet?.balance ?? Math.max(0, user.walletBalance - amount) }));
-      if (payload.data?.transaction) setWalletTransactions((items) => [payload.data!.transaction!, ...items]);
-      notify("success", "Transfer berhasil dan riwayat sudah dicatat.");
-      goTo("profile");
-    } catch (error) {
-      notify("error", error instanceof Error ? error.message : "Transfer gagal diproses.");
     }
   };
 
@@ -2249,7 +2251,6 @@ export function SerjafanApp({ appRole = "switcher" }: { appRole?: AppRole }) {
             onOpenOrders={() => void openOrderCenter()}
             onOpenSearch={openSearch}
             onOpenTopup={() => goTo("topup")}
-            onOpenTransfer={() => goTo("transfer")}
             onOpenWalletHistory={() => void openWalletHistory()}
           />
         )}
@@ -2326,14 +2327,14 @@ export function SerjafanApp({ appRole = "switcher" }: { appRole?: AppRole }) {
             onOpenNotifications={() => void openNotifications()}
             onOpenWallet={() => goTo("wallet")}
             onOpenTopup={() => goTo("topup")}
-            onOpenTransfer={() => goTo("transfer")}
             onOpenWalletHistory={() => void openWalletHistory()}
             onEditProfile={() => goTo("editProfile")}
+            onLogout={logoutCurrentUser}
+            orderCount={customerOrders.length}
           />
         )}
         {screen === "wallet" && <WalletScreen user={accountUser} onBack={() => goTo("profile")} onOpenTopup={() => goTo("topup")} onOpenHistory={() => void openWalletHistory()} />}
         {screen === "topup" && <TopUpScreen balance={accountUser.walletBalance} onBack={() => goTo("wallet")} onSubmit={submitTopUp} settings={adminSettings} />}
-        {screen === "transfer" && <TransferScreen balance={accountUser.walletBalance} onBack={() => goTo("profile")} onSubmit={submitTransfer} />}
         {screen === "walletHistory" && <WalletHistoryScreen transactions={walletTransactions} onBack={() => goTo("profile")} />}
         {screen === "editProfile" && <EditProfileScreen user={accountUser} onBack={() => goTo("profile")} onSubmit={submitProfile} />}
         {screen === "partner" && (
@@ -2432,7 +2433,7 @@ export function SerjafanApp({ appRole = "switcher" }: { appRole?: AppRole }) {
           onClose={() => setDrawer("notifications")}
         />
       )}
-      {showBottomNav && <BottomNav active={screen} onNavigate={goTo} onOpenSearch={openSearch} onOpenProfile={openProfile} />}
+      {showBottomNav && <BottomNav active={screen} onNavigate={goTo} onOpenMessages={() => void openMessages()} onOpenProfile={openProfile} />}
     </main>
   );
 }
@@ -2449,7 +2450,6 @@ function CustomerHome({
   onOpenOrders,
   onOpenSearch,
   onOpenTopup,
-  onOpenTransfer,
   onOpenWalletHistory
 }: {
   user: CurrentUser;
@@ -2463,7 +2463,6 @@ function CustomerHome({
   onOpenOrders: () => void;
   onOpenSearch: () => void;
   onOpenTopup: () => void;
-  onOpenTransfer: () => void;
   onOpenWalletHistory: () => void;
 }) {
   const partnerCountByCategory = useMemo(() => {
@@ -2476,49 +2475,44 @@ function CustomerHome({
   }, [partners]);
 
   return (
-    <section className="animate-in fade-in slide-in-from-bottom-3 duration-300">
-      <div className="relative overflow-hidden rounded-b-[28px] bg-gradient-to-br from-navy to-[#1a3a6e] px-4 pb-7 pt-4 text-white sm:px-5">
-        <div className="relative flex items-center justify-between">
-          <div className="min-w-0 flex-1 pr-3">
-            <h1 className="truncate text-[15px] font-extrabold">Halo, {user.name}</h1>
-            <p className="mt-1 flex min-w-0 items-center gap-1 text-xs text-white/65">
-              <MapPin className="h-3.5 w-3.5 shrink-0" /> <span className="truncate">{user.location}</span>
-            </p>
-          </div>
-          <Button size="icon" variant="ghost" className="relative rounded-xl bg-white/10 text-white hover:bg-white/20" onClick={onOpenNotifications}>
-            <Bell className="h-5 w-5" />
-            <span className="absolute right-2 top-2 h-2 w-2 rounded-full bg-flame ring-2 ring-navy" />
-          </Button>
+    <section className="animate-in fade-in slide-in-from-bottom-3 bg-white pb-4 duration-300">
+      <div className="relative overflow-hidden bg-[#0648bd] px-5 pb-28 pt-5 text-white">
+        <div className="absolute -right-20 top-16 h-56 w-56 rounded-full bg-white/10" />
+        <div className="relative flex items-center justify-between gap-4">
+          <BrandMark light />
+          <button type="button" className="flex min-w-0 items-center gap-1 rounded-full bg-white/10 px-3 py-2 text-sm font-bold text-white" onClick={onOpenSearch}>
+            <MapPin className="h-4 w-4 shrink-0" />
+            <span className="truncate">Padang</span>
+            <ChevronRight className="h-4 w-4 rotate-90" />
+          </button>
         </div>
-
-        <div className="relative mt-4 overflow-hidden rounded-[20px] bg-gradient-to-br from-flame to-[#ff9a3c] p-4">
-          <p className="text-[11px] font-bold uppercase tracking-wide text-white/80">Saldo SERJAFAN Pay</p>
-          <p className="mt-1 text-[26px] font-extrabold leading-tight">Rp {formatRupiah(user.walletBalance)}</p>
-          <div className="mt-4 grid grid-cols-1 gap-2 min-[360px]:grid-cols-3">
-            <Button size="sm" className="rounded-[10px] border border-white/30 bg-white/20 text-white hover:bg-white/30" onClick={onOpenTopup}>
-              <Wallet className="h-4 w-4" /> Top Up
-            </Button>
-            <Button size="sm" className="rounded-[10px] border border-white/30 bg-white/20 text-white hover:bg-white/30" onClick={onOpenTransfer}>
-              <CreditCard className="h-4 w-4" /> Transfer
-            </Button>
-            <Button size="sm" className="rounded-[10px] border border-white/30 bg-white/20 text-white hover:bg-white/30" onClick={onOpenWalletHistory}>
-              <ListOrdered className="h-4 w-4" /> Riwayat
-            </Button>
-          </div>
-        </div>
-      </div>
-
-      <div className="px-4 pt-4 sm:px-5">
-        <button type="button" onClick={onOpenSearch} className="flex w-full items-center gap-3 rounded-[14px] border border-slate-100 bg-white px-4 py-3 text-left shadow-soft">
-          <Search className="h-5 w-5 text-flame" />
-          <span className="text-sm text-slate-500">Cari layanan, mitra, atau promo...</span>
+        <button type="button" onClick={onOpenSearch} className="relative mt-6 flex w-full items-center gap-3 rounded-[18px] bg-white px-4 py-4 text-left shadow-[0_14px_34px_rgba(0,0,0,0.14)]">
+          <Search className="h-5 w-5 text-slate-400" />
+          <span className="text-sm font-semibold text-slate-400">Cari layanan yang Anda butuhkan...</span>
         </button>
+        <div className="relative mt-5 overflow-hidden rounded-[24px] bg-[#075bdd] p-5 shadow-[0_18px_40px_rgba(3,36,96,0.22)]">
+          <div className="absolute -right-8 bottom-0 h-32 w-40 rounded-tl-[80px] bg-white/12" />
+          <p className="text-[34px] font-black leading-none tracking-tight">Semua Jasa</p>
+          <p className="mt-2 text-2xl font-black text-[#ffd34d]">Dalam Satu Aplikasi</p>
+          <p className="mt-3 text-sm font-semibold text-white/82">Cepat - Mudah - Terpercaya</p>
+          <div className="mt-5 flex flex-wrap gap-2">
+            <button type="button" onClick={onOpenTopup} className="rounded-full bg-white px-4 py-2 text-xs font-black text-[#0648bd]">
+              Top Up
+            </button>
+            <button type="button" onClick={onOpenWalletHistory} className="rounded-full bg-white/15 px-4 py-2 text-xs font-black text-white">
+              Riwayat Saldo
+            </button>
+          </div>
+        </div>
       </div>
 
-      <PromoShowcase promos={promos} onOpenPartnerList={onOpenPartnerList} />
-
-      <Section title="Layanan Populer" action="Pilih kategori jasa">
-        <div className="grid grid-cols-1 gap-3 min-[380px]:grid-cols-2">
+      <div className="-mt-24 px-5">
+        <div className="rounded-[22px] bg-white p-4 shadow-[0_12px_32px_rgba(15,23,42,0.10)]">
+          <div className="mb-4 flex items-center justify-between">
+            <h2 className="text-lg font-black text-slate-950">Kategori Layanan</h2>
+            <button type="button" onClick={() => onOpenPartnerList()} className="text-sm font-black text-[#075bdd]">Lihat Semua</button>
+          </div>
+          <div className="grid grid-cols-4 gap-3">
           {services.map((service) => {
             const Icon = service.icon;
             const count = partnerCountByCategory.get(serviceCategoryKey(service.name)) ?? 0;
@@ -2527,45 +2521,47 @@ function CustomerHome({
               key={service.name}
               type="button"
               onClick={() => onOpenPartnerList(service.name)}
-              className="group relative min-h-[156px] overflow-hidden rounded-[18px] border border-slate-100 bg-white p-4 text-left shadow-soft transition hover:-translate-y-0.5"
+              className="group min-w-0 text-center"
             >
-              <span className={cn("relative flex h-12 w-12 items-center justify-center rounded-[16px]", service.tone)}>
-                <Icon className="h-5 w-5" />
+              <span className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-[#eef5ff] text-[#075bdd] transition group-active:scale-95">
+                <Icon className="h-6 w-6" />
               </span>
-              <span className="relative mt-3 block text-[15px] font-black leading-tight">{serviceDisplayName(service.name)}</span>
-              <span className="relative mt-1 line-clamp-2 min-h-[36px] text-xs font-semibold leading-[18px] text-slate-500">{serviceShortCopy(service)}</span>
-              <span className="relative mt-3 flex flex-wrap items-center justify-between gap-2">
-                <span className="rounded-full bg-cloud px-2.5 py-1 text-[10px] font-extrabold text-slate-600">
-                  {count ? `${count} mitra aktif` : "Belum ada mitra"}
-                </span>
-                <span className="flex items-center gap-1 text-[10px] font-black text-flame">
-                  Buka <ChevronRight className="h-3.5 w-3.5" />
-                </span>
-              </span>
-              {service.basePrice ? <span className="relative mt-2 block text-[11px] font-bold text-slate-400">Mulai Rp {formatRupiah(service.basePrice)}</span> : null}
+              <span className="mt-2 block truncate text-xs font-extrabold text-slate-800">{serviceDisplayName(service.name).replace("Jasa ", "")}</span>
+              <span className="sr-only">{count ? `${count} mitra aktif` : "Belum ada mitra"}</span>
             </button>
             );
-          })}
+          }).slice(0, 8)}
+          </div>
         </div>
-      </Section>
 
-      <Section title="Pesan & Bantuan" action="Buka inbox">
-        <div className="grid gap-2">
-          <button
-            type="button"
-            onClick={onOpenMessages}
-            className="flex items-center justify-between rounded-[16px] bg-white p-4 text-left shadow-soft"
-          >
-            <div>
-              <p className="text-sm font-extrabold">Pesan masuk</p>
-              <p className="text-xs text-slate-500">Lihat chat dengan mitra dan support.</p>
-            </div>
-            <MessageCircle className="h-5 w-5 text-flame" />
-          </button>
+        <div className="mt-4 rounded-[22px] bg-white p-4 shadow-[0_12px_32px_rgba(15,23,42,0.08)]">
+          <div className="mb-4 flex items-center justify-between">
+            <h2 className="text-lg font-black text-slate-950">Layanan Populer</h2>
+            <button type="button" onClick={() => onOpenPartnerList()} className="text-sm font-black text-[#075bdd]">Lihat Semua</button>
+          </div>
+          <div className="grid grid-cols-3 gap-3">
+            {services.slice(0, 3).map((service) => {
+              const Icon = service.icon;
+              return (
+                <button key={service.name} type="button" onClick={() => onOpenPartnerList(service.name)} className="overflow-hidden rounded-[18px] border border-slate-100 bg-white text-left shadow-[0_8px_22px_rgba(15,23,42,0.08)]">
+                  <div className="flex h-24 items-center justify-center bg-[#eef5ff] text-[#075bdd]">
+                    <Icon className="h-10 w-10" />
+                  </div>
+                  <div className="p-3">
+                    <p className="line-clamp-2 min-h-[34px] text-sm font-black leading-4 text-slate-950">{serviceDisplayName(service.name).replace("Jasa ", "")}</p>
+                    <p className="mt-2 flex items-center gap-1 text-xs font-black text-slate-700">
+                      <Star className="h-3.5 w-3.5 fill-[#ffc43d] text-[#ffc43d]" /> 4.9
+                    </p>
+                  </div>
+                </button>
+              );
+            })}
+          </div>
         </div>
-      </Section>
 
-      <Section title="Mitra Terdekat" action="Lihat peta mitra">
+        <PromoShowcase promos={promos} onOpenPartnerList={onOpenPartnerList} />
+
+        <Section title="Mitra Terdekat" action="Lihat peta mitra">
         {partners.length ? (
           <div className="flex gap-3 overflow-x-auto pb-1 no-scrollbar">
             {partners.map(({ Icon, name, category, distance, rating, reviews, status, tone, id }) => (
@@ -2600,7 +2596,8 @@ function CustomerHome({
             Belum ada mitra terverifikasi di Kota Padang. Mitra akan muncul setelah pendaftaran partner disetujui admin.
           </div>
         )}
-      </Section>
+        </Section>
+      </div>
     </section>
   );
 }
@@ -3466,42 +3463,98 @@ function OrdersCenter({
   onOrderNow: () => void;
 }) {
   const [reviewDrafts, setReviewDrafts] = useState<Record<string, { rating: number; comment: string }>>({});
+  const [activeStatus, setActiveStatus] = useState("ALL");
+  const statusFilters = [
+    { label: "Semua", status: "ALL", Icon: ListOrdered },
+    { label: "Menunggu", status: "PENDING", Icon: Clock },
+    { label: "Diproses", status: "CONFIRMED", Icon: Wrench },
+    { label: "Selesai", status: "DONE", Icon: Check },
+    { label: "Dibatalkan", status: "CANCELLED", Icon: X }
+  ];
+  const statusTone = (status: string) => {
+    if (status === "DONE") return "bg-emerald-50 text-emerald-700";
+    if (status === "PENDING") return "bg-amber-50 text-amber-700";
+    if (status === "CANCELLED" || status === "REJECTED") return "bg-red-50 text-red-700";
+    return "bg-blue-50 text-[#075bdd]";
+  };
+  const visibleOrders = activeStatus === "ALL" ? orders : orders.filter((order) => {
+    if (activeStatus === "CONFIRMED") return !["PENDING", "DONE", "CANCELLED", "REJECTED"].includes(order.status);
+    if (activeStatus === "CANCELLED") return ["CANCELLED", "REJECTED"].includes(order.status);
+    return order.status === activeStatus;
+  });
+
   return (
-    <section className="animate-in fade-in slide-in-from-bottom-3 p-5 duration-300">
-      <div className="mb-5 flex items-center justify-between">
-        <div>
-          <h1 className="text-xl font-extrabold">Pesanan</h1>
-          <p className="text-xs text-slate-500">Pesanan aktif dan riwayat Anda.</p>
+    <section className="animate-in fade-in slide-in-from-bottom-3 bg-white pb-6 duration-300">
+      <div className="bg-[#0648bd] px-5 pb-12 pt-5 text-white">
+        <div className="flex items-center justify-between gap-4">
+          <BrandMark light />
+          <button type="button" className="flex items-center gap-1 rounded-full bg-white/10 px-3 py-2 text-sm font-bold">
+            <MapPin className="h-4 w-4" /> Padang <ChevronRight className="h-4 w-4 rotate-90" />
+          </button>
         </div>
-        <Button variant="orange" size="sm" onClick={onOrderNow}>
-          <ShoppingCart className="h-4 w-4" /> Pesan Baru
-        </Button>
       </div>
 
-      {loading ? (
-        <div className="rounded-[18px] bg-white p-4 shadow-soft">
+      <div className="-mt-7 rounded-t-[24px] bg-white px-5 pt-6">
+        <div className="mb-5 flex items-center justify-between gap-3">
+          <h1 className="text-2xl font-black text-slate-950">Pesanan Saya</h1>
+          <div className="flex items-center gap-2">
+            <button type="button" className="flex h-11 w-11 items-center justify-center rounded-full bg-white text-[#075bdd] shadow-[0_8px_22px_rgba(15,23,42,0.08)]">
+              <Search className="h-5 w-5" />
+            </button>
+            <button type="button" onClick={onOrderNow} className="rounded-[14px] border border-slate-200 bg-white px-4 py-3 text-sm font-black text-slate-700">
+              Pesan
+            </button>
+          </div>
+        </div>
+        <div className="mb-5 flex gap-2 overflow-x-auto pb-1 no-scrollbar">
+          {statusFilters.map(({ label, status, Icon }, index) => (
+            <button
+              key={status}
+              type="button"
+              onClick={() => setActiveStatus(status)}
+              className={cn(
+                "flex shrink-0 items-center gap-2 rounded-[14px] border px-4 py-3 text-xs font-black",
+                activeStatus === status ? "border-[#075bdd] bg-[#075bdd] text-white" : "border-slate-100 bg-white text-slate-700"
+              )}
+            >
+              <Icon className="h-4 w-4" /> {label}
+            </button>
+          ))}
+        </div>
+
+        {loading ? (
+          <div className="rounded-[18px] bg-white p-4 shadow-soft">
           <div className="h-4 w-28 animate-pulse rounded bg-slate-200" />
           <div className="mt-3 h-20 animate-pulse rounded bg-slate-100" />
-        </div>
-      ) : orders.length ? (
-        <div className="space-y-3">
-          {orders.map((order) => (
-            <div key={order.id} className="rounded-[18px] bg-white p-4 shadow-soft">
-              <div className="flex items-start justify-between gap-3">
-                <div>
-                  <p className="text-[11px] font-bold text-slate-500">{order.id}</p>
-                  <h2 className="text-sm font-extrabold">{order.addressTitle}</h2>
-                  <p className="text-xs text-slate-500">{order.scheduleTitle}</p>
+          </div>
+        ) : visibleOrders.length ? (
+          <div className="space-y-4">
+          {visibleOrders.map((order) => (
+            <div key={order.id} className="rounded-[20px] bg-white p-4 shadow-[0_10px_28px_rgba(15,23,42,0.08)]">
+              <div className="flex gap-4">
+                <div className="flex h-28 w-28 shrink-0 items-center justify-center rounded-[18px] bg-[#eef5ff] text-[#075bdd]">
+                  <Wrench className="h-10 w-10" />
                 </div>
-                <Badge variant={order.status === "PENDING" ? "warning" : "orange"}>{order.status}</Badge>
-              </div>
-              <div className="mt-3 flex items-center justify-between text-xs text-slate-500">
-                <span>{order.partner?.name ?? "Mitra"}</span>
-                <span>Rp {formatRupiah(order.total ?? 0)}</span>
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="min-w-0">
+                      <h2 className="truncate text-lg font-black text-slate-950">{order.partner?.category ?? order.partner?.name ?? "Layanan SERJAFAN"}</h2>
+                      <p className="mt-1 truncate text-sm font-black text-[#075bdd]">#{order.id}</p>
+                    </div>
+                    <span className={cn("shrink-0 rounded-[10px] px-3 py-2 text-xs font-black", statusTone(order.status))}>{order.status}</span>
+                  </div>
+                  <p className="mt-2 flex items-center gap-2 truncate text-sm font-semibold text-slate-500">
+                    <Calendar className="h-4 w-4 shrink-0" /> {order.scheduleTitle ?? "Jadwal fleksibel"}
+                  </p>
+                  <p className="mt-1 flex items-center gap-2 truncate text-sm font-semibold text-slate-500">
+                    <MapPin className="h-4 w-4 shrink-0" /> {order.addressTitle}
+                  </p>
+                  <p className="mt-3 text-right text-lg font-black text-slate-950">Rp {formatRupiah(order.total ?? 0)}</p>
+                </div>
               </div>
               <div className="mt-3 flex gap-2">
-                <Button variant="outline" className="flex-1 border-2 border-navy text-navy" disabled={order.status === "PENDING"} onClick={() => onOpenTracking(order)}>
-                  <MapPin className="h-4 w-4" /> Tracking
+                <Button variant="outline" className="flex-1 rounded-[12px] border-2 border-[#075bdd] text-[#075bdd]" disabled={order.status === "PENDING"} onClick={() => onOpenTracking(order)}>
+                  Lihat Detail
                 </Button>
               </div>
               {order.status === "DONE" && (
@@ -3547,38 +3600,41 @@ function OrdersCenter({
               {order.status === "PENDING" && <p className="mt-2 text-xs font-bold text-amber-700">Menunggu konfirmasi pemilik jasa.</p>}
             </div>
           ))}
-        </div>
-      ) : (
-        <div className="rounded-[18px] bg-white p-5 text-center shadow-soft">
-          <p className="text-sm font-bold">Belum ada pesanan</p>
-          <p className="mt-1 text-xs text-slate-500">Silakan buat pesanan baru dari layanan atau mitra.</p>
-          <Button variant="navy" className="mt-4" onClick={onOrderNow}>
-            Pesan Sekarang
-          </Button>
-        </div>
-      )}
+          </div>
+        ) : (
+          <div className="rounded-[18px] bg-white p-5 text-center shadow-soft">
+            <p className="text-sm font-bold">Belum ada pesanan</p>
+            <p className="mt-1 text-xs text-slate-500">{orders.length ? "Tidak ada pesanan pada filter ini." : "Silakan buat pesanan baru dari layanan atau mitra."}</p>
+            <Button variant="navy" className="mt-4" onClick={onOrderNow}>
+              Pesan Sekarang
+            </Button>
+          </div>
+        )}
+      </div>
     </section>
   );
 }
 
 function ProfileScreen({
   user,
+  orderCount,
   onOpenOrders,
   onOpenNotifications,
   onOpenWallet,
   onOpenTopup,
-  onOpenTransfer,
   onOpenWalletHistory,
-  onEditProfile
+  onEditProfile,
+  onLogout
 }: {
   user: CurrentUser;
+  orderCount: number;
   onOpenOrders: () => void;
   onOpenNotifications: () => void;
   onOpenWallet: () => void;
   onOpenTopup: () => void;
-  onOpenTransfer: () => void;
   onOpenWalletHistory: () => void;
   onEditProfile: () => void;
+  onLogout: () => void;
 }) {
   const initials = user.name
     .split(" ")
@@ -3586,66 +3642,110 @@ function ProfileScreen({
     .slice(0, 2)
     .map((part) => part[0]?.toUpperCase())
     .join("") || "SF";
+  const profileActions = [
+    { icon: ShoppingBag, label: "Riwayat Pesanan", onClick: onOpenOrders },
+    { icon: Wallet, label: "Pembayaran Saya", onClick: onOpenWallet },
+    { icon: MapPin, label: "Alamat Saya", onClick: onEditProfile },
+    { icon: Tag, label: "Kupon Saya", onClick: onOpenWalletHistory },
+    { icon: Heart, label: "Favorit Layanan", onClick: onOpenOrders },
+    { icon: Star, label: "Ulasan Saya", onClick: onOpenOrders }
+  ];
+  const supportActions = [
+    { icon: MessageCircle, label: "Pusat Bantuan", onClick: onOpenNotifications },
+    { icon: Phone, label: "Hubungi Kami", onClick: onOpenNotifications },
+    { icon: ShieldCheck, label: "Tentang SERJAFAN", onClick: onOpenNotifications },
+    { icon: ShieldCheck, label: "Kebijakan Privasi", onClick: onOpenNotifications },
+    { icon: ListOrdered, label: "Syarat & Ketentuan", onClick: onOpenNotifications }
+  ];
 
   return (
-    <section className="animate-in fade-in slide-in-from-bottom-3 p-5 duration-300">
-      <h1 className="text-xl font-extrabold">Profil</h1>
-      <div className="mt-4 overflow-hidden rounded-[18px] bg-navy text-white shadow-soft">
-        <div className="p-4">
-          <BrandMark compact light />
-          <div className="mt-5 flex items-center gap-3">
+    <section className="animate-in fade-in slide-in-from-bottom-3 bg-white pb-6 duration-300">
+      <div className="bg-[#0648bd] px-5 pb-24 pt-5 text-white">
+        <div className="flex items-center justify-between gap-4">
+          <BrandMark light />
+          <button type="button" className="flex items-center gap-1 rounded-full bg-white/10 px-3 py-2 text-sm font-bold">
+            <MapPin className="h-4 w-4" /> Padang <ChevronRight className="h-4 w-4 rotate-90" />
+          </button>
+        </div>
+        <div className="mt-7 flex items-center justify-between">
+          <h1 className="text-2xl font-black">Akun Saya</h1>
+          <div className="flex items-center gap-3">
+            <button type="button" onClick={onOpenNotifications} className="relative rounded-full bg-white/10 p-2.5">
+              <Bell className="h-5 w-5" />
+              <span className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-[10px] font-black">3</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div className="-mt-16 px-5">
+        <div className="overflow-hidden rounded-[20px] bg-white shadow-[0_12px_34px_rgba(15,23,42,0.12)]">
+          <div className="flex items-start gap-4 p-4">
             {user.image ? (
-              <img src={user.image} alt={user.name} className="h-16 w-16 rounded-[16px] border-2 border-white/20 object-cover" />
+              <img src={user.image} alt={user.name} className="h-20 w-20 rounded-full border-4 border-[#eef5ff] object-cover" />
             ) : (
-              <span className="flex h-16 w-16 items-center justify-center rounded-[16px] bg-white text-base font-extrabold text-navy">{initials}</span>
+              <span className="flex h-20 w-20 shrink-0 items-center justify-center rounded-full border-4 border-[#eef5ff] bg-[#eaf2ff] text-xl font-black text-[#075bdd]">{initials}</span>
             )}
-            <div className="min-w-0">
-              <h2 className="truncate text-lg font-extrabold">{user.name}</h2>
-              <p className="truncate text-xs font-bold text-white/65">{user.phone || "Nomor HP belum diatur"} - {user.location}</p>
+            <div className="min-w-0 flex-1">
+              <div className="flex items-start justify-between gap-2">
+                <div className="min-w-0">
+                  <h2 className="truncate text-lg font-black text-slate-950">{user.name}</h2>
+                  <p className="mt-1 truncate text-sm font-semibold text-slate-500">{user.phone || "Nomor HP belum diatur"}</p>
+                  <p className="mt-1 truncate text-sm font-semibold text-slate-500">Akun Customer SERJAFAN</p>
+                  <p className="mt-2 flex items-center gap-1 truncate text-xs font-bold text-slate-500">
+                    <MapPin className="h-3.5 w-3.5 text-[#075bdd]" /> {user.location}
+                  </p>
+                </div>
+                <button type="button" onClick={onEditProfile} className="shrink-0 rounded-[12px] bg-[#eef5ff] px-3 py-2 text-xs font-black text-[#075bdd]">
+                  Edit Profil
+                </button>
+              </div>
             </div>
           </div>
-        </div>
-        <div className="grid grid-cols-2 border-t border-white/10 bg-white/5">
-          <button type="button" onClick={onOpenWallet} className="p-4 text-left">
-            <p className="text-[10px] font-bold uppercase text-white/55">Saldo aktif</p>
-            <p className="mt-1 text-sm font-extrabold">Rp {formatRupiah(user.walletBalance)}</p>
-          </button>
-          <button type="button" onClick={onEditProfile} className="border-l border-white/10 p-4 text-left">
-            <p className="text-[10px] font-bold uppercase text-white/55">Akun</p>
-            <p className="mt-1 text-sm font-extrabold">Terverifikasi aplikasi</p>
-          </button>
-        </div>
-      </div>
-      <div className="mt-4 grid grid-cols-3 gap-2">
-        <button type="button" onClick={onOpenTopup} className="rounded-[16px] bg-white p-3 text-center shadow-soft">
-          <Wallet className="mx-auto h-5 w-5 text-flame" />
-          <span className="mt-2 block text-xs font-extrabold">Top Up</span>
-        </button>
-        <button type="button" onClick={onOpenTransfer} className="rounded-[16px] bg-white p-3 text-center shadow-soft">
-          <CreditCard className="mx-auto h-5 w-5 text-flame" />
-          <span className="mt-2 block text-xs font-extrabold">Transfer</span>
-        </button>
-        <button type="button" onClick={onOpenNotifications} className="rounded-[16px] bg-white p-3 text-center shadow-soft">
-          <Bell className="mx-auto h-5 w-5 text-flame" />
-          <span className="mt-2 block text-xs font-extrabold">Lonceng</span>
-        </button>
-      </div>
-      <div className="mt-4 rounded-[16px] bg-white p-4 shadow-soft">
-        <div className="flex items-center gap-3">
-          <span className="flex h-11 w-11 items-center justify-center rounded-[14px] bg-orange-50 text-flame">
-            <ShieldCheck className="h-5 w-5" />
-          </span>
-          <div>
-            <h2 className="text-sm font-extrabold">Keamanan dompet aktif</h2>
-            <p className="text-xs text-slate-500">Setiap transaksi dicatat di riwayat dan dikirim ke notifikasi akun.</p>
+          <div className="grid grid-cols-4 border-t border-slate-100">
+            {[
+              { icon: ShoppingBag, value: String(orderCount), label: "Pesanan" },
+              { icon: Star, value: orderCount ? "Aktif" : "Baru", label: "Status" },
+              { icon: Wallet, value: `Rp ${formatRupiah(user.walletBalance)}`, label: "Saldo" },
+              { icon: Tag, value: "Admin", label: "Promo" }
+            ].map(({ icon: Icon, value, label }) => (
+              <button key={label} type="button" onClick={label === "Saldo" ? onOpenWallet : onOpenOrders} className="min-w-0 border-r border-slate-100 px-2 py-4 text-center last:border-r-0">
+                <Icon className="mx-auto h-5 w-5 text-[#075bdd]" />
+                <p className="mt-2 truncate text-sm font-black text-slate-950">{value}</p>
+                <p className="mt-1 truncate text-[10px] font-semibold text-slate-500">{label}</p>
+              </button>
+            ))}
           </div>
         </div>
-      </div>
-      <div className="mt-4 grid gap-2">
-        <ProfileAction icon={Wallet} label="Dompet SERJAFAN" onClick={onOpenWallet} />
-        <ProfileAction icon={ListOrdered} label="Riwayat transaksi" onClick={onOpenWalletHistory} />
-        <ProfileAction icon={ShoppingBag} label="Pesanan saya" onClick={onOpenOrders} />
-        <ProfileAction icon={UserCircle} label="Edit profil" onClick={onEditProfile} />
+
+        <div className="mt-4 flex items-center justify-between gap-3 rounded-[18px] bg-[#eef5ff] p-4">
+          <div className="flex items-center gap-3">
+            <span className="flex h-12 w-12 items-center justify-center rounded-full bg-[#075bdd] text-white">
+              <ShieldCheck className="h-6 w-6" />
+            </span>
+            <div>
+              <p className="text-sm font-black text-slate-950">Jadi Member SERJAFAN</p>
+              <p className="mt-1 text-xs font-semibold leading-5 text-slate-500">Dapatkan diskon, cashback, dan berbagai keuntungan lainnya.</p>
+            </div>
+          </div>
+          <button type="button" onClick={onOpenTopup} className="shrink-0 rounded-[12px] bg-[#075bdd] px-3 py-2 text-xs font-black text-white">
+            Gabung
+          </button>
+        </div>
+
+        <div className="mt-4 overflow-hidden rounded-[18px] bg-white shadow-[0_10px_28px_rgba(15,23,42,0.08)]">
+          {profileActions.map((item) => (
+            <ProfileAction key={item.label} icon={item.icon} label={item.label} onClick={item.onClick} />
+          ))}
+        </div>
+        <div className="mt-4 overflow-hidden rounded-[18px] bg-white shadow-[0_10px_28px_rgba(15,23,42,0.08)]">
+          {supportActions.map((item) => (
+            <ProfileAction key={item.label} icon={item.icon} label={item.label} onClick={item.onClick} />
+          ))}
+        </div>
+        <button type="button" onClick={onLogout} className="mt-5 flex w-full items-center justify-center gap-2 rounded-[18px] bg-white p-4 text-sm font-black text-red-600 shadow-[0_10px_28px_rgba(15,23,42,0.08)]">
+          <LogIn className="h-5 w-5 rotate-180" /> Keluar dari Akun
+        </button>
       </div>
     </section>
   );
@@ -3653,11 +3753,11 @@ function ProfileScreen({
 
 function ProfileAction({ icon: Icon, label, onClick }: { icon: React.ElementType; label: string; onClick: () => void }) {
   return (
-    <button type="button" onClick={onClick} className="flex items-center justify-between rounded-[14px] bg-white p-4 text-left shadow-soft">
-      <span className="flex items-center gap-3 text-sm font-extrabold">
-        <Icon className="h-5 w-5 text-flame" /> {label}
+    <button type="button" onClick={onClick} className="flex w-full items-center justify-between border-b border-slate-100 bg-white p-4 text-left last:border-b-0">
+      <span className="flex items-center gap-3 text-sm font-extrabold text-slate-800">
+        <Icon className="h-5 w-5 text-[#075bdd]" /> {label}
       </span>
-      <ChevronRight className="h-4 w-4 text-slate-300" />
+      <ChevronRight className="h-4 w-4 text-slate-400" />
     </button>
   );
 }
@@ -3699,7 +3799,7 @@ function WalletScreen({
       </div>
       <div className="mt-4 rounded-[16px] bg-white p-4 shadow-soft">
         <p className="text-sm font-extrabold">Standar produksi</p>
-        <p className="mt-1 text-xs leading-5 text-slate-500">Top up, transfer, dan pembayaran pesanan membaca saldo yang sama dari database akun customer.</p>
+        <p className="mt-1 text-xs leading-5 text-slate-500">Top up, pembayaran pesanan, dan riwayat transaksi membaca saldo yang sama dari database akun customer.</p>
       </div>
     </section>
   );
@@ -3821,56 +3921,6 @@ function TopUpScreen({
           }}
         >
           {submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Wallet className="h-4 w-4" />} Top Up Rp {formatRupiah(numericAmount)}
-        </Button>
-      </div>
-    </section>
-  );
-}
-
-function TransferScreen({
-  balance,
-  onBack,
-  onSubmit
-}: {
-  balance: number;
-  onBack: () => void;
-  onSubmit: (target: string, amount: number, note: string) => Promise<void>;
-}) {
-  const [target, setTarget] = useState("");
-  const [amount, setAmount] = useState("");
-  const [note, setNote] = useState("");
-  const [submitting, setSubmitting] = useState(false);
-  const numericAmount = Number(amount.replace(/\D/g, "") || 0);
-  return (
-    <section className="animate-in fade-in slide-in-from-bottom-3 p-5 duration-300">
-      <div className="mb-4 flex items-center gap-3">
-        <Button size="icon" variant="secondary" className="rounded-[10px]" onClick={onBack}>
-          <ArrowLeft className="h-5 w-5" />
-        </Button>
-        <h1 className="text-xl font-extrabold">Transfer</h1>
-      </div>
-      <div className="mb-3 rounded-[16px] bg-white p-4 shadow-soft">
-        <p className="text-xs font-bold text-slate-500">Saldo tersedia</p>
-        <p className="mt-1 text-2xl font-extrabold text-navy">Rp {formatRupiah(balance)}</p>
-      </div>
-      <div className="space-y-3 rounded-[16px] bg-white p-4 shadow-soft">
-        <Input value={target} onChange={(event) => setTarget(event.target.value)} placeholder="Nomor HP atau rekening tujuan" />
-        <Input value={amount} onChange={(event) => setAmount(event.target.value.replace(/\D/g, ""))} placeholder="Nominal transfer" inputMode="numeric" />
-        <Input value={note} onChange={(event) => setNote(event.target.value)} placeholder="Catatan opsional" />
-        <div className={cn("rounded-[14px] p-3 text-xs font-bold", numericAmount > balance ? "bg-red-50 text-red-700" : "bg-emerald-50 text-emerald-700")}>
-          {numericAmount > balance ? "Saldo tidak cukup untuk transfer ini." : `Sisa saldo setelah transfer: Rp ${formatRupiah(Math.max(0, balance - numericAmount))}`}
-        </div>
-        <Button
-          variant="orange"
-          className="w-full"
-          disabled={submitting || !target.trim() || numericAmount < 10000 || numericAmount > balance}
-          onClick={async () => {
-            setSubmitting(true);
-            await onSubmit(target, numericAmount, note);
-            setSubmitting(false);
-          }}
-        >
-          {submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <CreditCard className="h-4 w-4" />} Transfer Sekarang
         </Button>
       </div>
     </section>
@@ -6284,23 +6334,31 @@ function MessagesDrawerByService({
   return (
     <div className="fixed inset-0 z-[90] bg-navy/30 backdrop-blur-[2px]">
       <div className="absolute right-0 top-0 mobile-panel w-full max-w-[440px] bg-white shadow-2xl">
-        <div className="flex items-center justify-between bg-navy px-5 py-4 text-white">
-          <div>
-            <p className="text-[11px] font-bold text-white/65">INBOX</p>
-            <h2 className="text-base font-extrabold">Pesan per Jasa</h2>
+        <div className="bg-[#0648bd] px-5 pb-8 pt-5 text-white">
+          <div className="mb-5 flex items-center justify-between">
+            <BrandMark light />
+            <button type="button" className="flex items-center gap-1 rounded-full bg-white/10 px-3 py-2 text-sm font-bold">
+              <MapPin className="h-4 w-4" /> Padang
+            </button>
           </div>
-          <Button size="icon" variant="ghost" className="rounded-xl bg-white/10 text-white hover:bg-white/20" onClick={onClose}>
+          <div className="flex items-center justify-between">
+          <div>
+              <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-white/65">Inbox</p>
+              <h2 className="text-2xl font-black">Chat</h2>
+          </div>
+            <Button size="icon" variant="ghost" className="rounded-xl bg-white/10 text-white hover:bg-white/20" onClick={onClose}>
             <X className="h-5 w-5" />
           </Button>
+          </div>
         </div>
-        <div className="flex h-[calc(100%-72px)] flex-col bg-[#eef7f1] p-4">
-          <div className="mb-3 flex items-center gap-2 rounded-[16px] bg-white p-3 shadow-soft">
-            <span className="flex h-9 w-9 items-center justify-center rounded-full bg-emerald-100 text-emerald-700">
+        <div className="-mt-5 flex h-[calc(100%-120px)] flex-col rounded-t-[24px] bg-[#f7faff] p-4">
+          <div className="mb-3 flex items-center gap-2 rounded-[18px] bg-white p-3 shadow-[0_10px_28px_rgba(15,23,42,0.08)]">
+            <span className="flex h-10 w-10 items-center justify-center rounded-full bg-[#eef5ff] text-[#075bdd]">
               <MessageCircle className="h-4 w-4" />
             </span>
             <div className="min-w-0">
               <p className="truncate text-sm font-extrabold">{activeThread?.title ?? "Ruang Chat SERJAFAN"}</p>
-              <p className="truncate text-[11px] font-bold text-emerald-700">{activeThread?.subtitle ?? "Chat dipisah per jasa dan pesanan"}</p>
+              <p className="truncate text-[11px] font-bold text-[#075bdd]">{activeThread?.subtitle ?? "Chat dipisah per jasa dan pesanan"}</p>
             </div>
           </div>
           {loading ? (
@@ -6316,7 +6374,7 @@ function MessagesDrawerByService({
                     key={thread.key}
                     type="button"
                     onClick={() => setActiveKey(thread.key)}
-                    className={cn("min-w-[190px] rounded-[16px] p-3 text-left text-xs shadow-sm", activeThread?.key === thread.key ? "bg-navy text-white" : "bg-white text-slate-700")}
+                    className={cn("min-w-[190px] rounded-[16px] p-3 text-left text-xs shadow-sm", activeThread?.key === thread.key ? "bg-[#075bdd] text-white" : "bg-white text-slate-700")}
                   >
                     <span className="block truncate font-extrabold">{thread.title}</span>
                     <span className={cn("mt-1 block truncate", activeThread?.key === thread.key ? "text-white/65" : "text-slate-500")}>{thread.subtitle}</span>
@@ -6324,28 +6382,28 @@ function MessagesDrawerByService({
                   </button>
                 ))}
               </div>
-              <div className="flex-1 space-y-3 overflow-y-auto rounded-[18px] bg-white/40 p-2">
+              <div className="flex-1 space-y-3 overflow-y-auto rounded-[18px] bg-white p-2 shadow-inner">
                 {activeMessages.map((item) => (
                   <div key={item.id} className={cn("flex", item.sender === "Saya" ? "justify-end" : "justify-start")}>
-                    <div className={cn("max-w-[82%] rounded-2xl px-3 py-2 shadow-sm", item.sender === "Saya" ? "rounded-br-sm bg-emerald-600 text-white" : "rounded-bl-sm bg-white text-slate-800")}>
+                    <div className={cn("max-w-[82%] rounded-2xl px-3 py-2 shadow-sm", item.sender === "Saya" ? "rounded-br-sm bg-[#dbeafe] text-slate-900" : "rounded-bl-sm bg-white text-slate-800 ring-1 ring-slate-100")}>
                       <div className="mb-1 flex items-center gap-2">
                         <p className="text-[11px] font-extrabold opacity-80">{item.sender}</p>
                         {item.unread && <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[9px] font-bold text-amber-700">Baru</span>}
                       </div>
                       {item.attachmentImage && <img src={item.attachmentImage} alt="Lampiran chat" className="mb-2 max-h-56 rounded-[14px] object-cover" />}
                       <p className="text-sm leading-5">{item.body}</p>
-                      <p className={cn("mt-1 text-right text-[9px]", item.sender === "Saya" ? "text-white/70" : "text-slate-400")}>Terkirim</p>
+                      <p className={cn("mt-1 text-right text-[9px]", item.sender === "Saya" ? "text-[#075bdd]" : "text-slate-400")}>Terkirim</p>
                     </div>
                   </div>
                 ))}
               </div>
             </>
           ) : (
-            <div className="flex-1 rounded-[16px] bg-white/70 p-4 text-sm text-slate-500">Belum ada kotak pesan. Chat akan muncul setelah ada pesanan jasa tertentu.</div>
+            <div className="flex-1 rounded-[16px] bg-white p-4 text-sm text-slate-500">Belum ada kotak pesan. Chat akan muncul setelah ada pesanan jasa tertentu.</div>
           )}
           <div className="mt-3 flex gap-2 overflow-x-auto pb-1">
             {quickReplies.map((reply) => (
-              <button key={reply} type="button" onClick={() => setDraft(reply)} className="shrink-0 rounded-full bg-white px-3 py-2 text-[11px] font-bold text-navy shadow-sm">
+              <button key={reply} type="button" onClick={() => setDraft(reply)} className="shrink-0 rounded-full bg-white px-3 py-2 text-[11px] font-bold text-[#075bdd] shadow-sm">
                 {reply}
               </button>
             ))}
@@ -6363,14 +6421,14 @@ function MessagesDrawerByService({
           <div className="mt-2 flex gap-2 rounded-[18px] bg-white p-2 shadow-soft">
             <input id="chat-photo-camera" type="file" accept="image/*" capture="environment" className="hidden" onChange={(event) => void pickChatPhoto(event.target.files?.[0])} />
             <input id="chat-photo-gallery" type="file" accept="image/*" className="hidden" onChange={(event) => void pickChatPhoto(event.target.files?.[0])} />
-            <label htmlFor="chat-photo-gallery" className="inline-flex h-10 w-10 shrink-0 cursor-pointer items-center justify-center rounded-[14px] bg-cloud text-navy">
+            <label htmlFor="chat-photo-gallery" className="inline-flex h-10 w-10 shrink-0 cursor-pointer items-center justify-center rounded-[14px] bg-[#eef5ff] text-[#075bdd]">
               <ImageIcon className="h-4 w-4" />
             </label>
-            <label htmlFor="chat-photo-camera" className="inline-flex h-10 w-10 shrink-0 cursor-pointer items-center justify-center rounded-[14px] bg-cloud text-navy">
+            <label htmlFor="chat-photo-camera" className="inline-flex h-10 w-10 shrink-0 cursor-pointer items-center justify-center rounded-[14px] bg-[#eef5ff] text-[#075bdd]">
               <Camera className="h-4 w-4" />
             </label>
             <Input value={draft} onChange={(event) => setDraft(event.target.value)} placeholder="Tulis pesan..." className="border-0 bg-transparent shadow-none focus-visible:ring-0" />
-            <Button variant="orange" disabled={!draft.trim() && !photo} onClick={submit}>
+            <Button className="rounded-full bg-[#075bdd] text-white hover:bg-[#0648bd]" disabled={!draft.trim() && !photo} onClick={submit}>
               Kirim
             </Button>
           </div>
@@ -6822,38 +6880,38 @@ function ProfileDrawer({
 function BottomNav({
   active,
   onNavigate,
-  onOpenSearch,
+  onOpenMessages,
   onOpenProfile
 }: {
   active: Screen;
   onNavigate: (screen: Screen) => void;
-  onOpenSearch: () => void;
+  onOpenMessages: () => void;
   onOpenProfile: () => void;
 }) {
   const items = [
     { label: "Beranda", Icon: Home, screen: "home" as Screen },
-    { label: "Cari", Icon: Search, action: onOpenSearch },
     { label: "Pesanan", Icon: ShoppingBag, screen: "orders" as Screen },
-    { label: "Profil", Icon: UserCircle, action: onOpenProfile }
+    { label: "Chat", Icon: MessageCircle, action: onOpenMessages },
+    { label: "Akun", Icon: UserCircle, action: onOpenProfile }
   ];
 
   return (
-    <nav className="safe-b layout-lock fixed bottom-0 left-1/2 z-50 flex w-full max-w-[440px] -translate-x-1/2 items-center justify-around border-t border-slate-100 bg-white/96 px-2 pt-2 shadow-[0_-6px_24px_rgba(11,31,58,0.10)] backdrop-blur">
-      {items.slice(0, 2).map(({ label, Icon, screen, action }) => (
-        <button key={label} type="button" onClick={() => (action ? action() : onNavigate(screen as Screen))} className={cn("tap-target flex min-w-14 flex-col items-center justify-center gap-0.5 px-2 text-[9px] font-bold", active === screen ? "text-flame" : "text-slate-500")}>
-          <Icon className="h-5 w-5" />
-          <span>{label}</span>
+    <nav className="safe-b layout-lock fixed bottom-0 left-1/2 z-50 grid w-full max-w-[440px] -translate-x-1/2 grid-cols-4 border-t border-slate-100 bg-white px-3 pt-2 shadow-[0_-6px_24px_rgba(11,31,58,0.08)]">
+      {items.map(({ label, Icon, screen, action }) => {
+        const selected = screen ? active === screen : label === "Akun" && active === "profile";
+        return (
+        <button
+          key={label}
+          type="button"
+          onClick={() => (action ? action() : onNavigate(screen as Screen))}
+          className={cn("tap-target relative flex min-w-0 flex-col items-center justify-center gap-1 px-2 text-[11px] font-bold", selected ? "text-[#075bdd]" : "text-slate-500")}
+        >
+          {label === "Chat" && <span className="absolute right-[30%] top-0 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[9px] font-black text-white">2</span>}
+          <Icon className={cn("h-6 w-6", selected && "fill-[#075bdd]/10")} />
+          <span className="truncate">{label}</span>
         </button>
-      ))}
-      <button type="button" onClick={() => onNavigate("partnerList")} className="-mt-5 flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-flame text-white shadow-[0_8px_22px_rgba(255,122,0,0.34)]">
-        <Bolt className="h-6 w-6" />
-      </button>
-      {items.slice(2).map(({ label, Icon, screen, action }) => (
-        <button key={label} type="button" onClick={() => (action ? action() : onNavigate(screen as Screen))} className={cn("tap-target flex min-w-14 flex-col items-center justify-center gap-0.5 px-2 text-[9px] font-bold", active === screen ? "text-flame" : "text-slate-500")}>
-          <Icon className="h-5 w-5" />
-          <span>{label}</span>
-        </button>
-      ))}
+        );
+      })}
     </nav>
   );
 }
