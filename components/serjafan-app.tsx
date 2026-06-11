@@ -2241,18 +2241,10 @@ export function SerjafanApp({ appRole = "switcher" }: { appRole?: AppRole }) {
           <CustomerAccessScreen user={accountUser} onSubmit={submitProfile} />
         ) : screen === "home" && (
           <CustomerHome
-            user={accountUser}
             services={customerServices}
             partners={customerPartners}
-            promos={customerPromos}
-            onSelectPartner={selectPartner}
             onOpenPartnerList={openPartnerList}
-            onOpenNotifications={() => void openNotifications()}
-            onOpenMessages={() => void openMessages()}
-            onOpenOrders={() => void openOrderCenter()}
             onOpenSearch={openSearch}
-            onOpenTopup={() => goTo("topup")}
-            onOpenWalletHistory={() => void openWalletHistory()}
           />
         )}
         {screen === "search" && (
@@ -2443,31 +2435,15 @@ export function SerjafanApp({ appRole = "switcher" }: { appRole?: AppRole }) {
 }
 
 function CustomerHome({
-  user,
   services,
   partners,
-  promos,
-  onSelectPartner,
   onOpenPartnerList,
-  onOpenNotifications,
-  onOpenMessages,
-  onOpenOrders,
   onOpenSearch,
-  onOpenTopup,
-  onOpenWalletHistory
 }: {
-  user: CurrentUser;
   services: ServiceItem[];
   partners: Partner[];
-  promos: PromoBanner[];
-  onSelectPartner: (partner: Partner) => void;
   onOpenPartnerList: (category?: string) => void;
-  onOpenNotifications: () => void;
-  onOpenMessages: () => void;
-  onOpenOrders: () => void;
   onOpenSearch: () => void;
-  onOpenTopup: () => void;
-  onOpenWalletHistory: () => void;
 }) {
   const partnerCountByCategory = useMemo(() => {
     const counts = new Map<string, number>();
@@ -2494,18 +2470,19 @@ function CustomerHome({
           <Search className="h-5 w-5 text-slate-400" />
           <span className="text-sm font-semibold text-slate-400">Cari layanan yang Anda butuhkan...</span>
         </button>
-        <div className="relative mt-5 overflow-hidden rounded-[24px] bg-[#075bdd] p-5 shadow-[0_18px_40px_rgba(3,36,96,0.22)]">
-          <div className="absolute -right-8 bottom-0 h-32 w-40 rounded-tl-[80px] bg-white/12" />
-          <p className="text-[34px] font-black leading-none tracking-tight">Semua Jasa</p>
-          <p className="mt-2 text-2xl font-black text-[#ffd34d]">Dalam Satu Aplikasi</p>
-          <p className="mt-3 text-sm font-semibold text-white/82">Cepat - Mudah - Terpercaya</p>
-          <div className="mt-5 flex flex-wrap gap-2">
-            <button type="button" onClick={onOpenTopup} className="rounded-full bg-white px-4 py-2 text-xs font-black text-[#0648bd]">
-              Top Up
-            </button>
-            <button type="button" onClick={onOpenWalletHistory} className="rounded-full bg-white/15 px-4 py-2 text-xs font-black text-white">
-              Riwayat Saldo
-            </button>
+        <div className="relative mt-5 min-h-[168px] overflow-hidden rounded-[24px] bg-[#075bdd] p-5 shadow-[0_18px_40px_rgba(3,36,96,0.22)]">
+          <div className="absolute inset-y-0 right-0 w-[46%] bg-gradient-to-l from-[#003b9c] to-transparent" />
+          <div className="absolute bottom-0 right-[-6px] h-[132px] w-[190px] opacity-95">
+            <div className="absolute bottom-0 left-8 h-20 w-32 rounded-t-[18px] bg-[#0d2550]" />
+            <div className="absolute bottom-14 left-2 h-16 w-44 -skew-x-[24deg] rounded-tl-[70px] rounded-tr-[18px] bg-[#4b3324] shadow-[inset_0_8px_0_rgba(255,255,255,0.22)]" />
+            <div className="absolute bottom-16 left-24 h-20 w-20 skew-x-[18deg] rounded-tr-[70px] bg-[#2a241f] shadow-[inset_0_8px_0_rgba(255,255,255,0.18)]" />
+            <div className="absolute bottom-20 left-36 h-24 w-8 -skew-x-[8deg] rounded-t-full bg-[#1f2937]" />
+            <div className="absolute bottom-20 left-5 h-20 w-8 skew-x-[8deg] rounded-t-full bg-[#1f2937]" />
+          </div>
+          <div className="relative max-w-[58%]">
+            <p className="text-[34px] font-black leading-none tracking-tight">Semua Jasa</p>
+            <p className="mt-2 text-2xl font-black text-[#ffd34d]">Dalam Satu Aplikasi</p>
+            <p className="mt-3 text-sm font-semibold text-white/82">Cepat - Mudah - Terpercaya</p>
           </div>
         </div>
       </div>
@@ -2563,67 +2540,24 @@ function CustomerHome({
           </div>
         </div>
 
-        <div className="mt-4 rounded-[22px] bg-white p-4 shadow-[0_12px_32px_rgba(15,23,42,0.08)]">
-          <div className="mb-4 flex items-center justify-between">
-            <h2 className="text-lg font-black text-slate-950">Aksi Cepat</h2>
-            <span className="text-xs font-black text-slate-400">Tersambung</span>
-          </div>
-          <div className="grid grid-cols-4 gap-2">
-            {[
-              { label: "Pesanan", Icon: ShoppingBag, onClick: onOpenOrders },
-              { label: "Chat", Icon: MessageCircle, onClick: onOpenMessages },
-              { label: "Lonceng", Icon: Bell, onClick: onOpenNotifications },
-              { label: "Top Up", Icon: Wallet, onClick: onOpenTopup }
-            ].map(({ label, Icon, onClick }) => (
-              <button key={label} type="button" onClick={onClick} className="rounded-[16px] bg-[#f4f8ff] px-2 py-3 text-center transition active:scale-95">
-                <Icon className="mx-auto h-5 w-5 text-[#075bdd]" />
-                <span className="mt-2 block truncate text-[10px] font-black text-slate-700">{label}</span>
+        <div className="relative mt-4 overflow-hidden rounded-[22px] bg-[#075bdd] p-5 text-white shadow-[0_12px_32px_rgba(15,23,42,0.12)]">
+          <div className="absolute -left-8 bottom-0 h-28 w-28 rounded-full bg-white/12" />
+          <div className="relative grid grid-cols-[0.8fr_1.2fr] items-center gap-3">
+            <div className="relative mx-auto h-28 w-20 rounded-[18px] border-[6px] border-white bg-white shadow-[0_12px_24px_rgba(0,0,0,0.18)]">
+              <div className="absolute left-1/2 top-2 h-1 w-8 -translate-x-1/2 rounded-full bg-slate-200" />
+              <div className="flex h-full items-center justify-center rounded-[12px] bg-[#eef5ff]">
+                <img src="/serjafan-logo.png" alt="SERJAFAN" className="h-12 w-12 object-contain" />
+              </div>
+            </div>
+            <div className="min-w-0">
+              <p className="text-2xl font-black leading-tight">Butuh Jasa?</p>
+              <p className="text-2xl font-black leading-tight"><span className="text-[#ffd34d]">SERJAFAN</span> Aja!</p>
+              <p className="mt-2 text-sm font-semibold leading-5 text-white/80">Solusi cepat untuk kebutuhan Anda.</p>
+              <button type="button" onClick={() => onOpenPartnerList()} className="mt-4 inline-flex items-center gap-2 rounded-[14px] bg-[#ffd34d] px-4 py-3 text-sm font-black text-slate-950 shadow-[0_8px_18px_rgba(0,0,0,0.14)]">
+                Pesan Sekarang <ChevronRight className="h-4 w-4 rounded-full bg-[#075bdd] p-0.5 text-white" />
               </button>
-            ))}
+            </div>
           </div>
-        </div>
-
-        <PromoShowcase promos={promos} onOpenPartnerList={onOpenPartnerList} />
-
-        <div className="mt-4 rounded-[22px] bg-white p-4 shadow-[0_12px_32px_rgba(15,23,42,0.08)]">
-          <div className="mb-4 flex items-center justify-between">
-            <h2 className="text-lg font-black text-slate-950">Mitra Terdekat</h2>
-            <button type="button" onClick={() => onOpenPartnerList()} className="text-sm font-black text-[#075bdd]">Lihat Semua</button>
-          </div>
-        {partners.length ? (
-          <div className="flex gap-3 overflow-x-auto pb-1 no-scrollbar">
-            {partners.map(({ Icon, name, category, distance, rating, reviews, status, tone, id }) => (
-            <button
-              key={id}
-                type="button"
-                onClick={() => onSelectPartner(partners.find((partner) => partner.id === id) ?? partners[0])}
-              className="min-w-[190px] overflow-hidden rounded-[20px] border border-slate-100 bg-white text-left shadow-[0_8px_22px_rgba(15,23,42,0.08)] transition active:scale-[0.98]"
-            >
-              <div className="flex h-[88px] items-center justify-center bg-[#eef5ff] text-[#075bdd]">
-                <Icon className="h-10 w-10" />
-              </div>
-              <div className="p-3">
-                <h3 className="truncate text-sm font-black text-slate-950">{name}</h3>
-                <p className="mt-1 truncate text-[11px] font-semibold text-slate-500">
-                  {category} - {distance}
-                </p>
-                <div className="mt-2 flex items-center justify-between">
-                  <span className="flex items-center gap-1 text-[11px] font-bold">
-                    <Star className="h-3 w-3 fill-amber-500 text-amber-500" /> {rating} ({reviews})
-                  </span>
-                  <Badge variant={status === "Online" ? "success" : "warning"} className="text-[9px]">
-                    {status}
-                  </Badge>
-                </div>
-              </div>
-            </button>
-            ))}
-          </div>
-        ) : (
-          <div className="rounded-[16px] bg-[#f4f8ff] p-4 text-sm font-semibold leading-6 text-slate-500">
-            Belum ada mitra terverifikasi di Kota Padang. Mitra akan muncul setelah pendaftaran partner disetujui admin.
-          </div>
-        )}
         </div>
       </div>
     </section>
@@ -3691,10 +3625,12 @@ function ProfileScreen({
     .map((part) => part[0]?.toUpperCase())
     .join("") || "SF";
   const profileActions = [
+    { icon: Wallet, label: "Top Up Saldo", onClick: onOpenTopup },
+    { icon: ListOrdered, label: "Riwayat Saldo", onClick: onOpenWalletHistory },
     { icon: ShoppingBag, label: "Riwayat Pesanan", onClick: onOpenOrders },
     { icon: Wallet, label: "Pembayaran Saya", onClick: onOpenWallet },
     { icon: MapPin, label: "Alamat Saya", onClick: onEditProfile },
-    { icon: Tag, label: "Kupon Saya", onClick: onOpenWalletHistory },
+    { icon: Tag, label: "Kupon Saya", onClick: onOpenNotifications },
     { icon: Heart, label: "Favorit Layanan", onClick: onOpenSearch },
     { icon: Star, label: "Ulasan Saya", onClick: onOpenOrders }
   ];
