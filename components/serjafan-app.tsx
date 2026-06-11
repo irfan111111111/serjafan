@@ -502,6 +502,21 @@ function BrandMark({ compact = false, light = false }: { compact?: boolean; ligh
   );
 }
 
+function CustomerWordmark() {
+  return (
+    <div className="flex min-w-0 items-center gap-3">
+      <span className="relative flex h-12 w-12 shrink-0 items-center justify-center">
+        <span className="absolute inset-0 rotate-45 rounded-[12px] border-[5px] border-white" />
+        <span className="relative text-2xl font-black leading-none text-white">S</span>
+      </span>
+      <div className="min-w-0">
+        <p className="truncate text-[25px] font-black leading-none tracking-tight text-white">SERJAFAN</p>
+        <p className="mt-1 text-[11px] font-black tracking-[0.38em] text-white/70">PADANG</p>
+      </div>
+    </div>
+  );
+}
+
 const initialAdminSettings: AdminSettings = {
   platformFee: 3000,
   promoCode: "",
@@ -2469,44 +2484,45 @@ function CustomerHome({
   }, [partners]);
 
   return (
-    <section className="animate-in fade-in slide-in-from-bottom-3 bg-white pb-4 duration-300">
-      <div className="relative overflow-hidden bg-[#0648bd] px-5 pb-20 pt-5 text-white">
-        <div className="absolute -right-20 top-16 h-56 w-56 rounded-full bg-white/10" />
+    <section className="animate-in fade-in slide-in-from-bottom-3 bg-[#fbfdff] pb-4 duration-300">
+      <div className="relative overflow-hidden bg-[#0648bd] px-5 pb-20 pt-6 text-white">
+        <div className="absolute -right-24 top-20 h-64 w-64 rounded-full bg-white/10" />
+        <div className="absolute -left-20 top-48 h-48 w-48 rounded-full bg-[#0b66ff]/35 blur-2xl" />
         <div className="relative flex items-center justify-between gap-4">
-          <BrandMark light />
-          <button type="button" className="flex min-w-0 items-center gap-1 rounded-full bg-white/10 px-3 py-2 text-sm font-bold text-white" onClick={onOpenSearch}>
-            <MapPin className="h-4 w-4 shrink-0" />
+          <CustomerWordmark />
+          <button type="button" className="flex min-w-0 items-center gap-1 rounded-full bg-white/12 px-3.5 py-2.5 text-sm font-black text-white shadow-inner shadow-white/10" onClick={onOpenSearch}>
+            <MapPin className="h-4 w-4 shrink-0 fill-white text-white" />
             <span className="truncate">Padang</span>
             <ChevronRight className="h-4 w-4 rotate-90" />
           </button>
         </div>
-        <button type="button" onClick={onOpenSearch} className="relative mt-6 flex w-full items-center gap-3 rounded-[18px] bg-white px-4 py-4 text-left shadow-[0_14px_34px_rgba(0,0,0,0.14)]">
-          <Search className="h-5 w-5 text-slate-400" />
-          <span className="text-sm font-semibold text-slate-400">Cari layanan yang Anda butuhkan...</span>
+        <button type="button" onClick={onOpenSearch} className="relative mt-7 flex min-h-[58px] w-full items-center gap-3 rounded-[18px] bg-white px-5 text-left shadow-[0_16px_34px_rgba(0,34,101,0.24)]">
+          <Search className="h-6 w-6 shrink-0 text-slate-400" />
+          <span className="truncate text-[15px] font-semibold text-slate-400">Cari layanan yang Anda butuhkan...</span>
         </button>
-        <div className="relative mt-5 min-h-[168px] overflow-hidden rounded-[24px] bg-[#075bdd] p-5 shadow-[0_18px_40px_rgba(3,36,96,0.22)]">
+        <div className="relative mt-5 min-h-[160px] overflow-hidden rounded-[24px] bg-[#075bdd] p-5 shadow-[0_18px_40px_rgba(3,36,96,0.26)]">
           <img
             src="/rumah-gadang-padang.svg"
             alt="Rumah Gadang Padang"
-            className="absolute inset-y-0 right-0 h-full w-[52%] object-cover object-center opacity-95"
+            className="absolute inset-y-0 right-0 h-full w-[54%] object-cover object-center opacity-95"
           />
-          <div className="absolute inset-y-0 right-[38%] w-[34%] bg-gradient-to-r from-[#075bdd] via-[#075bdd]/92 to-transparent" />
-          <div className="absolute inset-y-0 left-0 w-[68%] bg-gradient-to-r from-[#075bdd] via-[#075bdd]/96 to-[#075bdd]/28" />
+          <div className="absolute inset-y-0 right-[38%] w-[32%] bg-gradient-to-r from-[#075bdd] via-[#075bdd]/88 to-transparent" />
+          <div className="absolute inset-y-0 left-0 w-[70%] bg-gradient-to-r from-[#075bdd] via-[#075bdd]/96 to-[#075bdd]/24" />
           <div className="relative max-w-[62%]">
-            <p className="text-[34px] font-black leading-none tracking-tight">Semua Jasa</p>
-            <p className="mt-2 text-2xl font-black text-[#ffd34d]">Dalam Satu Aplikasi</p>
-            <p className="mt-3 text-sm font-semibold text-white/82">Cepat - Mudah - Terpercaya</p>
+            <p className="text-[34px] font-black leading-none tracking-tight text-white">Semua Jasa</p>
+            <p className="mt-2 text-2xl font-black leading-tight text-[#ffd34d]">Dalam Satu Aplikasi</p>
+            <p className="mt-3 text-sm font-bold text-white/86">Cepat - Mudah - Terpercaya</p>
           </div>
         </div>
       </div>
 
       <div className="-mt-14 px-5">
-        <div className="rounded-[22px] bg-white p-4 shadow-[0_12px_32px_rgba(15,23,42,0.10)]">
+        <div className="rounded-[22px] bg-white p-4 shadow-[0_12px_32px_rgba(15,23,42,0.10)] ring-1 ring-slate-100">
           <div className="mb-4 flex items-center justify-between">
             <h2 className="text-lg font-black text-slate-950">Kategori Layanan</h2>
             <button type="button" onClick={() => onOpenPartnerList()} className="text-sm font-black text-[#075bdd]">Lihat Semua</button>
           </div>
-          <div className="grid grid-cols-4 gap-3">
+          <div className="grid grid-cols-4 gap-x-2 gap-y-6">
           {services.map((service) => {
             const Icon = service.icon;
             const count = partnerCountByCategory.get(serviceCategoryKey(service.name)) ?? 0;
@@ -2517,10 +2533,10 @@ function CustomerHome({
               onClick={() => onOpenPartnerList(service.name)}
               className="group min-w-0 text-center"
             >
-              <span className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-[#eef5ff] text-[#075bdd] transition group-active:scale-95">
-                <Icon className="h-6 w-6" />
+              <span className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-[#eef5ff] text-[#075bdd] transition group-active:scale-95 group-hover:bg-[#e1efff]">
+                <Icon className="h-7 w-7" />
               </span>
-              <span className="mt-2 block text-balance-mobile text-xs font-extrabold leading-4 text-slate-800">{customerCategoryLabel(service.name)}</span>
+              <span className="mt-2.5 block text-balance-mobile text-[12px] font-extrabold leading-4 text-slate-900">{customerCategoryLabel(service.name)}</span>
               <span className="sr-only">{count ? `${count} mitra aktif` : "Belum ada mitra"}</span>
             </button>
             );
@@ -2528,7 +2544,7 @@ function CustomerHome({
           </div>
         </div>
 
-        <div className="mt-4 rounded-[22px] bg-white p-4 shadow-[0_12px_32px_rgba(15,23,42,0.08)]">
+        <div className="mt-4 rounded-[22px] bg-white p-4 shadow-[0_12px_32px_rgba(15,23,42,0.08)] ring-1 ring-slate-100">
           <div className="mb-4 flex items-center justify-between">
             <h2 className="text-lg font-black text-slate-950">Layanan Populer</h2>
             <button type="button" onClick={() => onOpenPartnerList()} className="text-sm font-black text-[#075bdd]">Lihat Semua</button>
@@ -2537,9 +2553,11 @@ function CustomerHome({
             {services.slice(0, 3).map((service) => {
               const Icon = service.icon;
               return (
-                <button key={service.name} type="button" onClick={() => onOpenPartnerList(service.name)} className="overflow-hidden rounded-[18px] border border-slate-100 bg-white text-left shadow-[0_8px_22px_rgba(15,23,42,0.08)]">
-                  <div className="flex h-24 items-center justify-center bg-[#eef5ff] text-[#075bdd]">
-                    <Icon className="h-10 w-10" />
+                <button key={service.name} type="button" onClick={() => onOpenPartnerList(service.name)} className="overflow-hidden rounded-[18px] border border-slate-100 bg-white text-left shadow-[0_8px_22px_rgba(15,23,42,0.08)] transition active:scale-[0.98]">
+                  <div className="relative flex h-24 items-center justify-center overflow-hidden bg-[#eef5ff] text-[#075bdd]">
+                    <div className="absolute inset-0 bg-gradient-to-br from-[#cfe4ff] via-[#f8fbff] to-[#fff6d8]" />
+                    <div className="absolute -right-6 -top-6 h-16 w-16 rounded-full bg-[#075bdd]/10" />
+                    <Icon className="relative h-10 w-10" />
                   </div>
                   <div className="p-3">
                     <p className="line-clamp-2 min-h-[34px] text-sm font-black leading-4 text-slate-950">{customerCategoryLabel(service.name)}</p>
@@ -2566,7 +2584,7 @@ function CustomerHome({
               <p className="text-2xl font-black leading-tight">Butuh Jasa?</p>
               <p className="text-2xl font-black leading-tight"><span className="text-[#ffd34d]">SERJAFAN</span> Aja!</p>
               <p className="mt-2 text-sm font-semibold leading-5 text-white/80">Solusi cepat untuk kebutuhan Anda.</p>
-              <button type="button" onClick={() => onOpenPartnerList()} className="mt-4 inline-flex items-center gap-2 rounded-[14px] bg-[#ffd34d] px-4 py-3 text-sm font-black text-slate-950 shadow-[0_8px_18px_rgba(0,0,0,0.14)]">
+              <button type="button" onClick={() => onOpenPartnerList()} className="mt-4 inline-flex items-center gap-2 rounded-[14px] bg-[#ffd34d] px-4 py-3 text-sm font-black text-slate-950 shadow-[0_8px_18px_rgba(0,0,0,0.14)] transition active:scale-[0.98]">
                 Pesan Sekarang <ChevronRight className="h-4 w-4 rounded-full bg-[#075bdd] p-0.5 text-white" />
               </button>
             </div>

@@ -43,9 +43,9 @@ const config: Config = {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))"
         },
-        navy: "#0B1F3A",
-        flame: "#FF7A00",
-        cloud: "#F4F7FB"
+        navy: "#0648BD",
+        flame: "#FFC43D",
+        cloud: "#F7FAFF"
       },
       borderRadius: {
         lg: "var(--radius)",
