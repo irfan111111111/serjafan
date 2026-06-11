@@ -1010,6 +1010,7 @@ export function SerjafanApp({ appRole = "switcher" }: { appRole?: AppRole }) {
         accountUser.location.trim().toLowerCase() !== "kota padang"
     );
   const showRoleTabs = appRole === "switcher";
+  const showAppHeader = appRole !== "customer";
   const showBottomNav = useMemo(
     () => customerProfileComplete && (appRole === "customer" || (appRole === "switcher" && !["partner", "admin"].includes(screen))),
     [appRole, customerProfileComplete, screen]
@@ -2208,7 +2209,7 @@ export function SerjafanApp({ appRole = "switcher" }: { appRole?: AppRole }) {
 
   return (
     <main className="layout-lock min-h-dvh bg-cloud text-slate-950">
-      <div className="safe-x app-shell sticky top-0 z-50 flex items-center justify-between gap-2 border-b border-white/10 bg-navy py-2.5 text-white shadow-[0_10px_30px_rgba(11,31,58,0.18)]">
+      {showAppHeader && <div className="safe-x app-shell sticky top-0 z-50 flex items-center justify-between gap-2 border-b border-white/10 bg-navy py-2.5 text-white shadow-[0_10px_30px_rgba(11,31,58,0.18)]">
         <div className="flex min-w-0 items-center gap-2.5">
           <BrandMark compact light />
           <div className="min-w-0">
@@ -2221,7 +2222,7 @@ export function SerjafanApp({ appRole = "switcher" }: { appRole?: AppRole }) {
             <Bell className="h-4 w-4" />
           </Button>
         </div>
-      </div>
+      </div>}
 
       {showRoleTabs && (
         <Tabs value={activeRoleTab} onValueChange={(value) => goTo(value as Screen)}>
@@ -2299,6 +2300,7 @@ export function SerjafanApp({ appRole = "switcher" }: { appRole?: AppRole }) {
           <OrdersCenter
             orders={customerOrders}
             loading={loadingPanel === "orders"}
+            onOpenSearch={openSearch}
             onOpenTracking={(order) => {
               const partner = customerPartners.find((item) => item.id === order?.partnerId) ?? getPartnerByOrder(order, currentPartner);
               setSelectedOrder({ ...order, partner });
@@ -2331,6 +2333,8 @@ export function SerjafanApp({ appRole = "switcher" }: { appRole?: AppRole }) {
             onEditProfile={() => goTo("editProfile")}
             onLogout={logoutCurrentUser}
             orderCount={customerOrders.length}
+            onOpenSearch={openSearch}
+            onOpenMessages={() => void openMessages()}
           />
         )}
         {screen === "wallet" && <WalletScreen user={accountUser} onBack={() => goTo("profile")} onOpenTopup={() => goTo("topup")} onOpenHistory={() => void openWalletHistory()} />}
@@ -2559,9 +2563,33 @@ function CustomerHome({
           </div>
         </div>
 
+        <div className="mt-4 rounded-[22px] bg-white p-4 shadow-[0_12px_32px_rgba(15,23,42,0.08)]">
+          <div className="mb-4 flex items-center justify-between">
+            <h2 className="text-lg font-black text-slate-950">Aksi Cepat</h2>
+            <span className="text-xs font-black text-slate-400">Tersambung</span>
+          </div>
+          <div className="grid grid-cols-4 gap-2">
+            {[
+              { label: "Pesanan", Icon: ShoppingBag, onClick: onOpenOrders },
+              { label: "Chat", Icon: MessageCircle, onClick: onOpenMessages },
+              { label: "Lonceng", Icon: Bell, onClick: onOpenNotifications },
+              { label: "Top Up", Icon: Wallet, onClick: onOpenTopup }
+            ].map(({ label, Icon, onClick }) => (
+              <button key={label} type="button" onClick={onClick} className="rounded-[16px] bg-[#f4f8ff] px-2 py-3 text-center transition active:scale-95">
+                <Icon className="mx-auto h-5 w-5 text-[#075bdd]" />
+                <span className="mt-2 block truncate text-[10px] font-black text-slate-700">{label}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+
         <PromoShowcase promos={promos} onOpenPartnerList={onOpenPartnerList} />
 
-        <Section title="Mitra Terdekat" action="Lihat peta mitra">
+        <div className="mt-4 rounded-[22px] bg-white p-4 shadow-[0_12px_32px_rgba(15,23,42,0.08)]">
+          <div className="mb-4 flex items-center justify-between">
+            <h2 className="text-lg font-black text-slate-950">Mitra Terdekat</h2>
+            <button type="button" onClick={() => onOpenPartnerList()} className="text-sm font-black text-[#075bdd]">Lihat Semua</button>
+          </div>
         {partners.length ? (
           <div className="flex gap-3 overflow-x-auto pb-1 no-scrollbar">
             {partners.map(({ Icon, name, category, distance, rating, reviews, status, tone, id }) => (
@@ -2569,14 +2597,14 @@ function CustomerHome({
               key={id}
                 type="button"
                 onClick={() => onSelectPartner(partners.find((partner) => partner.id === id) ?? partners[0])}
-              className="min-w-[170px] overflow-hidden rounded-[20px] border border-slate-100 bg-white text-left shadow-soft transition hover:-translate-y-0.5"
+              className="min-w-[190px] overflow-hidden rounded-[20px] border border-slate-100 bg-white text-left shadow-[0_8px_22px_rgba(15,23,42,0.08)] transition active:scale-[0.98]"
             >
-              <div className={cn("flex h-[85px] items-center justify-center", tone)}>
-                <Icon className="h-9 w-9" />
+              <div className="flex h-[88px] items-center justify-center bg-[#eef5ff] text-[#075bdd]">
+                <Icon className="h-10 w-10" />
               </div>
               <div className="p-3">
-                <h3 className="text-[13px] font-extrabold">{name}</h3>
-                <p className="mt-0.5 text-[11px] text-slate-500">
+                <h3 className="truncate text-sm font-black text-slate-950">{name}</h3>
+                <p className="mt-1 truncate text-[11px] font-semibold text-slate-500">
                   {category} - {distance}
                 </p>
                 <div className="mt-2 flex items-center justify-between">
@@ -2592,11 +2620,11 @@ function CustomerHome({
             ))}
           </div>
         ) : (
-          <div className="rounded-[16px] bg-white p-4 text-sm text-slate-500 shadow-soft">
+          <div className="rounded-[16px] bg-[#f4f8ff] p-4 text-sm font-semibold leading-6 text-slate-500">
             Belum ada mitra terverifikasi di Kota Padang. Mitra akan muncul setelah pendaftaran partner disetujui admin.
           </div>
         )}
-        </Section>
+        </div>
       </div>
     </section>
   );
@@ -2616,7 +2644,11 @@ function PromoShowcase({ promos, onOpenPartnerList }: { promos: PromoBanner[]; o
   const visiblePromos = promos.length ? promos : fallbackPromos;
 
   return (
-    <Section title="Promo Hari Ini" action="Geser untuk lihat promo">
+    <section className="mt-4 rounded-[22px] bg-white p-4 shadow-[0_12px_32px_rgba(15,23,42,0.08)]">
+      <div className="mb-4 flex items-center justify-between">
+        <h2 className="text-lg font-black text-slate-950">Promo Hari Ini</h2>
+        <span className="text-xs font-black text-slate-400">Geser</span>
+      </div>
       <div className="flex gap-3 overflow-x-auto pb-1 no-scrollbar">
         {visiblePromos.map((promo, index) => (
           <button
@@ -2657,7 +2689,7 @@ function PromoShowcase({ promos, onOpenPartnerList }: { promos: PromoBanner[]; o
           </button>
         ))}
       </div>
-    </Section>
+    </section>
   );
 }
 
@@ -2675,26 +2707,39 @@ function ServiceDetail({
   const Icon = partner.Icon;
 
   return (
-    <section className="animate-in fade-in slide-in-from-bottom-3 duration-300">
-      <div className="relative flex h-[220px] items-center justify-center rounded-b-[32px] bg-gradient-to-br from-navy to-[#1a3a6e] text-white">
-        <Icon className="h-16 w-16" />
-        <Button size="icon" variant="ghost" className="absolute left-5 top-5 rounded-xl bg-white/15 text-white" onClick={onBack}>
-          <ArrowLeft className="h-5 w-5" />
-        </Button>
-        <Button size="icon" variant="ghost" className="absolute right-5 top-5 rounded-xl bg-white/15 text-white">
-          <Heart className="h-5 w-5" />
-        </Button>
+    <section className="animate-in fade-in slide-in-from-bottom-3 bg-white pb-6 duration-300">
+      <div className="bg-[#0648bd] px-5 pb-12 pt-5 text-white">
+        <div className="flex items-center justify-between gap-3">
+          <Button size="icon" variant="ghost" className="rounded-full bg-white/10 text-white hover:bg-white/20" onClick={onBack}>
+            <ArrowLeft className="h-5 w-5" />
+          </Button>
+          <BrandMark light />
+          <button type="button" className="rounded-full bg-white/10 p-2.5">
+            <Heart className="h-5 w-5" />
+          </button>
+        </div>
       </div>
 
-      <div className="p-5">
-        <h1 className="text-xl font-extrabold">
-          {partner.name} - {partner.category}
-        </h1>
-        <div className="mt-2 flex items-center gap-2">
-          <Badge variant="blue" className="gap-1">
-            <ShieldCheck className="h-3.5 w-3.5" /> Terverifikasi SERJAFAN
-          </Badge>
-          <span className="text-xs text-slate-500">Sejak 2019</span>
+      <div className="-mt-8 px-5">
+        <div className="overflow-hidden rounded-[24px] bg-white shadow-[0_12px_34px_rgba(15,23,42,0.12)]">
+          <div className="flex h-36 items-center justify-center bg-[#eef5ff] text-[#075bdd]">
+            <Icon className="h-16 w-16" />
+          </div>
+          <div className="p-4">
+            <div className="flex items-start justify-between gap-3">
+              <div className="min-w-0">
+                <h1 className="text-xl font-black leading-tight text-slate-950">{partner.name}</h1>
+                <p className="mt-1 text-sm font-bold text-slate-500">{partner.category} - Kota Padang</p>
+              </div>
+              <Badge variant={partner.status === "Online" ? "success" : "warning"}>{partner.status}</Badge>
+            </div>
+            <div className="mt-3 flex items-center gap-2">
+              <Badge variant="blue" className="gap-1">
+                <ShieldCheck className="h-3.5 w-3.5" /> Terverifikasi
+              </Badge>
+              <span className="text-xs font-bold text-slate-400">{partner.distance}</span>
+            </div>
+          </div>
         </div>
 
         <div className="my-4 grid grid-cols-3 gap-2.5">
@@ -2703,22 +2748,22 @@ function ServiceDetail({
             [partner.orders, "Pesanan"],
             [partner.eta, "ETA Kedatangan"]
           ].map(([value, label]) => (
-            <div key={label} className="rounded-[14px] bg-cloud p-3 text-center">
-              <p className="text-base font-extrabold">{value}</p>
+            <div key={label} className="rounded-[16px] bg-[#f4f8ff] p-3 text-center">
+              <p className="truncate text-base font-black text-slate-950">{value}</p>
               <p className="mt-0.5 text-[10px] text-slate-500">{label}</p>
             </div>
           ))}
         </div>
 
-        <div className="rounded-[16px] bg-cloud p-4">
-          <h2 className="text-[13px] font-extrabold">Tentang Layanan</h2>
+        <div className="rounded-[18px] bg-white p-4 shadow-[0_10px_28px_rgba(15,23,42,0.08)]">
+          <h2 className="text-[15px] font-black text-slate-950">Tentang Layanan</h2>
           <p className="mt-2 text-xs leading-6 text-slate-500">
             Layanan {partner.category.toLowerCase()} profesional dari mitra terverifikasi. Estimasi kedatangan,
             biaya, dan status mitra dibaca dari state yang sama untuk detail, checkout, dan tracking.
           </p>
         </div>
 
-        <div className="my-4 flex items-center justify-between rounded-[18px] bg-gradient-to-br from-flame to-[#ff9a3c] p-5 text-white">
+        <div className="my-4 flex items-center justify-between rounded-[18px] bg-[#075bdd] p-5 text-white">
           <div>
             <p className="text-xs font-semibold text-white/80">Estimasi Harga</p>
             <p className="text-[11px] text-white/70">Tergantung detail pekerjaan</p>
@@ -2729,13 +2774,13 @@ function ServiceDetail({
           </div>
         </div>
 
-        <h2 className="mb-2 text-[13px] font-extrabold">Ulasan Pelanggan</h2>
-        <div className="rounded-[14px] bg-cloud p-3">
+        <h2 className="mb-2 text-[15px] font-black text-slate-950">Ulasan Pelanggan</h2>
+        <div className="rounded-[16px] bg-[#f4f8ff] p-3">
           <div className="mb-2 flex items-center gap-2">
-            <span className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-flame to-[#ff9a3c] text-[13px] font-bold text-white">
-              AR
+            <span className="flex h-8 w-8 items-center justify-center rounded-full bg-[#075bdd] text-[13px] font-bold text-white">
+              SF
             </span>
-            <span className="text-xs font-bold">Andi R.</span>
+            <span className="text-xs font-bold">Pelanggan SERJAFAN</span>
             <span className="ml-auto flex text-amber-500">
               {Array.from({ length: 5 }).map((_, index) => (
                 <Star key={index} className="h-3 w-3 fill-current" />
@@ -2745,14 +2790,11 @@ function ServiceDetail({
           <p className="text-xs text-slate-500">Cepat banget, hasilnya rapi, harga wajar. Recommended!</p>
         </div>
 
-        <div className="mt-4 flex gap-2.5">
-          <Button variant="outline" size="lg" className="flex-1 border-2 border-navy text-navy" onClick={onOpenMessages}>
-            <MessageCircle className="h-4 w-4" /> Chat
+        <div className="mt-4 grid grid-cols-[1fr_1.4fr] gap-2.5">
+          <Button variant="outline" size="lg" className="rounded-[14px] border-2 border-[#075bdd] text-[#075bdd]" onClick={onOpenMessages}>
+            <MessageCircle className="h-4 w-4" /> Chat Mitra
           </Button>
-          <Button variant="outline" size="lg" className="flex-1 border-2 border-navy text-navy" onClick={onOpenMessages}>
-            <Inbox className="h-4 w-4" /> Pesan
-          </Button>
-          <Button variant="navy" size="lg" className="flex-[2]" onClick={onOrder}>
+          <Button size="lg" className="rounded-[14px] bg-[#075bdd] text-white hover:bg-[#0648bd]" onClick={onOrder}>
             <ShoppingCart className="h-4 w-4" /> Pesan Sekarang
           </Button>
         </div>
@@ -3452,12 +3494,14 @@ function ConnectedGoogleMap({
 function OrdersCenter({
   orders,
   loading,
+  onOpenSearch,
   onOpenTracking,
   onReview,
   onOrderNow
 }: {
   orders: any[];
   loading: boolean;
+  onOpenSearch: () => void;
   onOpenTracking: (order: any) => void;
   onReview: (order: any, rating: number, comment: string) => void;
   onOrderNow: () => void;
@@ -3498,7 +3542,7 @@ function OrdersCenter({
         <div className="mb-5 flex items-center justify-between gap-3">
           <h1 className="text-2xl font-black text-slate-950">Pesanan Saya</h1>
           <div className="flex items-center gap-2">
-            <button type="button" className="flex h-11 w-11 items-center justify-center rounded-full bg-white text-[#075bdd] shadow-[0_8px_22px_rgba(15,23,42,0.08)]">
+            <button type="button" onClick={onOpenSearch} className="flex h-11 w-11 items-center justify-center rounded-full bg-white text-[#075bdd] shadow-[0_8px_22px_rgba(15,23,42,0.08)]">
               <Search className="h-5 w-5" />
             </button>
             <button type="button" onClick={onOrderNow} className="rounded-[14px] border border-slate-200 bg-white px-4 py-3 text-sm font-black text-slate-700">
@@ -3624,7 +3668,9 @@ function ProfileScreen({
   onOpenTopup,
   onOpenWalletHistory,
   onEditProfile,
-  onLogout
+  onLogout,
+  onOpenSearch,
+  onOpenMessages
 }: {
   user: CurrentUser;
   orderCount: number;
@@ -3635,6 +3681,8 @@ function ProfileScreen({
   onOpenWalletHistory: () => void;
   onEditProfile: () => void;
   onLogout: () => void;
+  onOpenSearch: () => void;
+  onOpenMessages: () => void;
 }) {
   const initials = user.name
     .split(" ")
@@ -3647,15 +3695,15 @@ function ProfileScreen({
     { icon: Wallet, label: "Pembayaran Saya", onClick: onOpenWallet },
     { icon: MapPin, label: "Alamat Saya", onClick: onEditProfile },
     { icon: Tag, label: "Kupon Saya", onClick: onOpenWalletHistory },
-    { icon: Heart, label: "Favorit Layanan", onClick: onOpenOrders },
+    { icon: Heart, label: "Favorit Layanan", onClick: onOpenSearch },
     { icon: Star, label: "Ulasan Saya", onClick: onOpenOrders }
   ];
   const supportActions = [
-    { icon: MessageCircle, label: "Pusat Bantuan", onClick: onOpenNotifications },
-    { icon: Phone, label: "Hubungi Kami", onClick: onOpenNotifications },
+    { icon: MessageCircle, label: "Pusat Bantuan", onClick: onOpenMessages },
+    { icon: Phone, label: "Hubungi Kami", onClick: onOpenMessages },
     { icon: ShieldCheck, label: "Tentang SERJAFAN", onClick: onOpenNotifications },
-    { icon: ShieldCheck, label: "Kebijakan Privasi", onClick: onOpenNotifications },
-    { icon: ListOrdered, label: "Syarat & Ketentuan", onClick: onOpenNotifications }
+    { icon: ShieldCheck, label: "Kebijakan Privasi", onClick: () => { window.location.href = "/privacy"; } },
+    { icon: ListOrdered, label: "Syarat & Ketentuan", onClick: () => { window.location.href = "/terms"; } }
   ];
 
   return (
