@@ -35,9 +35,13 @@ import {
   Trash2,
   Upload,
   ListOrdered,
+  Monitor,
   UserCircle,
   UserPlus,
   Wallet,
+  Smartphone,
+  WashingMachine,
+  UserRoundCog,
   Wrench,
   X
 } from "lucide-react";
@@ -423,6 +427,38 @@ const customerCategoryLabel = (name: string) => {
   };
   return aliases[normalized] ?? normalized;
 };
+
+const customerDashboardCategories: Array<{ label: string; target: string; icon: React.ElementType }> = [
+  { label: "Tukang", target: "Lainnya", icon: Wrench },
+  { label: "AC", target: "AC Service", icon: Monitor },
+  { label: "Elektronik", target: "Elektronik", icon: Smartphone },
+  { label: "Kebersihan", target: "Cleaning", icon: ShieldCheck },
+  { label: "Kunci", target: "Duplikat Kunci", icon: KeyRound },
+  { label: "Laundry", target: "Laundry", icon: WashingMachine },
+  { label: "Teknisi", target: "Teknisi", icon: UserRoundCog },
+  { label: "Servis Motor", target: "Servis Motor", icon: Bike }
+];
+
+const customerPopularServices = [
+  {
+    title: "Tukang Listrik",
+    target: "Tukang Listrik",
+    image: "/service-electrician.svg",
+    alt: "Teknisi listrik sedang bekerja"
+  },
+  {
+    title: "Service AC",
+    target: "AC Service",
+    image: "/service-ac.svg",
+    alt: "Teknisi AC sedang memperbaiki AC"
+  },
+  {
+    title: "Tukang Kunci",
+    target: "Duplikat Kunci",
+    image: "/service-locksmith.svg",
+    alt: "Tukang kunci membuka pintu"
+  }
+];
 
 const serviceCategoryKey = (name: string) => name.trim().toLowerCase().replace(/^jasa\s+/, "");
 
@@ -2483,113 +2519,133 @@ function CustomerHome({
     return counts;
   }, [partners]);
 
+  const resolveCategory = (target: string) =>
+    services.find((service) => serviceCategoryKey(service.name) === serviceCategoryKey(target))?.name ?? target;
+
+  const openCategory = (target?: string) => {
+    onOpenPartnerList(target ? resolveCategory(target) : undefined);
+  };
+
   return (
-    <section className="animate-in fade-in slide-in-from-bottom-3 bg-[#fbfdff] pb-4 duration-300">
-      <div className="relative overflow-hidden bg-[#0648bd] px-5 pb-20 pt-6 text-white">
-        <div className="absolute -right-24 top-20 h-64 w-64 rounded-full bg-white/10" />
-        <div className="absolute -left-20 top-48 h-48 w-48 rounded-full bg-[#0b66ff]/35 blur-2xl" />
+    <section className="animate-in fade-in slide-in-from-bottom-3 min-h-dvh bg-[#f5f7fb] pb-24 duration-300">
+      <header className="relative h-[150px] overflow-hidden rounded-b-[32px] bg-gradient-to-br from-[#0d47d9] to-[#003cb5] px-4 pt-8 text-white">
+        <div className="absolute -right-20 top-8 h-56 w-56 rounded-full bg-white/10" />
+        <div className="absolute -left-16 top-24 h-36 w-36 rounded-full bg-[#2f7cff]/25 blur-xl" />
         <div className="relative flex items-center justify-between gap-4">
           <CustomerWordmark />
-          <button type="button" className="flex min-w-0 items-center gap-1 rounded-full bg-white/12 px-3.5 py-2.5 text-sm font-black text-white shadow-inner shadow-white/10" onClick={onOpenSearch}>
-            <MapPin className="h-4 w-4 shrink-0 fill-white text-white" />
+          <button type="button" className="flex min-w-0 items-center gap-1.5 rounded-full px-1 py-2 text-base font-semibold text-white" onClick={onOpenSearch}>
+            <MapPin className="h-5 w-5 shrink-0 fill-white text-white" />
             <span className="truncate">Padang</span>
-            <ChevronRight className="h-4 w-4 rotate-90" />
+            <ChevronRight className="h-5 w-5 rotate-90" />
           </button>
         </div>
-        <button type="button" onClick={onOpenSearch} className="relative mt-7 flex min-h-[58px] w-full items-center gap-3 rounded-[18px] bg-white px-5 text-left shadow-[0_16px_34px_rgba(0,34,101,0.24)]">
-          <Search className="h-6 w-6 shrink-0 text-slate-400" />
-          <span className="truncate text-[15px] font-semibold text-slate-400">Cari layanan yang Anda butuhkan...</span>
-        </button>
-        <div className="relative mt-5 min-h-[160px] overflow-hidden rounded-[24px] bg-[#075bdd] p-5 shadow-[0_18px_40px_rgba(3,36,96,0.26)]">
+      </header>
+
+      <div className="px-4">
+        <div role="button" tabIndex={0} onClick={onOpenSearch} onKeyDown={(event) => event.key === "Enter" && onOpenSearch()} className="-mt-7 flex h-14 items-center gap-3 rounded-2xl bg-white px-4 shadow-[0_14px_34px_rgba(15,23,42,0.12)] ring-1 ring-slate-100">
+          <Search className="h-6 w-6 shrink-0 text-[#9ca3af]" />
+          <Input
+            readOnly
+            tabIndex={-1}
+            value=""
+            placeholder="Cari layanan yang Anda butuhkan..."
+            className="h-full cursor-pointer border-0 bg-transparent px-0 text-[15px] font-medium text-slate-600 shadow-none outline-none placeholder:text-[#9ca3af] focus-visible:ring-0"
+          />
+        </div>
+
+        <Card className="mt-5 h-[160px] overflow-hidden rounded-[20px] border-0 bg-gradient-to-br from-[#0f5bff] to-[#003ccf] shadow-[0_16px_34px_rgba(13,71,217,0.18)]">
+          <CardContent className="relative h-full p-0">
           <img
             src="/rumah-gadang-padang.svg"
             alt="Rumah Gadang Padang"
-            className="absolute inset-y-0 right-0 h-full w-[54%] object-cover object-center opacity-95"
+            className="absolute inset-y-0 right-0 h-full w-[50%] rounded-r-[20px] object-cover object-center"
           />
-          <div className="absolute inset-y-0 right-[38%] w-[32%] bg-gradient-to-r from-[#075bdd] via-[#075bdd]/88 to-transparent" />
-          <div className="absolute inset-y-0 left-0 w-[70%] bg-gradient-to-r from-[#075bdd] via-[#075bdd]/96 to-[#075bdd]/24" />
-          <div className="relative max-w-[62%]">
-            <p className="text-[34px] font-black leading-none tracking-tight text-white">Semua Jasa</p>
-            <p className="mt-2 text-2xl font-black leading-tight text-[#ffd34d]">Dalam Satu Aplikasi</p>
-            <p className="mt-3 text-sm font-bold text-white/86">Cepat - Mudah - Terpercaya</p>
+          <div className="absolute inset-y-0 left-0 w-[66%] bg-gradient-to-r from-[#0f5bff] via-[#0f5bff]/96 to-[#0f5bff]/18" />
+          <div className="relative flex h-full max-w-[64%] flex-col justify-center px-5">
+            <h1 className="text-[32px] font-black leading-none tracking-tight text-white">Semua Jasa</h1>
+            <p className="mt-2 text-[24px] font-extrabold leading-tight text-[#ffd54a]">Dalam Satu Aplikasi</p>
+            <p className="mt-3 text-[15px] font-semibold text-white/90">Cepat • Mudah • Terpercaya</p>
           </div>
-        </div>
-      </div>
+          </CardContent>
+        </Card>
 
-      <div className="-mt-14 px-5">
-        <div className="rounded-[22px] bg-white p-4 shadow-[0_12px_32px_rgba(15,23,42,0.10)] ring-1 ring-slate-100">
-          <div className="mb-4 flex items-center justify-between">
+        <Card className="mt-4 rounded-[24px] border-0 bg-white shadow-[0_10px_28px_rgba(15,23,42,0.08)] ring-1 ring-slate-100">
+          <CardContent className="p-5">
+          <div className="mb-6 flex items-center justify-between">
             <h2 className="text-lg font-black text-slate-950">Kategori Layanan</h2>
-            <button type="button" onClick={() => onOpenPartnerList()} className="text-sm font-black text-[#075bdd]">Lihat Semua</button>
+            <Button type="button" variant="ghost" size="sm" onClick={() => openCategory()} className="h-auto px-0 text-sm font-black text-[#0d47d9] hover:bg-transparent hover:text-[#003cb5]">
+              Lihat Semua
+            </Button>
           </div>
-          <div className="grid grid-cols-4 gap-x-2 gap-y-6">
-          {services.map((service) => {
-            const Icon = service.icon;
-            const count = partnerCountByCategory.get(serviceCategoryKey(service.name)) ?? 0;
+          <div className="grid grid-cols-4 gap-x-2 gap-y-7">
+          {customerDashboardCategories.map((category) => {
+            const Icon = category.icon;
+            const count = partnerCountByCategory.get(serviceCategoryKey(category.target)) ?? 0;
             return (
             <button
-              key={service.name}
+              key={category.label}
               type="button"
-              onClick={() => onOpenPartnerList(service.name)}
+              onClick={() => openCategory(category.target)}
               className="group min-w-0 text-center"
             >
-              <span className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-[#eef5ff] text-[#075bdd] transition group-active:scale-95 group-hover:bg-[#e1efff]">
+              <span className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-[#eef4ff] text-[#0d47d9] transition group-active:scale-95 group-hover:bg-[#dfeaff]">
                 <Icon className="h-7 w-7" />
               </span>
-              <span className="mt-2.5 block text-balance-mobile text-[12px] font-extrabold leading-4 text-slate-900">{customerCategoryLabel(service.name)}</span>
+              <span className="mt-3 block text-balance-mobile text-[13px] font-semibold leading-4 text-slate-900">{category.label}</span>
               <span className="sr-only">{count ? `${count} mitra aktif` : "Belum ada mitra"}</span>
             </button>
             );
-          }).slice(0, 8)}
+          })}
           </div>
-        </div>
+          </CardContent>
+        </Card>
 
-        <div className="mt-4 rounded-[22px] bg-white p-4 shadow-[0_12px_32px_rgba(15,23,42,0.08)] ring-1 ring-slate-100">
+        <Card className="mt-4 rounded-[20px] border-0 bg-white shadow-[0_10px_28px_rgba(15,23,42,0.07)] ring-1 ring-slate-100">
+          <CardContent className="p-4">
           <div className="mb-4 flex items-center justify-between">
             <h2 className="text-lg font-black text-slate-950">Layanan Populer</h2>
-            <button type="button" onClick={() => onOpenPartnerList()} className="text-sm font-black text-[#075bdd]">Lihat Semua</button>
+            <Button type="button" variant="ghost" size="sm" onClick={() => openCategory()} className="h-auto px-0 text-sm font-black text-[#0d47d9] hover:bg-transparent hover:text-[#003cb5]">
+              Lihat Semua
+            </Button>
           </div>
-          <div className="grid grid-cols-3 gap-3">
-            {services.slice(0, 3).map((service) => {
-              const Icon = service.icon;
-              return (
-                <button key={service.name} type="button" onClick={() => onOpenPartnerList(service.name)} className="overflow-hidden rounded-[18px] border border-slate-100 bg-white text-left shadow-[0_8px_22px_rgba(15,23,42,0.08)] transition active:scale-[0.98]">
-                  <div className="relative flex h-24 items-center justify-center overflow-hidden bg-[#eef5ff] text-[#075bdd]">
-                    <div className="absolute inset-0 bg-gradient-to-br from-[#cfe4ff] via-[#f8fbff] to-[#fff6d8]" />
-                    <div className="absolute -right-6 -top-6 h-16 w-16 rounded-full bg-[#075bdd]/10" />
-                    <Icon className="relative h-10 w-10" />
-                  </div>
-                  <div className="p-3">
-                    <p className="line-clamp-2 min-h-[34px] text-sm font-black leading-4 text-slate-950">{customerCategoryLabel(service.name)}</p>
-                    <p className="mt-2 flex items-center gap-1 text-xs font-black text-slate-700">
-                      <Star className="h-3.5 w-3.5 fill-[#ffc43d] text-[#ffc43d]" /> 4.9
-                    </p>
-                  </div>
-                </button>
-              );
-            })}
+          <div className="flex gap-3 overflow-x-auto pb-1 no-scrollbar">
+            {customerPopularServices.map((service) => (
+              <button key={service.title} type="button" onClick={() => openCategory(service.target)} className="w-[140px] shrink-0 overflow-hidden rounded-[18px] bg-white text-left shadow-[0_8px_22px_rgba(15,23,42,0.10)] ring-1 ring-slate-100 transition active:scale-[0.98]">
+                <img src={service.image} alt={service.alt} className="h-[110px] w-full object-cover" />
+                <div className="p-3">
+                  <p className="line-clamp-1 text-[15px] font-black leading-5 text-slate-950">{service.title}</p>
+                  <p className="mt-2 flex items-center gap-1 text-sm font-black text-slate-800">
+                    <Star className="h-4 w-4 fill-[#ffbd16] text-[#ffbd16]" /> 4.9
+                  </p>
+                </div>
+              </button>
+            ))}
           </div>
-        </div>
+          </CardContent>
+        </Card>
 
-        <div className="relative mt-4 overflow-hidden rounded-[22px] bg-[#075bdd] p-5 text-white shadow-[0_12px_32px_rgba(15,23,42,0.12)]">
+        <Card className="mt-4 h-[120px] overflow-hidden rounded-[20px] border-0 bg-gradient-to-br from-[#0d47d9] to-[#003cb5] text-white shadow-[0_12px_30px_rgba(13,71,217,0.20)]">
+          <CardContent className="relative h-full p-0">
           <div className="absolute -left-8 bottom-0 h-28 w-28 rounded-full bg-white/12" />
-          <div className="relative grid grid-cols-[0.8fr_1.2fr] items-center gap-3">
-            <div className="relative mx-auto h-28 w-20 rounded-[18px] border-[6px] border-white bg-white shadow-[0_12px_24px_rgba(0,0,0,0.18)]">
+          <div className="absolute -right-10 -top-10 h-24 w-24 rounded-full bg-white/10" />
+          <div className="relative grid h-full grid-cols-[82px_1fr_auto] items-center gap-3 px-4">
+            <div className="relative h-[98px] w-[70px] rounded-[16px] border-[5px] border-white bg-white shadow-[0_12px_24px_rgba(0,0,0,0.20)]">
               <div className="absolute left-1/2 top-2 h-1 w-8 -translate-x-1/2 rounded-full bg-slate-200" />
-              <div className="flex h-full items-center justify-center rounded-[12px] bg-[#eef5ff]">
-                <img src="/serjafan-logo.png" alt="SERJAFAN" className="h-12 w-12 object-contain" />
+              <div className="flex h-full items-center justify-center rounded-[11px] bg-white">
+                <img src="/serjafan-logo.png" alt="SERJAFAN" className="h-11 w-11 object-contain" />
               </div>
             </div>
             <div className="min-w-0">
-              <p className="text-2xl font-black leading-tight">Butuh Jasa?</p>
-              <p className="text-2xl font-black leading-tight"><span className="text-[#ffd34d]">SERJAFAN</span> Aja!</p>
-              <p className="mt-2 text-sm font-semibold leading-5 text-white/80">Solusi cepat untuk kebutuhan Anda.</p>
-              <button type="button" onClick={() => onOpenPartnerList()} className="mt-4 inline-flex items-center gap-2 rounded-[14px] bg-[#ffd34d] px-4 py-3 text-sm font-black text-slate-950 shadow-[0_8px_18px_rgba(0,0,0,0.14)] transition active:scale-[0.98]">
-                Pesan Sekarang <ChevronRight className="h-4 w-4 rounded-full bg-[#075bdd] p-0.5 text-white" />
-              </button>
+              <p className="text-[22px] font-black leading-tight">Butuh Jasa?</p>
+              <p className="text-[22px] font-black leading-tight"><span className="text-[#ffd54a]">SERJAFAN</span> Aja!</p>
+              <p className="mt-1 text-[13px] font-medium leading-5 text-white/86">Solusi cepat untuk kebutuhan Anda.</p>
             </div>
+            <Button type="button" onClick={() => openCategory()} className="h-11 shrink-0 rounded-full bg-[#ffd54a] px-4 text-[13px] font-black text-slate-800 shadow-[0_8px_18px_rgba(0,0,0,0.16)] hover:bg-[#ffe071]">
+              Pesan Sekarang <ChevronRight className="h-5 w-5 rounded-full bg-[#0d47d9] p-0.5 text-white" />
+            </Button>
           </div>
-        </div>
+          </CardContent>
+        </Card>
       </div>
     </section>
   );
