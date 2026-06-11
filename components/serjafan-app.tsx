@@ -540,15 +540,10 @@ function BrandMark({ compact = false, light = false }: { compact?: boolean; ligh
 
 function CustomerWordmark() {
   return (
-    <div className="flex min-w-0 items-center gap-3">
-      <span className="relative flex h-12 w-12 shrink-0 items-center justify-center">
-        <span className="absolute inset-0 rotate-45 rounded-[12px] border-[5px] border-white" />
-        <span className="relative text-2xl font-black leading-none text-white">S</span>
+    <div className="flex min-w-0 items-center">
+      <span className="flex h-[58px] w-[160px] shrink-0 items-center overflow-hidden rounded-[18px] bg-white px-2.5 py-1.5 shadow-[0_12px_24px_rgba(0,24,92,0.18)]">
+        <img src="/serjafan-logo.png" alt="SERJAFAN" className="h-full w-full object-contain" />
       </span>
-      <div className="min-w-0">
-        <p className="truncate text-[25px] font-black leading-none tracking-tight text-white">SERJAFAN</p>
-        <p className="mt-1 text-[11px] font-black tracking-[0.38em] text-white/70">PADANG</p>
-      </div>
     </div>
   );
 }
@@ -2528,12 +2523,12 @@ function CustomerHome({
 
   return (
     <section className="animate-in fade-in slide-in-from-bottom-3 min-h-dvh bg-[#f5f7fb] pb-24 duration-300">
-      <header className="relative h-[150px] overflow-hidden rounded-b-[32px] bg-gradient-to-br from-[#0d47d9] to-[#003cb5] px-4 pt-8 text-white">
+      <header className="relative h-[150px] overflow-hidden rounded-b-[32px] bg-gradient-to-br from-[#0d47d9] to-[#003cb5] px-4 pt-7 text-white">
         <div className="absolute -right-20 top-8 h-56 w-56 rounded-full bg-white/10" />
         <div className="absolute -left-16 top-24 h-36 w-36 rounded-full bg-[#2f7cff]/25 blur-xl" />
         <div className="relative flex items-center justify-between gap-4">
           <CustomerWordmark />
-          <button type="button" className="flex min-w-0 items-center gap-1.5 rounded-full px-1 py-2 text-base font-semibold text-white" onClick={onOpenSearch}>
+          <button type="button" className="flex min-w-0 shrink-0 items-center gap-1.5 rounded-full bg-white/10 px-3 py-2 text-sm font-bold text-white" onClick={onOpenSearch}>
             <MapPin className="h-5 w-5 shrink-0 fill-white text-white" />
             <span className="truncate">Padang</span>
             <ChevronRight className="h-5 w-5 rotate-90" />
@@ -2542,16 +2537,10 @@ function CustomerHome({
       </header>
 
       <div className="px-4">
-        <div role="button" tabIndex={0} onClick={onOpenSearch} onKeyDown={(event) => event.key === "Enter" && onOpenSearch()} className="-mt-7 flex h-14 items-center gap-3 rounded-2xl bg-white px-4 shadow-[0_14px_34px_rgba(15,23,42,0.12)] ring-1 ring-slate-100">
+        <button type="button" onClick={onOpenSearch} className="relative z-20 -mt-7 flex h-14 w-full items-center gap-3 rounded-2xl bg-white px-4 text-left shadow-[0_14px_34px_rgba(15,23,42,0.12)] ring-1 ring-slate-100 transition active:scale-[0.99]">
           <Search className="h-6 w-6 shrink-0 text-[#9ca3af]" />
-          <Input
-            readOnly
-            tabIndex={-1}
-            value=""
-            placeholder="Cari layanan yang Anda butuhkan..."
-            className="h-full cursor-pointer border-0 bg-transparent px-0 text-[15px] font-medium text-slate-600 shadow-none outline-none placeholder:text-[#9ca3af] focus-visible:ring-0"
-          />
-        </div>
+          <span className="min-w-0 flex-1 truncate whitespace-nowrap text-[15px] font-medium leading-none text-[#9ca3af]">Cari layanan yang Anda butuhkan...</span>
+        </button>
 
         <Card className="mt-5 h-[160px] overflow-hidden rounded-[20px] border-0 bg-gradient-to-br from-[#0f5bff] to-[#003ccf] shadow-[0_16px_34px_rgba(13,71,217,0.18)]">
           <CardContent className="relative h-full p-0">
@@ -2624,23 +2613,23 @@ function CustomerHome({
           </CardContent>
         </Card>
 
-        <Card className="mt-4 h-[120px] overflow-hidden rounded-[20px] border-0 bg-gradient-to-br from-[#0d47d9] to-[#003cb5] text-white shadow-[0_12px_30px_rgba(13,71,217,0.20)]">
+        <Card className="mt-4 h-[132px] overflow-hidden rounded-[20px] border-0 bg-gradient-to-br from-[#0d47d9] to-[#003cb5] text-white shadow-[0_12px_30px_rgba(13,71,217,0.20)]">
           <CardContent className="relative h-full p-0">
           <div className="absolute -left-8 bottom-0 h-28 w-28 rounded-full bg-white/12" />
           <div className="absolute -right-10 -top-10 h-24 w-24 rounded-full bg-white/10" />
-          <div className="relative grid h-full grid-cols-[82px_1fr_auto] items-center gap-3 px-4">
-            <div className="relative h-[98px] w-[70px] rounded-[16px] border-[5px] border-white bg-white shadow-[0_12px_24px_rgba(0,0,0,0.20)]">
+          <div className="relative grid h-full grid-cols-[76px_1fr] grid-rows-[1fr_auto] items-center gap-x-3 px-4 py-3 min-[410px]:grid-cols-[82px_1fr_auto] min-[410px]:grid-rows-1 min-[410px]:py-0">
+            <div className="relative row-span-2 h-[102px] w-[70px] rounded-[16px] border-[5px] border-white bg-white shadow-[0_12px_24px_rgba(0,0,0,0.20)] min-[410px]:h-[104px] min-[410px]:w-[74px]">
               <div className="absolute left-1/2 top-2 h-1 w-8 -translate-x-1/2 rounded-full bg-slate-200" />
               <div className="flex h-full items-center justify-center rounded-[11px] bg-white">
                 <img src="/serjafan-logo.png" alt="SERJAFAN" className="h-11 w-11 object-contain" />
               </div>
             </div>
-            <div className="min-w-0">
-              <p className="text-[22px] font-black leading-tight">Butuh Jasa?</p>
-              <p className="text-[22px] font-black leading-tight"><span className="text-[#ffd54a]">SERJAFAN</span> Aja!</p>
-              <p className="mt-1 text-[13px] font-medium leading-5 text-white/86">Solusi cepat untuk kebutuhan Anda.</p>
+            <div className="min-w-0 self-end min-[410px]:self-center">
+              <p className="text-[21px] font-black leading-tight">Butuh Jasa?</p>
+              <p className="text-[21px] font-black leading-tight"><span className="text-[#ffd54a]">SERJAFAN</span> Aja!</p>
+              <p className="mt-1 max-w-[170px] text-[12px] font-medium leading-4 text-white/86 min-[410px]:max-w-none min-[410px]:text-[13px] min-[410px]:leading-5">Solusi cepat untuk kebutuhan Anda.</p>
             </div>
-            <Button type="button" onClick={() => openCategory()} className="h-11 shrink-0 rounded-full bg-[#ffd54a] px-4 text-[13px] font-black text-slate-800 shadow-[0_8px_18px_rgba(0,0,0,0.16)] hover:bg-[#ffe071]">
+            <Button type="button" onClick={() => openCategory()} className="col-start-2 h-10 w-fit shrink-0 self-start rounded-full bg-[#ffd54a] px-4 text-[12px] font-black text-slate-800 shadow-[0_8px_18px_rgba(0,0,0,0.16)] hover:bg-[#ffe071] min-[410px]:col-auto min-[410px]:h-11 min-[410px]:self-center min-[410px]:text-[13px]">
               Pesan Sekarang <ChevronRight className="h-5 w-5 rounded-full bg-[#0d47d9] p-0.5 text-white" />
             </Button>
           </div>
