@@ -920,10 +920,10 @@ export function AppLauncher() {
   ];
   const landingServices = services.slice(0, 8);
   const landingStats = [
-    { value: "250+", label: "target pengguna validasi" },
-    { value: "75+", label: "target mitra lokal" },
-    { value: "1.200+", label: "target order selesai" },
-    { value: "4.8/5", label: "standar rating layanan" }
+    { value: "Kota Padang", label: "fokus area layanan" },
+    { value: `${landingServices.length}+`, label: "kategori jasa siap tampil" },
+    { value: "3", label: "sistem customer partner admin" },
+    { value: "4", label: "halaman SEO layanan lokal" }
   ];
   const valueProps = [
     { Icon: ShieldCheck, title: "Mitra terverifikasi", body: "Data mitra, dokumen, status online, saldo kerja, dan pembayaran dipantau dari admin." },
@@ -931,10 +931,10 @@ export function AppLauncher() {
     { Icon: Wallet, title: "Pembayaran fleksibel", body: "Mendukung top up manual, transfer mitra, tunai, bukti transfer, dan riwayat saldo." }
   ];
   const steps = ["Pilih jasa yang dibutuhkan", "Pilih mitra terdekat", "Chat dan lacak pekerjaan", "Bayar lalu beri ulasan"];
-  const testimonials = [
-    { name: "Rahmad Irfan", service: "Tukang Kunci", role: "Pelanggan Padang", body: "Saya bisa cari bantuan kunci lebih cepat dan status pesanan jelas dari awal.", rating: "4.9", tone: "bg-blue-100 text-blue-700" },
-    { name: "Andi Wijaya", service: "Service AC", role: "Mitra teknisi", body: "Order, chat, dan pembayaran tercatat, jadi pekerjaan lebih rapi dan mudah dipantau.", rating: "4.8", tone: "bg-emerald-100 text-emerald-700" },
-    { name: "Siti Nurliza", service: "Cleaning", role: "Pelanggan rumah", body: "Saya suka karena bisa chat dulu, lihat status, dan tinggal beri ulasan setelah pekerjaan selesai.", rating: "5.0", tone: "bg-orange-100 text-orange-700" }
+  const proofCards = [
+    { title: "Produk bisa dibuka", label: "Customer App", body: "Pengunjung dapat mencoba alur customer langsung dari website, termasuk cari layanan dan mulai pesanan.", Icon: Home, tone: "bg-blue-100 text-blue-700" },
+    { title: "Mitra punya ruang kerja", label: "Partner App", body: "Mitra memiliki dashboard sendiri untuk menerima order, status online, chat, peta, dan saldo kerja.", Icon: Wrench, tone: "bg-emerald-100 text-emerald-700" },
+    { title: "Operasional dikendalikan", label: "Admin Dashboard", body: "Admin dapat mengelola layanan, promo, partner, customer, top up manual, maps, dan pengaturan aplikasi.", Icon: ShieldCheck, tone: "bg-orange-100 text-orange-700" }
   ];
   const appPreviews = [
     {
@@ -1049,21 +1049,21 @@ export function AppLauncher() {
                       <img src="/service-ac.svg" alt="Service AC Padang" className="h-16 w-20 rounded-[14px] object-cover" />
                       <div className="min-w-0 flex-1">
                         <p className="text-sm font-black">Service AC Padang</p>
-                        <p className="mt-1 text-xs font-bold text-slate-500">Mitra tersedia - chat & tracking</p>
+                        <p className="mt-1 text-xs font-bold text-slate-500">Preview order, chat & tracking</p>
                       </div>
-                      <span className="rounded-full bg-emerald-50 px-2 py-1 text-[10px] font-black text-emerald-700">4.9</span>
+                      <span className="rounded-full bg-emerald-50 px-2 py-1 text-[10px] font-black text-emerald-700">App</span>
                     </div>
                   </div>
                 </div>
                 <div className="grid grid-cols-2 gap-2 px-4 pb-4">
                   {[
-                    ["Order aktif", "3"],
-                    ["Mitra online", "12"],
-                    ["Chat baru", "2"],
-                    ["Rating", "4.9"]
+                    ["Order", "Customer"],
+                    ["Status", "Partner"],
+                    ["Maps", "Tracking"],
+                    ["Panel", "Admin"]
                   ].map(([label, value]) => (
                     <div key={label} className="rounded-[14px] bg-white p-3 shadow-sm">
-                      <p className="text-lg font-black text-[#0d47d9]">{value}</p>
+                      <p className="text-sm font-black text-[#0d47d9]">{value}</p>
                       <p className="mt-1 text-[10px] font-bold text-slate-500">{label}</p>
                     </div>
                   ))}
@@ -1109,7 +1109,7 @@ export function AppLauncher() {
                 <div className={cn("bg-gradient-to-br p-4 text-white", tone)}>
                   <div className="flex items-center justify-between">
                     <Icon className="h-6 w-6" />
-                    <span className="rounded-full bg-white/16 px-2 py-1 text-[10px] font-black">Live</span>
+                    <span className="rounded-full bg-white/16 px-2 py-1 text-[10px] font-black">Siap dicek</span>
                   </div>
                   <div className="mt-8 space-y-2">
                     <div className="h-3 w-20 rounded-full bg-white/75" />
@@ -1195,34 +1195,39 @@ export function AppLauncher() {
         <section className="mt-6 rounded-[28px] bg-white p-5 shadow-[0_16px_34px_rgba(15,23,42,0.07)] ring-1 ring-slate-100">
           <div className="mb-4 flex items-end justify-between gap-3">
             <div>
-              <p className="text-xs font-black uppercase tracking-[0.14em] text-[#0d47d9]">Social proof</p>
-              <h2 className="mt-1 text-2xl font-black">Kepercayaan dibangun dari pengalaman pertama yang rapi.</h2>
+              <p className="text-xs font-black uppercase tracking-[0.14em] text-[#0d47d9]">Bukti produk</p>
+              <h2 className="mt-1 text-2xl font-black">Yang bisa dicek sekarang sebelum traction pilot masuk.</h2>
+              <p className="mt-2 text-sm leading-6 text-slate-500">
+                Statistik pelanggan dan order akan ditampilkan setelah pilot nyata berjalan. Saat ini yang ditampilkan adalah bukti sistem yang sudah tersedia.
+              </p>
             </div>
-            <div className="hidden items-center gap-1 rounded-full bg-amber-50 px-3 py-2 text-sm font-black text-amber-700 sm:flex">
-              <Star className="h-4 w-4 fill-amber-400 text-amber-400" /> 4.9/5
+            <div className="hidden items-center gap-1 rounded-full bg-emerald-50 px-3 py-2 text-sm font-black text-emerald-700 sm:flex">
+              <ShieldCheck className="h-4 w-4" /> Produk berjalan
             </div>
           </div>
           <div className="grid gap-3 md:grid-cols-3">
-            {testimonials.map((item) => (
-              <div key={item.name} className="rounded-[20px] border border-slate-100 bg-[#f8fbff] p-4">
+            {proofCards.map((item) => {
+              const Icon = item.Icon;
+              return (
+              <div key={item.title} className="rounded-[20px] border border-slate-100 bg-[#f8fbff] p-4">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
                     <span className={cn("flex h-11 w-11 items-center justify-center rounded-full text-sm font-black", item.tone)}>
-                      {item.name.slice(0, 1)}
+                      <Icon className="h-5 w-5" />
                     </span>
                     <div>
-                      <p className="text-sm font-black">{item.name}</p>
-                      <p className="text-xs font-bold text-slate-500">{item.role}</p>
+                      <p className="text-sm font-black">{item.title}</p>
+                      <p className="text-xs font-bold text-slate-500">{item.label}</p>
                     </div>
                   </div>
-                  <span className="inline-flex items-center gap-1 rounded-full bg-white px-2 py-1 text-xs font-black text-amber-700">
-                    <Star className="h-3.5 w-3.5 fill-amber-400 text-amber-400" /> {item.rating}
+                  <span className="inline-flex items-center gap-1 rounded-full bg-white px-2 py-1 text-xs font-black text-[#0d47d9]">
+                    Siap
                   </span>
                 </div>
-                <span className="mt-3 inline-flex rounded-full bg-white px-3 py-1 text-[11px] font-black text-[#0d47d9]">{item.service}</span>
                 <p className="mt-3 text-sm leading-6 text-slate-600">{item.body}</p>
               </div>
-            ))}
+              );
+            })}
           </div>
         </section>
 
