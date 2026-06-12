@@ -35,13 +35,9 @@ import {
   Trash2,
   Upload,
   ListOrdered,
-  Monitor,
   UserCircle,
   UserPlus,
   Wallet,
-  Smartphone,
-  WashingMachine,
-  UserRoundCog,
   Wrench,
   X
 } from "lucide-react";
@@ -428,37 +424,12 @@ const customerCategoryLabel = (name: string) => {
   return aliases[normalized] ?? normalized;
 };
 
-const customerDashboardCategories: Array<{ label: string; target: string; icon: React.ElementType }> = [
-  { label: "Tukang", target: "Lainnya", icon: Wrench },
-  { label: "AC", target: "AC Service", icon: Monitor },
-  { label: "Elektronik", target: "Elektronik", icon: Smartphone },
-  { label: "Kebersihan", target: "Cleaning", icon: ShieldCheck },
-  { label: "Kunci", target: "Duplikat Kunci", icon: KeyRound },
-  { label: "Laundry", target: "Laundry", icon: WashingMachine },
-  { label: "Teknisi", target: "Teknisi", icon: UserRoundCog },
-  { label: "Servis Motor", target: "Servis Motor", icon: Bike }
-];
-
-const customerPopularServices = [
-  {
-    title: "Tukang Listrik",
-    target: "Tukang Listrik",
-    image: "/service-electrician.svg",
-    alt: "Teknisi listrik sedang bekerja"
-  },
-  {
-    title: "Service AC",
-    target: "AC Service",
-    image: "/service-ac.svg",
-    alt: "Teknisi AC sedang memperbaiki AC"
-  },
-  {
-    title: "Tukang Kunci",
-    target: "Duplikat Kunci",
-    image: "/service-locksmith.svg",
-    alt: "Tukang kunci membuka pintu"
-  }
-];
+const serviceDashboardImage = (name: string) => {
+  const normalized = name.toLowerCase();
+  if (normalized.includes("ac") || normalized.includes("kipas")) return "/service-ac.svg";
+  if (normalized.includes("kunci")) return "/service-locksmith.svg";
+  return "/service-electrician.svg";
+};
 
 const serviceCategoryKey = (name: string) => name.trim().toLowerCase().replace(/^jasa\s+/, "");
 
@@ -755,6 +726,30 @@ type CustomerGuestResponse = {
 };
 
 const sessionStorageKey = (role: "CUSTOMER" | "PARTNER" | "ADMIN") => `serjafan-session-${role.toLowerCase()}`;
+const customerProfileStorageKey = "serjafan-customer-profile";
+
+function isCustomerProfileReady(user?: Partial<CurrentUser> | null) {
+  const name = user?.name?.trim() ?? "";
+  const phone = user?.phone?.trim() ?? "";
+  const location = user?.location?.trim() ?? "";
+  return Boolean(name && name.toLowerCase() !== "customer" && phone && location.length >= 12 && location.toLowerCase() !== "kota padang");
+}
+
+function getStoredCustomerProfile() {
+  if (typeof window === "undefined") return null;
+  try {
+    const profile = JSON.parse(window.localStorage.getItem(customerProfileStorageKey) ?? "null") as Partial<CurrentUser> | null;
+    return isCustomerProfileReady(profile) ? profile : null;
+  } catch {
+    return null;
+  }
+}
+
+function storeCustomerProfile(profile: Partial<CurrentUser>) {
+  if (typeof window === "undefined") return;
+  const current = getStoredCustomerProfile() ?? {};
+  window.localStorage.setItem(customerProfileStorageKey, JSON.stringify({ ...current, ...profile }));
+}
 
 function getStoredSession(role: "CUSTOMER" | "PARTNER" | "ADMIN") {
   if (typeof window === "undefined") return null;
@@ -831,6 +826,13 @@ async function saveCustomerAccessProfile(profile: { name: string; phone: string;
   const user = payload.data.user;
   if (payload.data.deviceId) window.localStorage.setItem("serjafan-customer-device", payload.data.deviceId);
   storeSession(session);
+  storeCustomerProfile({
+    id: user.id,
+    name: user.name,
+    phone: user.phone,
+    location: user.location,
+    image: user.image ?? null
+  });
   return { session, user, deviceId: payload.data.deviceId };
 }
 
@@ -916,25 +918,100 @@ export function AppLauncher() {
       ]
     }
   ];
+  const landingServices = services.slice(0, 7);
+  const landingStats = [
+    { value: `${landingServices.length}+`, label: "kategori layanan" },
+    { value: "3", label: "aplikasi terhubung" },
+    { value: "Padang", label: "area layanan" }
+  ];
+  const valueProps = [
+    { Icon: ShieldCheck, title: "Mitra bisa diverifikasi", body: "Admin dapat memantau data partner, dokumen, pembayaran, dan status kerja." },
+    { Icon: Navigation, title: "Order tersambung", body: "Customer, partner, tracking, chat, dan admin memakai data order yang sama." },
+    { Icon: Wallet, title: "Alur pembayaran jelas", body: "Top up, bukti transfer, tunai, komisi, dan riwayat saldo tercatat di sistem." }
+  ];
+  const steps = ["Pilih layanan", "Tentukan mitra", "Chat dan tracking", "Bayar dan beri ulasan"];
 
   return (
-    <main className="min-h-screen bg-cloud px-5 py-8 text-slate-950">
-      <div className="mx-auto max-w-[760px]">
-        <div className="mb-6 rounded-[18px] bg-navy p-5 text-white shadow-soft">
-          <BrandMark light />
-          <p className="mt-4 text-xs font-bold text-white/65">SERJAFAN SUPER APP</p>
-          <h1 className="mt-1 text-2xl font-extrabold">Pilih aplikasi</h1>
-          <p className="mt-2 text-sm text-white/70">Customer, Partner, dan Admin sekarang dipisah sebagai aplikasi sendiri.</p>
-          <div className="mt-4 inline-flex max-w-full flex-wrap items-center gap-2 rounded-full border border-white/15 bg-white/10 px-3 py-2 text-[11px] font-extrabold text-white/80">
-            <ShieldCheck className="h-3.5 w-3.5 shrink-0 text-flame" />
-            <span className="uppercase tracking-[0.12em]">Founder</span>
-            <span className="h-1 w-1 rounded-full bg-white/35" />
-            <span>Rahmad Irfan</span>
-            <span className="h-1 w-1 rounded-full bg-white/35" />
-            <span className="text-white/65">Padang, Sumatera Barat</span>
+    <main className="min-h-screen bg-[#f5f7fb] px-4 py-6 text-slate-950">
+      <div className="mx-auto max-w-[980px]">
+        <section className="overflow-hidden rounded-[28px] bg-gradient-to-br from-[#0d47d9] to-[#003cb5] p-5 text-white shadow-[0_18px_45px_rgba(13,71,217,0.24)]">
+          <div className="flex items-start justify-between gap-4">
+            <CustomerWordmark />
+            <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-white/12 px-3 py-2 text-xs font-extrabold">
+              <MapPin className="h-4 w-4" /> Kota Padang
+            </span>
           </div>
-        </div>
-        <div className="grid gap-3 md:grid-cols-3">
+          <p className="mt-6 text-xs font-black uppercase tracking-[0.18em] text-[#ffd54a]">Marketplace jasa lokal</p>
+          <h1 className="mt-2 max-w-2xl text-3xl font-black leading-tight md:text-5xl">Semua jasa harian Padang dalam satu aplikasi.</h1>
+          <p className="mt-3 max-w-2xl text-sm font-semibold leading-6 text-white/82 md:text-base">
+            SERJAFAN menghubungkan pelanggan dengan mitra jasa lokal untuk pemesanan, chat, tracking, pembayaran manual, dan pengawasan admin dalam satu sistem.
+          </p>
+          <div className="mt-5 grid gap-2 min-[520px]:grid-cols-3">
+            {landingStats.map((item) => (
+              <div key={item.label} className="rounded-[18px] border border-white/15 bg-white/10 p-4">
+                <p className="text-2xl font-black">{item.value}</p>
+                <p className="mt-1 text-xs font-bold text-white/70">{item.label}</p>
+              </div>
+            ))}
+          </div>
+          <div className="mt-5 flex flex-wrap gap-2">
+            <Link href="/customer" className="inline-flex h-12 items-center justify-center gap-2 rounded-[16px] bg-[#ffd54a] px-5 text-sm font-black text-slate-900">
+              Mulai Pesan <ChevronRight className="h-4 w-4" />
+            </Link>
+            <Link href="/register/partner" className="inline-flex h-12 items-center justify-center gap-2 rounded-[16px] border border-white/20 bg-white/10 px-5 text-sm font-black text-white">
+              Daftar Mitra
+            </Link>
+          </div>
+        </section>
+
+        <section className="mt-5 grid gap-3 md:grid-cols-3">
+          {valueProps.map(({ Icon, title, body }) => (
+            <div key={title} className="rounded-[20px] bg-white p-4 shadow-soft">
+              <span className="flex h-11 w-11 items-center justify-center rounded-[14px] bg-[#eef4ff] text-[#0d47d9]">
+                <Icon className="h-5 w-5" />
+              </span>
+              <h2 className="mt-3 text-sm font-black">{title}</h2>
+              <p className="mt-2 text-xs leading-5 text-slate-500">{body}</p>
+            </div>
+          ))}
+        </section>
+
+        <section className="mt-5 rounded-[22px] bg-white p-4 shadow-soft">
+          <div className="mb-4 flex items-center justify-between">
+            <h2 className="text-lg font-black">Kategori Layanan</h2>
+            <span className="text-xs font-black text-[#0d47d9]">Kota Padang</span>
+          </div>
+          <div className="grid grid-cols-2 gap-2 min-[520px]:grid-cols-4">
+            {landingServices.map((service) => {
+              const Icon = service.icon;
+              return (
+                <Link key={service.name} href="/customer" className="flex items-center gap-3 rounded-[16px] bg-[#f7faff] p-3">
+                  <span className="flex h-11 w-11 items-center justify-center rounded-full bg-[#eef4ff] text-[#0d47d9]">
+                    <Icon className="h-5 w-5" />
+                  </span>
+                  <span className="text-xs font-black">{customerCategoryLabel(service.name)}</span>
+                </Link>
+              );
+            })}
+          </div>
+        </section>
+
+        <section className="mt-5 rounded-[22px] bg-white p-4 shadow-soft">
+          <h2 className="text-lg font-black">Cara Kerja</h2>
+          <div className="mt-4 grid gap-2 md:grid-cols-4">
+            {steps.map((step, index) => (
+              <div key={step} className="rounded-[16px] border border-slate-100 p-3">
+                <span className="flex h-8 w-8 items-center justify-center rounded-full bg-[#0d47d9] text-xs font-black text-white">{index + 1}</span>
+                <p className="mt-3 text-sm font-black">{step}</p>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        <section className="mt-5 rounded-[22px] bg-white p-4 shadow-soft">
+          <h2 className="text-lg font-black">Buka Aplikasi</h2>
+          <p className="mt-1 text-xs leading-5 text-slate-500">Customer, partner, dan admin dipisah agar data dan akses lebih rapi.</p>
+          <div className="mt-4 grid gap-3 md:grid-cols-3">
           {apps.map(({ href, title, description, Icon, tone, actions }) => (
             <div key={href} className="rounded-[16px] bg-white p-4 shadow-soft transition hover:-translate-y-0.5">
               <span className={cn("mb-4 flex h-12 w-12 items-center justify-center rounded-[14px]", tone)}>
@@ -958,7 +1035,8 @@ export function AppLauncher() {
               </div>
             </div>
           ))}
-        </div>
+          </div>
+        </section>
         <div className="mt-6 flex flex-wrap justify-center gap-3 text-xs font-semibold text-slate-500">
           <Link href="/terms" className="hover:text-flame">
             Syarat
@@ -983,7 +1061,11 @@ export function SerjafanApp({ appRole = "switcher" }: { appRole?: AppRole }) {
   const [authSession, setAuthSession] = useState<StoredSession | null>(null);
   const [authReady, setAuthReady] = useState(appRole === "switcher");
   const [screen, setScreen] = useState<Screen>(initialScreenByRole[appRole]);
-  const [accountUser, setAccountUser] = useState<CurrentUser>(currentUser);
+  const [accountUser, setAccountUser] = useState<CurrentUser>(() => {
+    const storedProfile = appRole === "customer" ? getStoredCustomerProfile() : null;
+    return storedProfile ? { ...currentUser, ...storedProfile, walletBalance: currentUser.walletBalance } : currentUser;
+  });
+  const [customerAccessReady, setCustomerAccessReady] = useState(() => appRole !== "customer" || isCustomerProfileReady(appRole === "customer" ? getStoredCustomerProfile() ?? currentUser : currentUser));
   const [currentPartner, setCurrentPartner] = useState<Partner>(emptyPartner);
   const [orderDraft, setOrderDraft] = useState<OrderDraft>(initialDraft);
   const [lastOrder, setLastOrder] = useState<LastOrder | null>(null);
@@ -1060,15 +1142,7 @@ export function SerjafanApp({ appRole = "switcher" }: { appRole?: AppRole }) {
     setAuthReady(true);
   }, [appRole, requiredRole]);
 
-  const customerProfileComplete =
-    appRole !== "customer" ||
-    Boolean(
-      accountUser.name.trim() &&
-        accountUser.name.trim().toLowerCase() !== "customer" &&
-        accountUser.phone?.trim() &&
-        accountUser.location.trim().length >= 12 &&
-        accountUser.location.trim().toLowerCase() !== "kota padang"
-    );
+  const customerProfileComplete = appRole !== "customer" || customerAccessReady || isCustomerProfileReady(accountUser);
   const showRoleTabs = appRole === "switcher";
   const showAppHeader = appRole !== "customer";
   const showBottomNav = useMemo(
@@ -1307,6 +1381,16 @@ export function SerjafanApp({ appRole = "switcher" }: { appRole?: AppRole }) {
         image: me.data.user.image ?? prev.image ?? null,
         walletBalance: wallet.data.wallet.balance
       }));
+      if (isCustomerProfileReady(me.data.user)) {
+        storeCustomerProfile({
+          id: me.data.user.id,
+          name: me.data.user.name,
+          phone: me.data.user.phone,
+          location: me.data.user.location,
+          image: me.data.user.image ?? null
+        });
+        setCustomerAccessReady(true);
+      }
       if (me.data.user.location && me.data.user.phone) {
         setOrderDraft((draft) => ({
           ...draft,
@@ -1423,16 +1507,18 @@ export function SerjafanApp({ appRole = "switcher" }: { appRole?: AppRole }) {
       if (firstCustomerSetup) {
         const access = await saveCustomerAccessProfile(profile);
         if (!access) throw new Error("Akses customer gagal disimpan.");
-        setAuthSession(access.session);
-        setAccountUser((user) => ({
-          ...user,
-          id: access.user?.id || access.session.userId || user.id,
+        const nextUser = {
+          id: access.user?.id || access.session.userId || accountUser.id,
           name: access.user?.name ?? profile.name,
           phone: access.user?.phone ?? profile.phone,
           location: access.user?.location ?? profile.location,
-          image: access.user?.image ?? profile.profilePhoto ?? user.image,
-          walletBalance: user.walletBalance
-        }));
+          image: access.user?.image ?? profile.profilePhoto ?? accountUser.image,
+          walletBalance: accountUser.walletBalance
+        };
+        setAuthSession(access.session);
+        setAccountUser((user) => ({ ...user, ...nextUser }));
+        storeCustomerProfile(nextUser);
+        setCustomerAccessReady(true);
         setOrderDraft((draft) => ({
           ...draft,
           address: profile.location,
@@ -1470,6 +1556,13 @@ export function SerjafanApp({ appRole = "switcher" }: { appRole?: AppRole }) {
         location: profile.location,
         image: profile.profilePhoto === undefined ? user.image : profile.profilePhoto
       }));
+      storeCustomerProfile({
+        name: profile.name,
+        phone: profile.phone,
+        location: profile.location,
+        image: profile.profilePhoto
+      });
+      if (isCustomerProfileReady(profile)) setCustomerAccessReady(true);
       setOrderDraft((draft) => ({
         ...draft,
         address: profile.location,
@@ -1875,6 +1968,7 @@ export function SerjafanApp({ appRole = "switcher" }: { appRole?: AppRole }) {
       await loadSettings();
       await loadCustomerServices(true);
       await loadCustomerPartners(true);
+      await loadCustomerPromos();
       notify("success", "Pusat kontrol admin tersimpan.");
     } catch (error) {
       notify("error", error instanceof Error ? error.message : "Gagal menyimpan pusat kontrol admin.");
@@ -2303,6 +2397,8 @@ export function SerjafanApp({ appRole = "switcher" }: { appRole?: AppRole }) {
           <CustomerHome
             services={customerServices}
             partners={customerPartners}
+            promos={customerPromos}
+            featureCopy={adminConsole.settings.customerFeatureCopy}
             onOpenPartnerList={openPartnerList}
             onOpenSearch={openSearch}
           />
@@ -2416,6 +2512,7 @@ export function SerjafanApp({ appRole = "switcher" }: { appRole?: AppRole }) {
             onOpenAccount={() => goTo("partnerAccount")}
             partnerSelf={partnerSelf}
             walletBalance={partnerWalletBalance}
+            featureCopy={adminConsole.settings.partnerFeatureCopy}
             onOpenTopup={() => goTo("partnerTopup")}
           />
         )}
@@ -2489,7 +2586,7 @@ export function SerjafanApp({ appRole = "switcher" }: { appRole?: AppRole }) {
           onClose={() => setDrawer("notifications")}
         />
       )}
-      {showBottomNav && <BottomNav active={screen} onNavigate={goTo} onOpenMessages={() => void openMessages()} onOpenProfile={openProfile} />}
+      {showBottomNav && <BottomNav active={screen} unreadMessages={messages.filter((message) => message.unread).length} onNavigate={goTo} onOpenMessages={() => void openMessages()} onOpenProfile={openProfile} />}
     </main>
   );
 }
@@ -2497,11 +2594,15 @@ export function SerjafanApp({ appRole = "switcher" }: { appRole?: AppRole }) {
 function CustomerHome({
   services,
   partners,
+  promos,
+  featureCopy,
   onOpenPartnerList,
   onOpenSearch,
 }: {
   services: ServiceItem[];
   partners: Partner[];
+  promos: PromoBanner[];
+  featureCopy: AdminConsoleData["settings"]["customerFeatureCopy"];
   onOpenPartnerList: (category?: string) => void;
   onOpenSearch: () => void;
 }) {
@@ -2520,6 +2621,12 @@ function CustomerHome({
   const openCategory = (target?: string) => {
     onOpenPartnerList(target ? resolveCategory(target) : undefined);
   };
+  const dashboardServices = services.length ? services.slice(0, 8) : [];
+  const popularServices = services.length ? services.slice(0, 3) : [];
+  const nearbyPartners = partners.filter((partner) => partner.status === "Online").slice(0, 3);
+  const rawHeroTitle = featureCopy.headline?.trim() || "";
+  const heroTitle = !rawHeroTitle || rawHeroTitle.toLowerCase() === "customer app" ? "Semua Jasa" : rawHeroTitle;
+  const heroDescription = featureCopy.description?.trim() || "Cepat - Mudah - Terpercaya";
 
   return (
     <section className="animate-in fade-in slide-in-from-bottom-3 min-h-dvh bg-[#f5f7fb] pb-24 duration-300">
@@ -2551,12 +2658,14 @@ function CustomerHome({
           />
           <div className="absolute inset-y-0 left-0 w-[66%] bg-gradient-to-r from-[#0f5bff] via-[#0f5bff]/96 to-[#0f5bff]/18" />
           <div className="relative flex h-full max-w-[64%] flex-col justify-center px-5">
-            <h1 className="text-[32px] font-black leading-none tracking-tight text-white">Semua Jasa</h1>
+            <h1 className="line-clamp-2 text-[32px] font-black leading-none tracking-tight text-white">{heroTitle}</h1>
             <p className="mt-2 text-[24px] font-extrabold leading-tight text-[#ffd54a]">Dalam Satu Aplikasi</p>
-            <p className="mt-3 text-[15px] font-semibold text-white/90">Cepat • Mudah • Terpercaya</p>
+            <p className="mt-3 line-clamp-2 text-[15px] font-semibold text-white/90">{heroDescription}</p>
           </div>
           </CardContent>
         </Card>
+
+        <PromoShowcase promos={promos} onOpenPartnerList={openCategory} />
 
         <Card className="mt-4 rounded-[24px] border-0 bg-white shadow-[0_10px_28px_rgba(15,23,42,0.08)] ring-1 ring-slate-100">
           <CardContent className="p-5">
@@ -2567,20 +2676,20 @@ function CustomerHome({
             </Button>
           </div>
           <div className="grid grid-cols-4 gap-x-2 gap-y-7">
-          {customerDashboardCategories.map((category) => {
-            const Icon = category.icon;
-            const count = partnerCountByCategory.get(serviceCategoryKey(category.target)) ?? 0;
+          {dashboardServices.map((service) => {
+            const Icon = service.icon;
+            const count = partnerCountByCategory.get(serviceCategoryKey(service.name)) ?? 0;
             return (
             <button
-              key={category.label}
+              key={service.id ?? service.name}
               type="button"
-              onClick={() => openCategory(category.target)}
+              onClick={() => openCategory(service.name)}
               className="group min-w-0 text-center"
             >
               <span className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-[#eef4ff] text-[#0d47d9] transition group-active:scale-95 group-hover:bg-[#dfeaff]">
                 <Icon className="h-7 w-7" />
               </span>
-              <span className="mt-3 block text-balance-mobile text-[13px] font-semibold leading-4 text-slate-900">{category.label}</span>
+              <span className="mt-3 block text-balance-mobile text-[13px] font-semibold leading-4 text-slate-900">{customerCategoryLabel(service.name)}</span>
               <span className="sr-only">{count ? `${count} mitra aktif` : "Belum ada mitra"}</span>
             </button>
             );
@@ -2598,11 +2707,11 @@ function CustomerHome({
             </Button>
           </div>
           <div className="flex gap-3 overflow-x-auto pb-1 no-scrollbar">
-            {customerPopularServices.map((service) => (
-              <button key={service.title} type="button" onClick={() => openCategory(service.target)} className="w-[140px] shrink-0 overflow-hidden rounded-[18px] bg-white text-left shadow-[0_8px_22px_rgba(15,23,42,0.10)] ring-1 ring-slate-100 transition active:scale-[0.98]">
-                <img src={service.image} alt={service.alt} className="h-[110px] w-full object-cover" />
+            {popularServices.map((service) => (
+              <button key={service.id ?? service.name} type="button" onClick={() => openCategory(service.name)} className="w-[140px] shrink-0 overflow-hidden rounded-[18px] bg-white text-left shadow-[0_8px_22px_rgba(15,23,42,0.10)] ring-1 ring-slate-100 transition active:scale-[0.98]">
+                <img src={serviceDashboardImage(service.name)} alt={service.name} className="h-[110px] w-full object-cover" />
                 <div className="p-3">
-                  <p className="line-clamp-1 text-[15px] font-black leading-5 text-slate-950">{service.title}</p>
+                  <p className="line-clamp-1 text-[15px] font-black leading-5 text-slate-950">{customerCategoryLabel(service.name)}</p>
                   <p className="mt-2 flex items-center gap-1 text-sm font-black text-slate-800">
                     <Star className="h-4 w-4 fill-[#ffbd16] text-[#ffbd16]" /> 4.9
                   </p>
@@ -2610,6 +2719,34 @@ function CustomerHome({
               </button>
             ))}
           </div>
+          </CardContent>
+        </Card>
+
+        <Card className="mt-4 rounded-[20px] border-0 bg-white shadow-[0_10px_28px_rgba(15,23,42,0.07)] ring-1 ring-slate-100">
+          <CardContent className="p-4">
+            <div className="mb-4 flex items-center justify-between">
+              <h2 className="text-lg font-black text-slate-950">Layanan Terdekat</h2>
+              <Button type="button" variant="ghost" size="sm" onClick={() => openCategory()} className="h-auto px-0 text-sm font-black text-[#0d47d9] hover:bg-transparent hover:text-[#003cb5]">
+                Lihat Semua
+              </Button>
+            </div>
+            <div className="grid gap-2">
+              {nearbyPartners.length ? nearbyPartners.map((partner) => {
+                const Icon = partner.Icon;
+                return (
+                  <button key={partner.id} type="button" onClick={() => onOpenPartnerList(partner.category)} className="flex items-center gap-3 rounded-[16px] bg-[#f7faff] p-3 text-left">
+                    <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-[14px] bg-[#eef4ff] text-[#0d47d9]">
+                      <Icon className="h-5 w-5" />
+                    </span>
+                    <span className="min-w-0 flex-1">
+                      <span className="block truncate text-sm font-black">{partner.name}</span>
+                      <span className="mt-0.5 block truncate text-xs font-semibold text-slate-500">{partner.category} - {partner.distance}</span>
+                    </span>
+                    <Badge variant="success" className="shrink-0">{partner.eta}</Badge>
+                  </button>
+                );
+              }) : <p className="rounded-[16px] bg-[#f7faff] p-4 text-xs font-semibold text-slate-500">Belum ada mitra online di sekitar lokasi customer.</p>}
+            </div>
           </CardContent>
         </Card>
 
@@ -2752,14 +2889,15 @@ function ServiceDetail({
           </div>
         </div>
 
-        <div className="my-4 grid grid-cols-3 gap-2.5">
+        <div className="my-4 grid grid-cols-2 gap-2.5 min-[390px]:grid-cols-4">
           {[
             [partner.rating, "Rating"],
-            [partner.orders, "Pesanan"],
-            [partner.eta, "ETA Kedatangan"]
+            [partner.orders, "Selesai"],
+            ["Terverifikasi", "Identitas"],
+            [partner.distance, "Jarak"]
           ].map(([value, label]) => (
             <div key={label} className="rounded-[16px] bg-[#f4f8ff] p-3 text-center">
-              <p className="truncate text-base font-black text-slate-950">{value}</p>
+              <p className="truncate text-sm font-black text-slate-950">{value}</p>
               <p className="mt-0.5 text-[10px] text-slate-500">{label}</p>
             </div>
           ))}
@@ -3286,6 +3424,23 @@ function LiveTracking({
   const isPartnerComing = trackingMode === "PARTNER_TO_CUSTOMER";
   const backTarget: Screen = viewerRole === "PARTNER" ? "partner" : "orders";
   const backLabel = viewerRole === "PARTNER" ? "Kembali ke dashboard pemesanan" : "Kembali ke pesanan saya";
+  const progressPercent = sourceOrder?.status === "DONE" ? 100 : sourceOrder?.status === "ON_THE_WAY" ? 75 : sourceOrder?.status === "PARTNER_READY" ? 50 : 35;
+  const shareOrder = () => {
+    const text = `Pesanan SERJAFAN ${route.orderId ?? ""} - ${partner.name}`;
+    const nav =
+      typeof navigator !== "undefined"
+        ? (navigator as Navigator & {
+            share?: (data: ShareData) => Promise<void>;
+            clipboard?: Pick<Clipboard, "writeText">;
+          })
+        : null;
+
+    if (nav?.share) {
+      void nav.share({ title: "Pesanan SERJAFAN", text }).catch(() => undefined);
+    } else if (nav?.clipboard) {
+      void nav.clipboard.writeText(text);
+    }
+  };
 
   return (
     <section className="animate-in fade-in slide-in-from-bottom-3 pb-36 duration-300">
@@ -3332,6 +3487,16 @@ function LiveTracking({
             <RouteMiniCard point={route.origin} caption="Dari" />
             <RouteMiniCard point={route.destination} caption="Tujuan" active />
           </div>
+
+          <div className="mt-4 rounded-[16px] bg-[#f7faff] p-3">
+            <div className="mb-2 flex items-center justify-between text-xs font-black">
+              <span>Progress pesanan</span>
+              <span className="text-[#0d47d9]">{progressPercent}%</span>
+            </div>
+            <div className="h-2 overflow-hidden rounded-full bg-slate-200">
+              <div className="h-full rounded-full bg-gradient-to-r from-[#0d47d9] to-[#ffd54a] transition-all duration-500" style={{ width: `${progressPercent}%` }} />
+            </div>
+          </div>
         </div>
 
         <div className="rounded-[22px] bg-white p-4 shadow-soft">
@@ -3351,8 +3516,14 @@ function LiveTracking({
 
           <div className="mt-4 grid grid-cols-1 gap-2 min-[430px]:grid-cols-2">
             <a href={googleMapsDirectionsUrl(route)} target="_blank" rel="noreferrer" className="inline-flex min-h-12 items-center justify-center gap-2 rounded-[15px] bg-navy px-4 py-3 text-center text-xs font-extrabold leading-tight text-white">
-              <Navigation className="h-4 w-4" /> Buka Google Maps
+              <Navigation className="h-4 w-4" /> Lacak Lokasi Mitra
             </a>
+            <Button variant="outline" className="min-h-12 whitespace-normal border-2 border-navy px-3 py-3 text-center text-[11px] font-extrabold leading-tight text-navy" onClick={onOpenMessages}>
+              <MessageCircle className="h-4 w-4 shrink-0" /> Chat CS
+            </Button>
+            <Button variant="outline" className="min-h-12 whitespace-normal border-2 border-navy px-3 py-3 text-center text-[11px] font-extrabold leading-tight text-navy" onClick={shareOrder}>
+              <Upload className="h-4 w-4 shrink-0" /> Bagikan Pesanan
+            </Button>
             <Button variant="outline" className="min-h-12 whitespace-normal border-2 border-navy px-3 py-3 text-center text-[11px] font-extrabold leading-tight text-navy" onClick={() => onNavigate(backTarget)}>
               <ArrowLeft className="h-4 w-4 shrink-0" /> <span className="line-clamp-2">{backLabel}</span>
             </Button>
@@ -3518,6 +3689,7 @@ function OrdersCenter({
 }) {
   const [reviewDrafts, setReviewDrafts] = useState<Record<string, { rating: number; comment: string }>>({});
   const [activeStatus, setActiveStatus] = useState("ALL");
+  const [orderQuery, setOrderQuery] = useState("");
   const statusFilters = [
     { label: "Semua", status: "ALL", Icon: ListOrdered },
     { label: "Menunggu", status: "PENDING", Icon: Clock },
@@ -3531,11 +3703,19 @@ function OrdersCenter({
     if (status === "CANCELLED" || status === "REJECTED") return "bg-red-50 text-red-700";
     return "bg-blue-50 text-[#075bdd]";
   };
-  const visibleOrders = activeStatus === "ALL" ? orders : orders.filter((order) => {
+  const statusMatchedOrders = activeStatus === "ALL" ? orders : orders.filter((order) => {
     if (activeStatus === "CONFIRMED") return !["PENDING", "DONE", "CANCELLED", "REJECTED"].includes(order.status);
     if (activeStatus === "CANCELLED") return ["CANCELLED", "REJECTED"].includes(order.status);
     return order.status === activeStatus;
   });
+  const query = orderQuery.trim().toLowerCase();
+  const visibleOrders = query
+    ? statusMatchedOrders.filter((order) =>
+        [order.id, order.partner?.category, order.partner?.name, order.addressTitle]
+          .filter(Boolean)
+          .some((value) => String(value).toLowerCase().includes(query))
+      )
+    : statusMatchedOrders;
 
   return (
     <section className="animate-in fade-in slide-in-from-bottom-3 bg-white pb-6 duration-300">
@@ -3560,6 +3740,15 @@ function OrdersCenter({
             </button>
           </div>
         </div>
+        <div className="mb-4 flex items-center gap-3 rounded-[16px] border border-slate-100 bg-[#f7faff] px-4 py-3">
+          <Search className="h-5 w-5 shrink-0 text-[#0d47d9]" />
+          <Input
+            value={orderQuery}
+            onChange={(event) => setOrderQuery(event.target.value)}
+            placeholder="Cari nomor pesanan atau layanan"
+            className="h-8 border-0 bg-transparent px-0 text-sm shadow-none focus-visible:ring-0"
+          />
+        </div>
         <div className="mb-5 flex gap-2 overflow-x-auto pb-1 no-scrollbar">
           {statusFilters.map(({ label, status, Icon }, index) => (
             <button
@@ -3567,7 +3756,7 @@ function OrdersCenter({
               type="button"
               onClick={() => setActiveStatus(status)}
               className={cn(
-                "flex shrink-0 items-center gap-2 rounded-[14px] border px-4 py-3 text-xs font-black",
+                "flex shrink-0 items-center gap-2 rounded-[14px] border-2 px-4 py-3 text-xs font-black shadow-[0_6px_16px_rgba(15,23,42,0.06)]",
                 activeStatus === status ? "border-[#075bdd] bg-[#075bdd] text-white" : "border-slate-100 bg-white text-slate-700"
               )}
             >
@@ -4047,8 +4236,11 @@ function CustomerAccessScreen({
             disabled={submitting || !name.trim() || !phone.trim() || !addressReady}
             onClick={async () => {
               setSubmitting(true);
-              await onSubmit({ name, phone, location: address });
-              setSubmitting(false);
+              try {
+                await onSubmit({ name, phone, location: address });
+              } finally {
+                setSubmitting(false);
+              }
             }}
           >
             {submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />} Simpan dan Masuk Customer
@@ -4166,6 +4358,7 @@ function PartnerApp({
   onOpenAccount,
   partnerSelf,
   walletBalance,
+  featureCopy,
   onOpenTopup
 }: {
   onNavigate: (screen: Screen) => void;
@@ -4184,6 +4377,7 @@ function PartnerApp({
   onOpenAccount: () => void;
   partnerSelf: Partner;
   walletBalance: number;
+  featureCopy: AdminConsoleData["settings"]["partnerFeatureCopy"];
   onOpenTopup: () => void;
 }) {
   const incomingOrders = orders.filter((order) => order.status === "PENDING" || order.status === "CONFIRMED");
@@ -4195,7 +4389,8 @@ function PartnerApp({
         <div className="mb-4 flex items-center justify-between">
           <div className="min-w-0 flex-1 pr-3">
             <p className="text-[11px] font-bold text-white/70">PARTNER DASHBOARD</p>
-            <h1 className="mt-1 truncate text-lg font-extrabold">Akun Partner</h1>
+            <h1 className="mt-1 truncate text-lg font-extrabold">{featureCopy.headline?.trim() || "Akun Partner"}</h1>
+            {featureCopy.description?.trim() && <p className="mt-1 line-clamp-2 text-[11px] font-semibold leading-4 text-white/70">{featureCopy.description}</p>}
           </div>
           <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-[14px] bg-white/15 text-sm font-extrabold">PT</span>
         </div>
@@ -5280,8 +5475,8 @@ function AdminControlCenter({
       <div className="overflow-hidden rounded-[18px] bg-white p-3 shadow-soft">
         <div className="flex gap-1 overflow-x-auto rounded-[14px] bg-cloud p-1 no-scrollbar">
           {[
-            ["customer", "Customer"],
-            ["partner", "Partner"],
+            ["customer", "Edit Customer"],
+            ["partner", "Edit Partner"],
             ["services", "Jasa"],
             ["promo", "Promo"],
             ["registration", "Daftar"]
@@ -5305,6 +5500,9 @@ function AdminControlCenter({
               description={draft.customerFeatureCopy.description}
               onChange={(patch) => mutateDraft((current) => ({ ...current, customerFeatureCopy: { ...current.customerFeatureCopy, ...patch } }))}
             />
+            <div className="rounded-[16px] bg-[#eef4ff] p-3 text-xs font-semibold leading-5 text-[#0d47d9]">
+              Yang diedit di sini tersambung ke aplikasi customer: judul/teks beranda, data customer, alamat, dan tampilan layanan dari menu Jasa.
+            </div>
             <div className="rounded-[16px] bg-white p-4 shadow-soft">
               <p className="mb-3 text-xs font-extrabold uppercase text-slate-500">Edit / Hapus Customer</p>
               <div className="grid gap-3">
@@ -5330,6 +5528,9 @@ function AdminControlCenter({
               description={draft.partnerFeatureCopy.description}
               onChange={(patch) => mutateDraft((current) => ({ ...current, partnerFeatureCopy: { ...current.partnerFeatureCopy, ...patch } }))}
             />
+            <div className="rounded-[16px] bg-[#eef4ff] p-3 text-xs font-semibold leading-5 text-[#0d47d9]">
+              Yang diedit di sini tersambung ke aplikasi partner: teks dashboard partner, data pembayaran mitra, status, rekening, DANA, dan profil layanan.
+            </div>
             <div className="rounded-[16px] bg-white p-4 shadow-soft">
               <p className="mb-3 text-xs font-extrabold uppercase text-slate-500">Partner Terdaftar & Data Pembayaran</p>
               <div className="grid gap-2">
@@ -6939,11 +7140,13 @@ function ProfileDrawer({
 
 function BottomNav({
   active,
+  unreadMessages,
   onNavigate,
   onOpenMessages,
   onOpenProfile
 }: {
   active: Screen;
+  unreadMessages: number;
   onNavigate: (screen: Screen) => void;
   onOpenMessages: () => void;
   onOpenProfile: () => void;
@@ -6966,7 +7169,7 @@ function BottomNav({
           onClick={() => (action ? action() : onNavigate(screen as Screen))}
           className={cn("tap-target relative flex min-w-0 flex-col items-center justify-center gap-1 px-2 text-[11px] font-bold", selected ? "text-[#075bdd]" : "text-slate-500")}
         >
-          {label === "Chat" && <span className="absolute right-[30%] top-0 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[9px] font-black text-white">2</span>}
+          {label === "Chat" && unreadMessages > 0 && <span className="absolute right-[30%] top-0 flex h-4 min-w-4 items-center justify-center rounded-full bg-red-500 px-1 text-[9px] font-black text-white">{Math.min(unreadMessages, 9)}</span>}
           <Icon className={cn("h-6 w-6", selected && "fill-[#075bdd]/10")} />
           <span className="truncate">{label}</span>
         </button>
