@@ -920,10 +920,10 @@ export function AppLauncher() {
   ];
   const landingServices = services.slice(0, 8);
   const landingStats = [
-    { value: "500+", label: "calon pelanggan lokal" },
-    { value: "100+", label: "target mitra aktif" },
-    { value: "1.000+", label: "target order selesai" },
-    { value: "4.9/5", label: "target rating layanan" }
+    { value: "250+", label: "target pengguna validasi" },
+    { value: "75+", label: "target mitra lokal" },
+    { value: "1.200+", label: "target order selesai" },
+    { value: "4.8/5", label: "standar rating layanan" }
   ];
   const valueProps = [
     { Icon: ShieldCheck, title: "Mitra terverifikasi", body: "Data mitra, dokumen, status online, saldo kerja, dan pembayaran dipantau dari admin." },
@@ -932,9 +932,35 @@ export function AppLauncher() {
   ];
   const steps = ["Pilih jasa yang dibutuhkan", "Pilih mitra terdekat", "Chat dan lacak pekerjaan", "Bayar lalu beri ulasan"];
   const testimonials = [
-    { name: "Rahmad", role: "Pelanggan Padang", body: "Saya bisa cari tukang kunci lebih cepat dan status pesanan jelas dari awal.", rating: "4.9" },
-    { name: "Mitra AC", role: "Partner SERJAFAN", body: "Order, chat, dan pembayaran tercatat, jadi kerja lebih rapi.", rating: "4.8" },
-    { name: "Admin Operasional", role: "SERJAFAN", body: "Customer, partner, top up, dan promo bisa dipantau dari satu dashboard.", rating: "5.0" }
+    { name: "Rahmad Irfan", service: "Tukang Kunci", role: "Pelanggan Padang", body: "Saya bisa cari bantuan kunci lebih cepat dan status pesanan jelas dari awal.", rating: "4.9", tone: "bg-blue-100 text-blue-700" },
+    { name: "Andi Wijaya", service: "Service AC", role: "Mitra teknisi", body: "Order, chat, dan pembayaran tercatat, jadi pekerjaan lebih rapi dan mudah dipantau.", rating: "4.8", tone: "bg-emerald-100 text-emerald-700" },
+    { name: "Siti Nurliza", service: "Cleaning", role: "Pelanggan rumah", body: "Saya suka karena bisa chat dulu, lihat status, dan tinggal beri ulasan setelah pekerjaan selesai.", rating: "5.0", tone: "bg-orange-100 text-orange-700" }
+  ];
+  const appPreviews = [
+    {
+      title: "Customer App",
+      body: "Cari layanan, pilih mitra, buat pesanan, chat, top up, tracking, dan ulasan.",
+      Icon: Home,
+      tone: "from-[#0d47d9] to-[#003cb5]"
+    },
+    {
+      title: "Partner App",
+      body: "Terima atau tolak order, status online, navigasi maps, chat pelanggan, dan saldo kerja.",
+      Icon: Wrench,
+      tone: "from-emerald-600 to-emerald-800"
+    },
+    {
+      title: "Admin Dashboard",
+      body: "Pantau customer, partner, top up manual, promo, layanan, maps, dan laporan operasional.",
+      Icon: ShieldCheck,
+      tone: "from-orange-500 to-orange-700"
+    },
+    {
+      title: "Tracking Order",
+      body: "Customer dan mitra melihat status order yang sama dari menunggu sampai selesai.",
+      Icon: Navigation,
+      tone: "from-slate-800 to-[#061b56]"
+    }
   ];
   const faqs = [
     { q: "Bagaimana cara pesan jasa di SERJAFAN?", a: "Buka aplikasi customer, isi data pelanggan, pilih layanan, pilih mitra, lalu buat pesanan." },
@@ -980,14 +1006,6 @@ export function AppLauncher() {
               <Link href="/support" className="inline-flex h-12 items-center justify-center gap-2 rounded-full border border-white/20 bg-white/5 px-6 text-sm font-black text-white transition hover:bg-white/15">
                 Hubungi Admin
               </Link>
-            </div>
-            <div className="mt-7 grid grid-cols-2 gap-3 sm:grid-cols-4">
-              {landingStats.map((item) => (
-                <div key={item.label} className="rounded-[20px] border border-white/15 bg-white/10 p-4 backdrop-blur">
-                  <p className="text-2xl font-black">{item.value}</p>
-                  <p className="mt-1 text-[11px] font-bold leading-4 text-white/70">{item.label}</p>
-                </div>
-              ))}
             </div>
           </div>
 
@@ -1037,14 +1055,78 @@ export function AppLauncher() {
                     </div>
                   </div>
                 </div>
+                <div className="grid grid-cols-2 gap-2 px-4 pb-4">
+                  {[
+                    ["Order aktif", "3"],
+                    ["Mitra online", "12"],
+                    ["Chat baru", "2"],
+                    ["Rating", "4.9"]
+                  ].map(([label, value]) => (
+                    <div key={label} className="rounded-[14px] bg-white p-3 shadow-sm">
+                      <p className="text-lg font-black text-[#0d47d9]">{value}</p>
+                      <p className="mt-1 text-[10px] font-bold text-slate-500">{label}</p>
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
+            <div className="absolute -bottom-4 left-2 right-2 grid grid-cols-3 gap-2">
+              {[
+                ["Customer", "Pesan"],
+                ["Partner", "Terima"],
+                ["Admin", "Pantau"]
+              ].map(([title, label]) => (
+                <div key={title} className="rounded-[16px] border border-white/18 bg-white/90 p-2 text-center text-slate-950 shadow-[0_10px_25px_rgba(15,23,42,0.16)] backdrop-blur">
+                  <p className="text-[10px] font-black">{title}</p>
+                  <p className="mt-0.5 text-[10px] font-bold text-slate-500">{label}</p>
+                </div>
+              ))}
+            </div>
           </div>
+        </div>
+        <div className="relative mx-auto grid max-w-6xl grid-cols-2 gap-3 px-4 pb-8 sm:grid-cols-4 md:px-6">
+          {landingStats.map((item) => (
+            <div key={item.label} className="rounded-[20px] border border-white/15 bg-white/10 p-4 backdrop-blur">
+              <p className="text-2xl font-black">{item.value}</p>
+              <p className="mt-1 text-[11px] font-bold leading-4 text-white/70">{item.label}</p>
+            </div>
+          ))}
         </div>
       </section>
 
       <div className="mx-auto max-w-6xl px-4 py-8 md:px-6">
-        <section className="grid gap-3 md:grid-cols-3">
+        <section className="rounded-[28px] bg-white p-5 shadow-[0_16px_34px_rgba(15,23,42,0.07)] ring-1 ring-slate-100">
+          <div className="mb-5 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+            <div>
+              <p className="text-xs font-black uppercase tracking-[0.14em] text-[#0d47d9]">Preview aplikasi</p>
+              <h2 className="mt-1 text-2xl font-black">Bukan hanya landing page, SERJAFAN punya sistem operasional.</h2>
+            </div>
+            <Link href="/customer" className="inline-flex h-10 items-center justify-center rounded-full bg-[#ffd54a] px-4 text-sm font-black text-slate-950">Coba Customer</Link>
+          </div>
+          <div className="grid gap-3 md:grid-cols-4">
+            {appPreviews.map(({ title, body, Icon, tone }) => (
+              <div key={title} className="overflow-hidden rounded-[22px] border border-slate-100 bg-[#f8fbff]">
+                <div className={cn("bg-gradient-to-br p-4 text-white", tone)}>
+                  <div className="flex items-center justify-between">
+                    <Icon className="h-6 w-6" />
+                    <span className="rounded-full bg-white/16 px-2 py-1 text-[10px] font-black">Live</span>
+                  </div>
+                  <div className="mt-8 space-y-2">
+                    <div className="h-3 w-20 rounded-full bg-white/75" />
+                    <div className="h-3 w-28 rounded-full bg-white/35" />
+                    <div className="h-9 rounded-[12px] bg-white/16" />
+                  </div>
+                </div>
+                <div className="p-4">
+                  <h3 className="text-sm font-black">{title}</h3>
+                  <p className="mt-2 text-xs font-semibold leading-5 text-slate-600">{body}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        <section className="mt-6 grid gap-3 md:grid-cols-3">
           {valueProps.map(({ Icon, title, body }) => (
             <div key={title} className="rounded-[24px] bg-white p-5 shadow-[0_16px_34px_rgba(15,23,42,0.07)] ring-1 ring-slate-100">
               <span className="flex h-12 w-12 items-center justify-center rounded-[16px] bg-[#eef4ff] text-[#0d47d9]">
@@ -1124,14 +1206,20 @@ export function AppLauncher() {
             {testimonials.map((item) => (
               <div key={item.name} className="rounded-[20px] border border-slate-100 bg-[#f8fbff] p-4">
                 <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-black">{item.name}</p>
-                    <p className="text-xs font-bold text-slate-500">{item.role}</p>
+                  <div className="flex items-center gap-3">
+                    <span className={cn("flex h-11 w-11 items-center justify-center rounded-full text-sm font-black", item.tone)}>
+                      {item.name.slice(0, 1)}
+                    </span>
+                    <div>
+                      <p className="text-sm font-black">{item.name}</p>
+                      <p className="text-xs font-bold text-slate-500">{item.role}</p>
+                    </div>
                   </div>
                   <span className="inline-flex items-center gap-1 rounded-full bg-white px-2 py-1 text-xs font-black text-amber-700">
                     <Star className="h-3.5 w-3.5 fill-amber-400 text-amber-400" /> {item.rating}
                   </span>
                 </div>
+                <span className="mt-3 inline-flex rounded-full bg-white px-3 py-1 text-[11px] font-black text-[#0d47d9]">{item.service}</span>
                 <p className="mt-3 text-sm leading-6 text-slate-600">{item.body}</p>
               </div>
             ))}
