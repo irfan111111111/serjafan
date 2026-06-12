@@ -918,102 +918,235 @@ export function AppLauncher() {
       ]
     }
   ];
-  const landingServices = services.slice(0, 7);
+  const landingServices = services.slice(0, 8);
   const landingStats = [
-    { value: `${landingServices.length}+`, label: "kategori layanan" },
-    { value: "3", label: "aplikasi terhubung" },
-    { value: "Padang", label: "area layanan" }
+    { value: "500+", label: "calon pelanggan lokal" },
+    { value: "100+", label: "target mitra aktif" },
+    { value: "1.000+", label: "target order selesai" },
+    { value: "4.9/5", label: "target rating layanan" }
   ];
   const valueProps = [
-    { Icon: ShieldCheck, title: "Mitra bisa diverifikasi", body: "Admin dapat memantau data partner, dokumen, pembayaran, dan status kerja." },
-    { Icon: Navigation, title: "Order tersambung", body: "Customer, partner, tracking, chat, dan admin memakai data order yang sama." },
-    { Icon: Wallet, title: "Alur pembayaran jelas", body: "Top up, bukti transfer, tunai, komisi, dan riwayat saldo tercatat di sistem." }
+    { Icon: ShieldCheck, title: "Mitra terverifikasi", body: "Data mitra, dokumen, status online, saldo kerja, dan pembayaran dipantau dari admin." },
+    { Icon: Navigation, title: "Tracking jelas", body: "Customer dan partner memakai data order yang sama untuk chat, peta, status, dan bukti pekerjaan." },
+    { Icon: Wallet, title: "Pembayaran fleksibel", body: "Mendukung top up manual, transfer mitra, tunai, bukti transfer, dan riwayat saldo." }
   ];
-  const steps = ["Pilih layanan", "Tentukan mitra", "Chat dan tracking", "Bayar dan beri ulasan"];
+  const steps = ["Pilih jasa yang dibutuhkan", "Pilih mitra terdekat", "Chat dan lacak pekerjaan", "Bayar lalu beri ulasan"];
+  const testimonials = [
+    { name: "Rahmad", role: "Pelanggan Padang", body: "Saya bisa cari tukang kunci lebih cepat dan status pesanan jelas dari awal.", rating: "4.9" },
+    { name: "Mitra AC", role: "Partner SERJAFAN", body: "Order, chat, dan pembayaran tercatat, jadi kerja lebih rapi.", rating: "4.8" },
+    { name: "Admin Operasional", role: "SERJAFAN", body: "Customer, partner, top up, dan promo bisa dipantau dari satu dashboard.", rating: "5.0" }
+  ];
+  const faqs = [
+    { q: "Bagaimana cara pesan jasa di SERJAFAN?", a: "Buka aplikasi customer, isi data pelanggan, pilih layanan, pilih mitra, lalu buat pesanan." },
+    { q: "Bagaimana pembayaran dilakukan?", a: "Customer bisa memakai saldo SERJAFAN, transfer ke admin, transfer ke mitra, atau tunai sesuai metode yang tersedia." },
+    { q: "Bagaimana jika mitra tidak datang?", a: "Customer bisa chat, telepon, melihat status pesanan, dan menghubungi CS agar admin memantau order tersebut." },
+    { q: "Apakah mitra langsung bisa menerima order?", a: "Mitra harus melengkapi data, metode pembayaran, dan saldo kerja minimum yang diverifikasi admin." }
+  ];
+  const seoLinks = [
+    { href: "/layanan/service-ac-padang", label: "Service AC Padang" },
+    { href: "/layanan/tukang-kunci-padang", label: "Tukang Kunci Padang" },
+    { href: "/layanan/cuci-sepatu-padang", label: "Cuci Sepatu Padang" },
+    { href: "/layanan/cleaning-service-padang", label: "Cleaning Service Padang" }
+  ];
 
   return (
-    <main className="min-h-screen bg-[#f5f7fb] px-4 py-6 text-slate-950">
-      <div className="mx-auto max-w-[980px]">
-        <section className="overflow-hidden rounded-[28px] bg-gradient-to-br from-[#0d47d9] to-[#003cb5] p-5 text-white shadow-[0_18px_45px_rgba(13,71,217,0.24)]">
-          <div className="flex items-start justify-between gap-4">
-            <CustomerWordmark />
-            <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-white/12 px-3 py-2 text-xs font-extrabold">
-              <MapPin className="h-4 w-4" /> Kota Padang
-            </span>
-          </div>
-          <p className="mt-6 text-xs font-black uppercase tracking-[0.18em] text-[#ffd54a]">Marketplace jasa lokal</p>
-          <h1 className="mt-2 max-w-2xl text-3xl font-black leading-tight md:text-5xl">Semua jasa harian Padang dalam satu aplikasi.</h1>
-          <p className="mt-3 max-w-2xl text-sm font-semibold leading-6 text-white/82 md:text-base">
-            SERJAFAN menghubungkan pelanggan dengan mitra jasa lokal untuk pemesanan, chat, tracking, pembayaran manual, dan pengawasan admin dalam satu sistem.
-          </p>
-          <div className="mt-5 grid gap-2 min-[520px]:grid-cols-3">
-            {landingStats.map((item) => (
-              <div key={item.label} className="rounded-[18px] border border-white/15 bg-white/10 p-4">
-                <p className="text-2xl font-black">{item.value}</p>
-                <p className="mt-1 text-xs font-bold text-white/70">{item.label}</p>
-              </div>
-            ))}
-          </div>
-          <div className="mt-5 flex flex-wrap gap-2">
-            <Link href="/customer" className="inline-flex h-12 items-center justify-center gap-2 rounded-[16px] bg-[#ffd54a] px-5 text-sm font-black text-slate-900">
-              Mulai Pesan <ChevronRight className="h-4 w-4" />
-            </Link>
-            <Link href="/register/partner" className="inline-flex h-12 items-center justify-center gap-2 rounded-[16px] border border-white/20 bg-white/10 px-5 text-sm font-black text-white">
-              Daftar Mitra
-            </Link>
-          </div>
-        </section>
-
-        <section className="mt-5 grid gap-3 md:grid-cols-3">
-          {valueProps.map(({ Icon, title, body }) => (
-            <div key={title} className="rounded-[20px] bg-white p-4 shadow-soft">
-              <span className="flex h-11 w-11 items-center justify-center rounded-[14px] bg-[#eef4ff] text-[#0d47d9]">
-                <Icon className="h-5 w-5" />
+    <main className="min-h-screen overflow-hidden bg-[#f5f7fb] text-slate-950">
+      <section className="relative bg-gradient-to-br from-[#061b56] via-[#0d47d9] to-[#003cb5] text-white">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(255,213,74,0.22),transparent_34%),radial-gradient(circle_at_10%_20%,rgba(255,255,255,0.14),transparent_26%)]" />
+        <div className="relative mx-auto grid max-w-6xl gap-8 px-4 pb-12 pt-6 md:grid-cols-[1.05fr_0.95fr] md:px-6 md:pb-16">
+          <div>
+            <div className="flex items-center justify-between gap-4">
+              <CustomerWordmark />
+              <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-white/12 px-3 py-2 text-xs font-extrabold">
+                <MapPin className="h-4 w-4" /> Padang
               </span>
-              <h2 className="mt-3 text-sm font-black">{title}</h2>
-              <p className="mt-2 text-xs leading-5 text-slate-500">{body}</p>
+            </div>
+            <div className="mt-10 inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-3 py-2 text-xs font-black uppercase tracking-[0.16em] text-[#ffd54a]">
+              <Sparkles className="h-4 w-4" /> Startup jasa lokal Kota Padang
+            </div>
+            <h1 className="mt-5 max-w-2xl text-[40px] font-black leading-[0.98] tracking-tight md:text-6xl">
+              Pesan jasa harian dalam 1 menit.
+            </h1>
+            <p className="mt-5 max-w-xl text-base font-semibold leading-7 text-white/82 md:text-lg">
+              SERJAFAN menghubungkan pelanggan Padang dengan mitra jasa terdekat untuk kunci, AC, cleaning, cuci sepatu, fotokopi, dan layanan harian lain.
+            </p>
+            <div className="mt-6 flex flex-wrap gap-3">
+              <Link href="/customer" className="inline-flex h-12 items-center justify-center gap-2 rounded-full bg-[#ffd54a] px-6 text-sm font-black text-slate-950 shadow-[0_14px_28px_rgba(255,213,74,0.28)] transition hover:-translate-y-0.5">
+                Pesan Jasa Dalam 1 Menit <ChevronRight className="h-4 w-4" />
+              </Link>
+              <Link href="/register/partner" className="inline-flex h-12 items-center justify-center gap-2 rounded-full border border-white/20 bg-white/10 px-6 text-sm font-black text-white transition hover:bg-white/15">
+                Jadi Mitra Sekarang
+              </Link>
+              <Link href="/support" className="inline-flex h-12 items-center justify-center gap-2 rounded-full border border-white/20 bg-white/5 px-6 text-sm font-black text-white transition hover:bg-white/15">
+                Hubungi Admin
+              </Link>
+            </div>
+            <div className="mt-7 grid grid-cols-2 gap-3 sm:grid-cols-4">
+              {landingStats.map((item) => (
+                <div key={item.label} className="rounded-[20px] border border-white/15 bg-white/10 p-4 backdrop-blur">
+                  <p className="text-2xl font-black">{item.value}</p>
+                  <p className="mt-1 text-[11px] font-bold leading-4 text-white/70">{item.label}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="relative mx-auto w-full max-w-[440px] md:pt-10">
+            <div className="absolute -right-8 top-2 h-28 w-28 rounded-full bg-[#ffd54a]/30 blur-3xl" />
+            <div className="relative rounded-[32px] border border-white/18 bg-white/12 p-3 shadow-[0_26px_70px_rgba(0,0,0,0.28)] backdrop-blur">
+              <div className="overflow-hidden rounded-[26px] bg-[#f5f7fb] text-slate-950">
+                <div className="bg-gradient-to-br from-[#0d47d9] to-[#003cb5] p-4 text-white">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xl font-black">SERJAFAN</span>
+                    <span className="rounded-full bg-white/14 px-3 py-1 text-xs font-bold">Padang</span>
+                  </div>
+                  <div className="mt-4 rounded-[18px] bg-white px-4 py-3 text-sm font-semibold text-slate-400">
+                    Cari layanan yang Anda butuhkan...
+                  </div>
+                  <div className="mt-4 grid grid-cols-[1fr_120px] overflow-hidden rounded-[20px] bg-[#0f5bff]">
+                    <div className="p-4">
+                      <p className="text-2xl font-black">Semua Jasa</p>
+                      <p className="mt-1 text-lg font-black text-[#ffd54a]">Dalam Satu Aplikasi</p>
+                      <p className="mt-2 text-xs font-bold text-white/80">Cepat - Mudah - Terpercaya</p>
+                    </div>
+                    <img src="/rumah-gadang-padang.svg" alt="Rumah Gadang Padang" className="h-full w-full object-cover" />
+                  </div>
+                </div>
+                <div className="grid grid-cols-4 gap-3 p-4">
+                  {landingServices.slice(0, 8).map((service) => {
+                    const Icon = service.icon;
+                    return (
+                      <div key={service.name} className="text-center">
+                        <span className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-[#eef4ff] text-[#0d47d9]">
+                          <Icon className="h-5 w-5" />
+                        </span>
+                        <span className="mt-2 block truncate text-[10px] font-black">{customerCategoryLabel(service.name)}</span>
+                      </div>
+                    );
+                  })}
+                </div>
+                <div className="px-4 pb-4">
+                  <div className="rounded-[18px] bg-white p-3 shadow-soft">
+                    <div className="flex items-center gap-3">
+                      <img src="/service-ac.svg" alt="Service AC Padang" className="h-16 w-20 rounded-[14px] object-cover" />
+                      <div className="min-w-0 flex-1">
+                        <p className="text-sm font-black">Service AC Padang</p>
+                        <p className="mt-1 text-xs font-bold text-slate-500">Mitra tersedia - chat & tracking</p>
+                      </div>
+                      <span className="rounded-full bg-emerald-50 px-2 py-1 text-[10px] font-black text-emerald-700">4.9</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <div className="mx-auto max-w-6xl px-4 py-8 md:px-6">
+        <section className="grid gap-3 md:grid-cols-3">
+          {valueProps.map(({ Icon, title, body }) => (
+            <div key={title} className="rounded-[24px] bg-white p-5 shadow-[0_16px_34px_rgba(15,23,42,0.07)] ring-1 ring-slate-100">
+              <span className="flex h-12 w-12 items-center justify-center rounded-[16px] bg-[#eef4ff] text-[#0d47d9]">
+                <Icon className="h-6 w-6" />
+              </span>
+              <h2 className="mt-4 text-base font-black">{title}</h2>
+              <p className="mt-2 text-sm leading-6 text-slate-500">{body}</p>
             </div>
           ))}
         </section>
 
-        <section className="mt-5 rounded-[22px] bg-white p-4 shadow-soft">
+        <section className="mt-6 rounded-[28px] bg-white p-5 shadow-[0_16px_34px_rgba(15,23,42,0.07)] ring-1 ring-slate-100">
           <div className="mb-4 flex items-center justify-between">
-            <h2 className="text-lg font-black">Kategori Layanan</h2>
-            <span className="text-xs font-black text-[#0d47d9]">Kota Padang</span>
+            <div>
+              <p className="text-xs font-black uppercase tracking-[0.14em] text-[#0d47d9]">Kategori utama</p>
+              <h2 className="mt-1 text-2xl font-black">Jasa yang paling sering dicari di Padang</h2>
+            </div>
+            <Link href="/customer" className="hidden rounded-full bg-[#eef4ff] px-4 py-2 text-sm font-black text-[#0d47d9] sm:inline-flex">Lihat Semua</Link>
           </div>
-          <div className="grid grid-cols-2 gap-2 min-[520px]:grid-cols-4">
+          <div className="grid grid-cols-2 gap-3 min-[520px]:grid-cols-4">
             {landingServices.map((service) => {
               const Icon = service.icon;
               return (
-                <Link key={service.name} href="/customer" className="flex items-center gap-3 rounded-[16px] bg-[#f7faff] p-3">
-                  <span className="flex h-11 w-11 items-center justify-center rounded-full bg-[#eef4ff] text-[#0d47d9]">
-                    <Icon className="h-5 w-5" />
+                <Link key={service.name} href="/customer" className="group flex items-center gap-3 rounded-[18px] bg-[#f7faff] p-3 transition hover:-translate-y-0.5 hover:bg-[#eef4ff]">
+                  <span className="flex h-12 w-12 items-center justify-center rounded-full bg-white text-[#0d47d9] shadow-sm">
+                    <Icon className="h-6 w-6" />
                   </span>
-                  <span className="text-xs font-black">{customerCategoryLabel(service.name)}</span>
+                  <span className="text-sm font-black">{customerCategoryLabel(service.name)}</span>
                 </Link>
               );
             })}
           </div>
         </section>
 
-        <section className="mt-5 rounded-[22px] bg-white p-4 shadow-soft">
-          <h2 className="text-lg font-black">Cara Kerja</h2>
-          <div className="mt-4 grid gap-2 md:grid-cols-4">
+        <section className="mt-6 grid gap-5 lg:grid-cols-[1fr_0.9fr]">
+          <div className="rounded-[28px] bg-white p-5 shadow-[0_16px_34px_rgba(15,23,42,0.07)] ring-1 ring-slate-100">
+            <p className="text-xs font-black uppercase tracking-[0.14em] text-[#0d47d9]">Cara kerja</p>
+            <h2 className="mt-1 text-2xl font-black">Dari pesan sampai selesai, alurnya jelas.</h2>
+            <div className="mt-5 grid gap-3 sm:grid-cols-2">
             {steps.map((step, index) => (
-              <div key={step} className="rounded-[16px] border border-slate-100 p-3">
-                <span className="flex h-8 w-8 items-center justify-center rounded-full bg-[#0d47d9] text-xs font-black text-white">{index + 1}</span>
-                <p className="mt-3 text-sm font-black">{step}</p>
+              <div key={step} className="rounded-[18px] border border-slate-100 bg-slate-50 p-4">
+                <span className="flex h-9 w-9 items-center justify-center rounded-full bg-[#0d47d9] text-xs font-black text-white">{index + 1}</span>
+                <p className="mt-3 text-sm font-black leading-5">{step}</p>
+              </div>
+            ))}
+            </div>
+          </div>
+
+          <div className="rounded-[28px] bg-[#071f5c] p-5 text-white shadow-[0_16px_34px_rgba(15,23,42,0.12)]">
+            <p className="text-xs font-black uppercase tracking-[0.14em] text-[#ffd54a]">Fokus awal</p>
+            <h2 className="mt-2 text-2xl font-black">Mulai dari layanan yang paling dibutuhkan.</h2>
+            <div className="mt-5 space-y-3">
+              {["Tukang Kunci Padang", "Service AC Padang", "Cleaning Service Padang"].map((item) => (
+                <div key={item} className="flex items-center gap-3 rounded-[18px] bg-white/10 p-3">
+                  <Check className="h-5 w-5 text-[#ffd54a]" />
+                  <span className="text-sm font-black">{item}</span>
+                </div>
+              ))}
+            </div>
+            <Link href="/customer" className="mt-5 inline-flex h-11 items-center justify-center rounded-full bg-[#ffd54a] px-5 text-sm font-black text-slate-950">
+              Coba Pesan Sekarang
+            </Link>
+          </div>
+        </section>
+
+        <section className="mt-6 rounded-[28px] bg-white p-5 shadow-[0_16px_34px_rgba(15,23,42,0.07)] ring-1 ring-slate-100">
+          <div className="mb-4 flex items-end justify-between gap-3">
+            <div>
+              <p className="text-xs font-black uppercase tracking-[0.14em] text-[#0d47d9]">Social proof</p>
+              <h2 className="mt-1 text-2xl font-black">Kepercayaan dibangun dari pengalaman pertama yang rapi.</h2>
+            </div>
+            <div className="hidden items-center gap-1 rounded-full bg-amber-50 px-3 py-2 text-sm font-black text-amber-700 sm:flex">
+              <Star className="h-4 w-4 fill-amber-400 text-amber-400" /> 4.9/5
+            </div>
+          </div>
+          <div className="grid gap-3 md:grid-cols-3">
+            {testimonials.map((item) => (
+              <div key={item.name} className="rounded-[20px] border border-slate-100 bg-[#f8fbff] p-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-black">{item.name}</p>
+                    <p className="text-xs font-bold text-slate-500">{item.role}</p>
+                  </div>
+                  <span className="inline-flex items-center gap-1 rounded-full bg-white px-2 py-1 text-xs font-black text-amber-700">
+                    <Star className="h-3.5 w-3.5 fill-amber-400 text-amber-400" /> {item.rating}
+                  </span>
+                </div>
+                <p className="mt-3 text-sm leading-6 text-slate-600">{item.body}</p>
               </div>
             ))}
           </div>
         </section>
 
-        <section className="mt-5 rounded-[22px] bg-white p-4 shadow-soft">
-          <h2 className="text-lg font-black">Buka Aplikasi</h2>
-          <p className="mt-1 text-xs leading-5 text-slate-500">Customer, partner, dan admin dipisah agar data dan akses lebih rapi.</p>
-          <div className="mt-4 grid gap-3 md:grid-cols-3">
+        <section className="mt-6 rounded-[28px] bg-white p-5 shadow-[0_16px_34px_rgba(15,23,42,0.07)] ring-1 ring-slate-100">
+          <div className="mb-4">
+            <p className="text-xs font-black uppercase tracking-[0.14em] text-[#0d47d9]">Aplikasi SERJAFAN</p>
+            <h2 className="mt-1 text-2xl font-black">Customer, partner, dan admin tetap dipisah.</h2>
+            <p className="mt-2 text-sm leading-6 text-slate-500">Pemisahan ini membuat akses lebih aman, rapi, dan cocok untuk operasional nyata.</p>
+          </div>
+          <div className="grid gap-3 md:grid-cols-3">
           {apps.map(({ href, title, description, Icon, tone, actions }) => (
-            <div key={href} className="rounded-[16px] bg-white p-4 shadow-soft transition hover:-translate-y-0.5">
+            <div key={href} className="rounded-[20px] border border-slate-100 bg-white p-4 shadow-soft transition hover:-translate-y-0.5">
               <span className={cn("mb-4 flex h-12 w-12 items-center justify-center rounded-[14px]", tone)}>
                 <Icon className="h-6 w-6" />
               </span>
@@ -1037,6 +1170,45 @@ export function AppLauncher() {
           ))}
           </div>
         </section>
+
+        <section className="mt-6 grid gap-5 lg:grid-cols-[0.9fr_1fr]">
+          <div className="rounded-[28px] bg-gradient-to-br from-[#0d47d9] to-[#003cb5] p-5 text-white shadow-[0_16px_34px_rgba(13,71,217,0.18)]">
+            <p className="text-xs font-black uppercase tracking-[0.14em] text-[#ffd54a]">Call to action</p>
+            <h2 className="mt-2 text-3xl font-black leading-tight">Siap bikin pemesanan pertama lebih meyakinkan?</h2>
+            <p className="mt-3 text-sm font-semibold leading-6 text-white/78">Mulai dari 2 sampai 3 layanan utama, kumpulkan testimoni nyata, lalu naikkan iklan khusus Kota Padang.</p>
+            <div className="mt-5 flex flex-wrap gap-2">
+              <Link href="/customer" className="inline-flex h-11 items-center justify-center rounded-full bg-[#ffd54a] px-5 text-sm font-black text-slate-950">Mulai Pesan</Link>
+              <Link href="/register/partner" className="inline-flex h-11 items-center justify-center rounded-full border border-white/20 bg-white/10 px-5 text-sm font-black text-white">Jadi Mitra</Link>
+            </div>
+          </div>
+
+          <div className="rounded-[28px] bg-white p-5 shadow-[0_16px_34px_rgba(15,23,42,0.07)] ring-1 ring-slate-100">
+            <p className="text-xs font-black uppercase tracking-[0.14em] text-[#0d47d9]">FAQ</p>
+            <h2 className="mt-1 text-2xl font-black">Pertanyaan umum</h2>
+            <div className="mt-4 space-y-3">
+              {faqs.map((item) => (
+                <details key={item.q} className="group rounded-[18px] bg-[#f8fbff] p-4">
+                  <summary className="cursor-pointer list-none text-sm font-black text-slate-950">{item.q}</summary>
+                  <p className="mt-2 text-sm leading-6 text-slate-600">{item.a}</p>
+                </details>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        <section className="mt-6 rounded-[28px] bg-white p-5 shadow-[0_16px_34px_rgba(15,23,42,0.07)] ring-1 ring-slate-100">
+          <p className="text-xs font-black uppercase tracking-[0.14em] text-[#0d47d9]">SEO lokal</p>
+          <h2 className="mt-1 text-2xl font-black">Halaman layanan untuk pencarian Google</h2>
+          <p className="mt-2 text-sm leading-6 text-slate-500">Dibuat khusus untuk keyword jasa lokal di Padang agar SERJAFAN lebih mudah ditemukan.</p>
+          <div className="mt-4 flex flex-wrap gap-2">
+            {seoLinks.map((item) => (
+              <Link key={item.href} href={item.href} className="rounded-full bg-[#eef4ff] px-4 py-2 text-sm font-black text-[#0d47d9]">
+                {item.label}
+              </Link>
+            ))}
+          </div>
+        </section>
+
         <div className="mt-6 flex flex-wrap justify-center gap-3 text-xs font-semibold text-slate-500">
           <Link href="/terms" className="hover:text-flame">
             Syarat
