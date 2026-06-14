@@ -936,32 +936,6 @@ export function AppLauncher() {
     { title: "Teknisi punya ruang kerja", label: "Technician App", body: "Teknisi internal memiliki dashboard sendiri untuk menerima tugas, status kerja, peta, dan saldo kerja.", Icon: Wrench, tone: "bg-emerald-100 text-emerald-700" },
     { title: "Operasional dikendalikan", label: "Admin Dashboard", body: "Admin mengelola layanan, promo, teknisi, customer, top up manual, maps, dan pengaturan aplikasi.", Icon: ShieldCheck, tone: "bg-orange-100 text-orange-700" }
   ];
-  const appPreviews = [
-    {
-      title: "Customer App",
-      body: "Cari layanan, buat pesanan ke SERJAFAN, top up, tracking, bantuan CS, dan ulasan.",
-      Icon: Home,
-      tone: "from-[#0d47d9] to-[#003cb5]"
-    },
-    {
-      title: "Technician App",
-      body: "Teknisi internal menerima tugas dari SERJAFAN, status online, navigasi maps, dan saldo kerja.",
-      Icon: Wrench,
-      tone: "from-emerald-600 to-emerald-800"
-    },
-    {
-      title: "Admin Dashboard",
-      body: "Pantau customer, teknisi, top up manual, promo, layanan, maps, dan laporan operasional.",
-      Icon: ShieldCheck,
-      tone: "from-orange-500 to-orange-700"
-    },
-    {
-      title: "Tracking Order",
-      body: "Customer melihat status dari SERJAFAN; teknisi internal menerima instruksi operasional.",
-      Icon: Navigation,
-      tone: "from-slate-800 to-[#061b56]"
-    }
-  ];
   const faqs = [
     { q: "Bagaimana cara pesan jasa di SERJAFAN?", a: "Buka aplikasi customer, isi data pelanggan, pilih layanan, isi detail kebutuhan, lalu kirim pesanan ke SERJAFAN." },
     { q: "Apakah customer memilih teknisi?", a: "Tidak. SERJAFAN menerima order, menghubungi customer bila perlu, lalu menugaskan teknisi internal yang sesuai." },
@@ -973,6 +947,56 @@ export function AppLauncher() {
     { href: "/layanan/tukang-kunci-padang", label: "Tukang Kunci Padang" },
     { href: "/layanan/cuci-sepatu-padang", label: "Cuci Sepatu Padang" },
     { href: "/layanan/cleaning-service-padang", label: "Cleaning Service Padang" }
+  ];
+  const dashboardScreens = [
+    {
+      title: "Customer App",
+      subtitle: "Pesan layanan SERJAFAN",
+      Icon: Home,
+      tone: "from-[#0d47d9] to-[#003cb5]",
+      metrics: [
+        ["Status", "Diterima"],
+        ["CS", "Aktif"],
+        ["Tracking", "Live"]
+      ],
+      rows: ["Pilih layanan", "Isi alamat & kebutuhan", "Pantau status dari SERJAFAN"]
+    },
+    {
+      title: "Teknisi App",
+      subtitle: "Ruang kerja jaringan internal",
+      Icon: Wrench,
+      tone: "from-emerald-600 to-emerald-800",
+      metrics: [
+        ["Tugas", "Masuk"],
+        ["Deposit", "Aktif"],
+        ["Maps", "Siap"]
+      ],
+      rows: ["Terima tugas SERJAFAN", "Navigasi ke customer", "Update pekerjaan selesai"]
+    },
+    {
+      title: "Admin Dashboard",
+      subtitle: "Kendali operasional pusat",
+      Icon: ShieldCheck,
+      tone: "from-orange-500 to-orange-700",
+      metrics: [
+        ["Order", "Pantau"],
+        ["Top Up", "Verifikasi"],
+        ["Teknisi", "Kelola"]
+      ],
+      rows: ["Atur layanan & promo", "Assign teknisi internal", "Audit pembayaran & kualitas"]
+    }
+  ];
+  const trustAssets = [
+    { title: "Foto teknisi asli", body: "Gunakan foto tim lapangan SERJAFAN setelah verifikasi, bukan avatar generik.", Icon: Camera },
+    { title: "Bukti pekerjaan selesai", body: "Kumpulkan foto before-after dari service AC, kunci, dan cleaning saat pilot pertama.", Icon: ImageIcon },
+    { title: "Testimoni nyata", body: "Tampilkan nama, layanan, area Padang, dan ulasan singkat dari customer pertama.", Icon: Star },
+    { title: "Statistik real-time", body: "Angka order, rating, dan teknisi aktif baru ditampilkan setelah data production benar-benar ada.", Icon: Bolt }
+  ];
+  const pilotMilestones = [
+    ["Minggu 1", "Rekrut 10 teknisi awal untuk kunci, AC, dan cleaning."],
+    ["Minggu 2", "Kumpulkan foto pekerjaan, profil teknisi, dan bukti verifikasi."],
+    ["Minggu 3", "Jalankan 20-50 order pilot dan simpan ulasan customer."],
+    ["Minggu 4", "Tampilkan statistik nyata, testimoni asli, lalu mulai iklan Padang."]
   ];
 
   return (
@@ -1103,26 +1127,48 @@ export function AppLauncher() {
             </div>
             <Link href="/customer" className="inline-flex h-10 items-center justify-center rounded-full bg-[#ffd54a] px-4 text-sm font-black text-slate-950">Coba Customer</Link>
           </div>
-          <div className="grid gap-3 md:grid-cols-4">
-            {appPreviews.map(({ title, body, Icon, tone }) => (
-              <div key={title} className="overflow-hidden rounded-[22px] border border-slate-100 bg-[#f8fbff]">
-                <div className={cn("bg-gradient-to-br p-4 text-white", tone)}>
-                  <div className="flex items-center justify-between">
-                    <Icon className="h-6 w-6" />
-                    <span className="rounded-full bg-white/16 px-2 py-1 text-[10px] font-black">Siap dicek</span>
-                  </div>
-                  <div className="mt-8 space-y-2">
-                    <div className="h-3 w-20 rounded-full bg-white/75" />
-                    <div className="h-3 w-28 rounded-full bg-white/35" />
-                    <div className="h-9 rounded-[12px] bg-white/16" />
-                  </div>
-                </div>
-                <div className="p-4">
-                  <h3 className="text-sm font-black">{title}</h3>
+          <div className="grid gap-3 lg:grid-cols-3">
+            {dashboardScreens.map((screen) => (
+              <DashboardPreviewCard key={screen.title} {...screen} />
+            ))}
+          </div>
+        </section>
+
+        <section className="mt-6 grid gap-5 lg:grid-cols-[1fr_0.9fr]">
+          <div className="rounded-[28px] bg-white p-5 shadow-[0_16px_34px_rgba(15,23,42,0.07)] ring-1 ring-slate-100">
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+              <div>
+                <p className="text-xs font-black uppercase tracking-[0.14em] text-[#0d47d9]">Trust builder</p>
+                <h2 className="mt-1 text-2xl font-black">Bukti nyata yang akan menaikkan kepercayaan.</h2>
+              </div>
+              <span className="inline-flex w-fit items-center gap-1 rounded-full bg-amber-50 px-3 py-2 text-xs font-black text-amber-700">
+                <AlertCircle className="h-4 w-4" /> Jangan pakai angka palsu
+              </span>
+            </div>
+            <div className="mt-5 grid gap-3 sm:grid-cols-2">
+              {trustAssets.map(({ title, body, Icon }) => (
+                <div key={title} className="rounded-[20px] border border-slate-100 bg-[#f8fbff] p-4">
+                  <span className="flex h-11 w-11 items-center justify-center rounded-[15px] bg-white text-[#0d47d9] shadow-sm">
+                    <Icon className="h-5 w-5" />
+                  </span>
+                  <h3 className="mt-3 text-sm font-black">{title}</h3>
                   <p className="mt-2 text-xs font-semibold leading-5 text-slate-600">{body}</p>
                 </div>
-              </div>
-            ))}
+              ))}
+            </div>
+          </div>
+
+          <div className="rounded-[28px] bg-[#071f5c] p-5 text-white shadow-[0_16px_34px_rgba(15,23,42,0.12)]">
+            <p className="text-xs font-black uppercase tracking-[0.14em] text-[#ffd54a]">Target pilot 30 hari</p>
+            <h2 className="mt-2 text-2xl font-black leading-tight">Fokus transaksi nyata, bukan sekadar visitor.</h2>
+            <div className="mt-5 space-y-3">
+              {pilotMilestones.map(([week, body]) => (
+                <div key={week} className="rounded-[18px] bg-white/10 p-4">
+                  <p className="text-xs font-black uppercase tracking-[0.12em] text-[#ffd54a]">{week}</p>
+                  <p className="mt-2 text-sm font-bold leading-6 text-white/86">{body}</p>
+                </div>
+              ))}
+            </div>
           </div>
         </section>
 
@@ -1165,11 +1211,12 @@ export function AppLauncher() {
           <div className="rounded-[28px] bg-white p-5 shadow-[0_16px_34px_rgba(15,23,42,0.07)] ring-1 ring-slate-100">
             <p className="text-xs font-black uppercase tracking-[0.14em] text-[#0d47d9]">Cara kerja</p>
             <h2 className="mt-1 text-2xl font-black">Dari pesan sampai selesai, alurnya jelas.</h2>
-            <div className="mt-5 grid gap-3 sm:grid-cols-2">
+            <div className="mt-5 grid gap-3 sm:grid-cols-5">
             {steps.map((step, index) => (
-              <div key={step} className="rounded-[18px] border border-slate-100 bg-slate-50 p-4">
+              <div key={step} className="relative rounded-[18px] border border-slate-100 bg-slate-50 p-4">
                 <span className="flex h-9 w-9 items-center justify-center rounded-full bg-[#0d47d9] text-xs font-black text-white">{index + 1}</span>
                 <p className="mt-3 text-sm font-black leading-5">{step}</p>
+                {index < steps.length - 1 && <span className="absolute -right-2 top-8 hidden h-0.5 w-4 bg-[#0d47d9]/30 sm:block" />}
               </div>
             ))}
             </div>
@@ -1318,6 +1365,67 @@ export function AppLauncher() {
         </div>
       </div>
     </main>
+  );
+}
+
+function DashboardPreviewCard({
+  title,
+  subtitle,
+  Icon,
+  tone,
+  metrics,
+  rows
+}: {
+  title: string;
+  subtitle: string;
+  Icon: React.ElementType;
+  tone: string;
+  metrics: string[][];
+  rows: string[];
+}) {
+  return (
+    <div className="overflow-hidden rounded-[24px] border border-slate-100 bg-[#f8fbff] shadow-[0_12px_28px_rgba(15,23,42,0.06)]">
+      <div className={cn("bg-gradient-to-br p-4 text-white", tone)}>
+        <div className="flex items-center justify-between">
+          <div className="flex min-w-0 items-center gap-3">
+            <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-[15px] bg-white/16">
+              <Icon className="h-5 w-5" />
+            </span>
+            <div className="min-w-0">
+              <h3 className="truncate text-base font-black">{title}</h3>
+              <p className="truncate text-xs font-bold text-white/70">{subtitle}</p>
+            </div>
+          </div>
+          <span className="rounded-full bg-white/16 px-2.5 py-1 text-[10px] font-black">Live UI</span>
+        </div>
+
+        <div className="mt-5 grid grid-cols-3 gap-2">
+          {metrics.map(([label, value]) => (
+            <div key={label} className="rounded-[14px] bg-white/14 p-2">
+              <p className="text-[10px] font-bold text-white/65">{label}</p>
+              <p className="mt-1 truncate text-xs font-black">{value}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div className="p-4">
+        <div className="rounded-[18px] bg-white p-3 shadow-sm">
+          {rows.map((row, index) => (
+            <div key={row} className={cn("flex items-center gap-3 py-2", index > 0 && "border-t border-slate-100")}>
+              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#eef4ff] text-[#0d47d9]">
+                <Check className="h-3.5 w-3.5" />
+              </span>
+              <span className="text-xs font-extrabold leading-5 text-slate-700">{row}</span>
+            </div>
+          ))}
+        </div>
+        <div className="mt-3 flex items-center justify-between rounded-[16px] bg-[#eef4ff] px-3 py-2">
+          <span className="text-[11px] font-black text-[#0d47d9]">Terhubung API</span>
+          <span className="h-2 w-2 rounded-full bg-emerald-500" />
+        </div>
+      </div>
+    </div>
   );
 }
 
