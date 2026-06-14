@@ -97,11 +97,11 @@ export default async function ServiceSeoPage({ params }: PageProps) {
 
         <div className="rounded-[28px] bg-white p-5 shadow-[0_16px_34px_rgba(15,23,42,0.07)] ring-1 ring-slate-100">
           <p className="text-xs font-black uppercase tracking-[0.14em] text-[#0d47d9]">Alur pesanan</p>
-          <h2 className="mt-1 text-2xl font-black">Dari cari mitra sampai pekerjaan selesai.</h2>
+          <h2 className="mt-1 text-2xl font-black">Dari pesan ke SERJAFAN sampai pekerjaan selesai.</h2>
           <div className="mt-5 grid gap-3 sm:grid-cols-2">
             {[
-              { Icon: ShieldCheck, title: "Pilih layanan", body: "Customer memilih jasa dan mitra yang tersedia." },
-              { Icon: MessageCircle, title: "Chat mitra", body: "Detail pekerjaan bisa dibahas lewat chat." },
+              { Icon: ShieldCheck, title: "Pilih layanan", body: "Customer memilih layanan dan mengirim detail kebutuhan ke SERJAFAN." },
+              { Icon: MessageCircle, title: "Chat SERJAFAN", body: "Detail pekerjaan dibahas dengan tim SERJAFAN, bukan langsung dengan teknisi." },
               { Icon: Navigation, title: "Tracking", body: "Lokasi dan status pesanan bisa dipantau." },
               { Icon: Star, title: "Ulasan", body: "Customer memberi rating setelah selesai." }
             ].map(({ Icon, title, body }) => (

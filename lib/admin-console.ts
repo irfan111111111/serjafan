@@ -45,17 +45,17 @@ export const defaultAdminConsole: AdminConsoleSettings = {
   promos: [],
   partnerRequirements: [
     { id: "photo_service", label: "Foto tempat/foto jasa", required: true },
-    { id: "selfie", label: "Foto diri pemilik jasa", required: true },
+    { id: "selfie", label: "Foto diri teknisi", required: true },
     { id: "ktp", label: "Foto KTP", required: true },
     { id: "portfolio", label: "Contoh hasil kerja", required: false }
   ],
   partnerFeatureCopy: {
-    headline: "Gabung Partner SERJAFAN",
-    description: "Daftar sebagai penyedia jasa terverifikasi dengan dokumen lengkap dan area layanan jelas."
+    headline: "Gabung Teknisi SERJAFAN",
+    description: "Daftar sebagai teknisi jaringan SERJAFAN dengan dokumen lengkap dan area layanan jelas."
   },
   customerFeatureCopy: {
     headline: "Customer App",
-    description: "Alur customer sederhana seperti aplikasi layanan on-demand: cari jasa, pesan, tracking, chat, telepon, dan bayar."
+    description: "Alur customer sederhana seperti aplikasi layanan on-demand: cari layanan, pesan ke SERJAFAN, tracking, chat support, telepon, dan bayar."
   },
   partnerRegistrationLimited: false
 };

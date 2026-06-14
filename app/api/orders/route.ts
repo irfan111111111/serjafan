@@ -71,21 +71,21 @@ export async function POST(request: Request) {
     where: eq(partnerProfiles.id, body.partnerId)
   });
 
-  if (!partner) return fail("Partner not found.", 404);
+  if (!partner) return fail("Teknisi SERJAFAN tidak ditemukan.", 404);
   if (partner.verificationStatus !== "APPROVED" || partner.status !== "ONLINE" || !partner.userId) {
-    return fail("Mitra belum aktif menerima pesanan. Pilih mitra lain yang online dan terverifikasi.", 409);
+    return fail("Tim SERJAFAN belum siap menugaskan teknisi untuk layanan ini. Silakan coba layanan lain atau hubungi admin.", 409);
   }
   const hasPartnerBankPayment = Boolean(partner.paymentBankName && partner.paymentBankAccount && partner.paymentBankHolder);
   const hasPartnerDanaPayment = Boolean(partner.paymentDanaNumber && partner.paymentDanaName);
   if (body.paymentMethod === "DIRECT_TRANSFER" && !hasPartnerBankPayment && !hasPartnerDanaPayment) {
-    return fail("Mitra belum mengisi rekening bank atau DANA untuk pembayaran langsung.", 409);
+    return fail("Metode transfer manual SERJAFAN belum siap untuk layanan ini.", 409);
   }
   if (body.paymentMethod === "CASH" && partner.acceptsCash === false) {
-    return fail("Mitra ini tidak menerima pembayaran tunai.", 409);
+    return fail("Pembayaran tunai belum tersedia untuk layanan ini.", 409);
   }
   const partnerWallet = await db.query.wallets.findFirst({ where: eq(wallets.userId, partner.userId) });
   if (!partnerWallet || partnerWallet.balance < 20_000) {
-    return fail("Mitra belum memiliki deposit kerja minimal Rp 20.000.", 409);
+    return fail("Teknisi internal belum memenuhi saldo kerja minimum untuk menerima penugasan.", 409);
   }
 
   await db.insert(orders).values({
@@ -114,8 +114,8 @@ export async function POST(request: Request) {
     id: createId("trk"),
     orderId,
     status: "PENDING",
-    title: "Menunggu konfirmasi mitra",
-    description: "Permintaan jasa sudah dikirim. Mitra perlu menerima pesanan sebelum proses dimulai.",
+    title: "Pesanan diterima SERJAFAN",
+    description: "Tim SERJAFAN sedang memeriksa detail kebutuhan dan menugaskan teknisi internal.",
     latitude: body.address.latitude ?? null,
     longitude: body.address.longitude ?? null,
     createdAt: now
@@ -125,17 +125,17 @@ export async function POST(request: Request) {
     id: createId("notf"),
     userId: session.user.id,
     kind: "ORDER",
-    title: "Menunggu konfirmasi mitra",
-    body: `Pesanan ${orderId} sudah dikirim ke ${partner?.name ?? "mitra"}. Metode pembayaran: ${
-      body.paymentMethod === "CASH" ? "tunai ke mitra" : body.paymentMethod === "DIRECT_TRANSFER" ? "transfer bank/DANA langsung ke mitra" : "SERJAFAN Pay"
-    }. Tunggu mitra menerima pesanan.`,
+    title: "Pesanan diterima SERJAFAN",
+    body: `Pesanan ${orderId} sudah diterima SERJAFAN. Metode pembayaran: ${
+      body.paymentMethod === "CASH" ? "tunai" : body.paymentMethod === "DIRECT_TRANSFER" ? "transfer manual SERJAFAN" : "SERJAFAN Pay"
+    }. Tim operasional akan menugaskan teknisi internal.`,
     targetUrl: `/orders/${orderId}`,
     createdAt: now,
     updatedAt: now
   });
   await sendPushToUser(session.user.id, {
-    title: "Menunggu konfirmasi mitra",
-    body: `Pesanan ${orderId} sudah dikirim ke ${partner.name}.`,
+    title: "Pesanan diterima SERJAFAN",
+    body: `Pesanan ${orderId} sedang diproses tim SERJAFAN.`,
     url: "/customer",
     tag: `order-${orderId}`,
     kind: "notification"
@@ -146,8 +146,8 @@ export async function POST(request: Request) {
       id: createId("notf"),
       userId: partner.userId,
       kind: "ORDER",
-      title: "Pesanan baru menunggu konfirmasi",
-      body: `Customer ${session.user.name} meminta jasa. Terima atau tolak pesanan ${orderId}.`,
+      title: "Tugas SERJAFAN baru",
+      body: `Operasional SERJAFAN menugaskan order ${orderId}. Terima atau tolak tugas ini.`,
       targetUrl: `/partner/orders`,
       createdAt: now,
       updatedAt: now
@@ -157,10 +157,10 @@ export async function POST(request: Request) {
       id: createId("msg"),
       userId: partner.userId,
       sender: session.user.name,
-      title: `${partner.category} - ${partner.name}`,
+      title: `Tugas SERJAFAN - ${partner.category}`,
       body: `Pesanan ${orderId} menunggu konfirmasi Anda sebelum customer bisa lanjut proses. Arah layanan: ${
-        body.fulfillmentMode === "CUSTOMER_TO_PARTNER" ? "customer menuju lokasi partner/jasa" : "partner/jasa menuju lokasi customer"
-      }. Pembayaran: ${body.paymentMethod === "CASH" ? "tunai ke mitra saat jasa selesai" : body.paymentMethod === "DIRECT_TRANSFER" ? "transfer bank/DANA langsung ke mitra" : "SERJAFAN Pay"}.`,
+        body.fulfillmentMode === "CUSTOMER_TO_PARTNER" ? "customer menuju titik SERJAFAN" : "teknisi menuju lokasi customer"
+      }. Pembayaran: ${body.paymentMethod === "CASH" ? "tunai sesuai operasional" : body.paymentMethod === "DIRECT_TRANSFER" ? "transfer manual SERJAFAN" : "SERJAFAN Pay"}.`,
       orderId,
       partnerId: partner.id,
       partnerName: partner.name,
@@ -171,8 +171,8 @@ export async function POST(request: Request) {
       updatedAt: now
     });
     await sendPushToUser(partner.userId, {
-      title: "Pesanan baru menunggu konfirmasi",
-      body: `${session.user.name} meminta jasa ${partner.category}. Terima atau tolak pesanan ${orderId}.`,
+      title: "Tugas SERJAFAN baru",
+      body: `Order ${orderId} untuk layanan ${partner.category}. Terima atau tolak tugas ini.`,
       url: "/partner",
       tag: `order-${orderId}`,
       kind: "notification"
@@ -187,7 +187,7 @@ export async function POST(request: Request) {
         userId: admin.id,
         kind: "ORDER" as const,
         title: "Pesanan customer baru",
-        body: `${session.user.name} membuat pesanan ${orderId} untuk ${partner.name}. Pantau statusnya di dashboard admin.`,
+        body: `${session.user.name} membuat pesanan ${orderId} untuk layanan ${partner.category}. Pantau assignment teknisi di dashboard admin.`,
         targetUrl: "/admin",
         createdAt: now,
         updatedAt: now
@@ -197,7 +197,7 @@ export async function POST(request: Request) {
       admins.map((admin) =>
         sendPushToUser(admin.id, {
           title: "Pesanan customer baru",
-          body: `${session.user.name} membuat pesanan ${orderId} untuk ${partner.name}.`,
+          body: `${session.user.name} membuat pesanan ${orderId} untuk layanan ${partner.category}.`,
           url: "/admin",
           tag: `admin-order-${orderId}`,
           kind: "notification"

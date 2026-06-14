@@ -2,7 +2,7 @@ import type { Metadata, Viewport } from "next";
 
 export const metadata: Metadata = {
   title: "SERJAFAN Customer",
-  description: "Aplikasi customer SERJAFAN untuk cari jasa, pesan mitra, bayar, chat, telepon, dan tracking.",
+  description: "Aplikasi customer SERJAFAN untuk cari layanan, membuat pesanan ke SERJAFAN, bayar, chat support, telepon, dan tracking.",
   manifest: "/manifest.customer.webmanifest",
   icons: {
     icon: "/serjafan-logo.png",

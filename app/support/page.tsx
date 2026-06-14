@@ -5,7 +5,7 @@ export default function SupportPage() {
     <LegalPage
       title="Pusat Bantuan SERJAFAN"
       updatedAt="7 Juni 2026"
-      intro="Halaman ini menjelaskan jalur bantuan awal untuk customer, partner, dan admin operasional SERJAFAN."
+      intro="Halaman ini menjelaskan jalur bantuan awal untuk customer, teknisi jaringan, dan admin operasional SERJAFAN."
       sections={[
         {
           title: "Bantuan customer",
@@ -15,24 +15,24 @@ export default function SupportPage() {
           ]
         },
         {
-          title: "Bantuan partner",
+          title: "Bantuan teknisi",
           body: [
-            "Partner dapat meminta bantuan untuk verifikasi dokumen, status online, saldo kerja minimum, pesanan masuk, komisi, penarikan dana, dan laporan customer.",
-            "Partner wajib menjaga kualitas layanan dan memperbarui data jasa agar customer menerima informasi yang benar."
+            "Teknisi dapat meminta bantuan untuk verifikasi dokumen, status online, saldo kerja minimum, tugas masuk, komisi, penarikan dana, dan laporan customer.",
+            "Teknisi wajib menjaga kualitas layanan dan memperbarui data jasa agar operasional SERJAFAN menerima informasi yang benar."
           ]
         },
         {
           title: "Bantuan admin",
           body: [
-            "Admin bertanggung jawab memantau customer, partner, pesanan, wallet, promo, layanan, maps, dan sengketa.",
-            "Perubahan konfigurasi admin harus dilakukan dengan hati-hati karena langsung memengaruhi aplikasi customer dan partner."
+            "Admin bertanggung jawab memantau customer, teknisi, pesanan, wallet, promo, layanan, maps, dan sengketa.",
+            "Perubahan konfigurasi admin harus dilakukan dengan hati-hati karena langsung memengaruhi aplikasi customer dan teknisi."
           ]
         },
         {
           title: "Kontak resmi",
           body: [
             "Nomor support resmi harus diisi melalui pengaturan admin sebelum launch publik.",
-            "Jangan meminta password, OTP, token database, secret Xendit, atau API key Google Maps melalui chat customer maupun partner."
+            "Jangan meminta password, OTP, token database, secret Xendit, atau API key Google Maps melalui chat customer maupun teknisi."
           ]
         }
       ]}

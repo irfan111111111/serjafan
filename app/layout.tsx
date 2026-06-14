@@ -4,10 +4,10 @@ import "./globals.css";
 export const metadata: Metadata = {
   metadataBase: new URL("https://serjafan.my.id"),
   title: {
-    default: "SERJAFAN | Marketplace Jasa Lokal Padang",
+    default: "SERJAFAN | Layanan Jasa Profesional Padang",
     template: "%s | SERJAFAN"
   },
-  description: "SERJAFAN adalah marketplace jasa lokal Kota Padang untuk service AC, tukang kunci, cleaning service, cuci sepatu, dan layanan harian lainnya.",
+  description: "SERJAFAN adalah perusahaan layanan jasa Kota Padang untuk service AC, tukang kunci, cleaning service, cuci sepatu, dan kebutuhan harian lainnya dengan teknisi internal yang ditugaskan SERJAFAN.",
   keywords: ["SERJAFAN", "jasa Padang", "service AC Padang", "tukang kunci Padang", "cleaning service Padang", "cuci sepatu Padang"],
   applicationName: "SERJAFAN",
   authors: [{ name: "SERJAFAN" }],
@@ -15,8 +15,8 @@ export const metadata: Metadata = {
   publisher: "SERJAFAN",
   manifest: "/manifest.webmanifest",
   openGraph: {
-    title: "SERJAFAN | Marketplace Jasa Lokal Padang",
-    description: "Pesan jasa harian di Kota Padang dengan alur customer, partner, tracking, chat, dan admin yang saling terhubung.",
+    title: "SERJAFAN | Layanan Jasa Profesional Padang",
+    description: "Pesan jasa harian di Kota Padang. SERJAFAN menerima order, menugaskan teknisi internal, mengelola pembayaran, tracking, dan bantuan customer.",
     url: "https://serjafan.my.id",
     siteName: "SERJAFAN",
     images: ["/serjafan-logo.png"],

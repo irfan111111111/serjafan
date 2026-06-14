@@ -18,7 +18,7 @@ export async function POST(_request: Request, { params }: { params: Promise<{ id
   const partner = await db.query.partnerProfiles.findFirst({
     where: eq(partnerProfiles.userId, session.user.id)
   });
-  if (!partner) return fail("Partner profile not found.", 404);
+  if (!partner) return fail("Profil teknisi SERJAFAN tidak ditemukan.", 404);
 
   const { id } = await params;
   const order = await db.query.orders.findFirst({
@@ -34,7 +34,7 @@ export async function POST(_request: Request, { params }: { params: Promise<{ id
       where: eq(wallets.userId, order.customerId)
     });
     if (!wallet || wallet.balance < order.total) {
-      return fail("Saldo SERJAFAN Pay customer tidak cukup saat pesanan diterima mitra.", 422);
+      return fail("Saldo SERJAFAN Pay customer tidak cukup saat tugas teknisi diterima.", 422);
     }
 
     await db.update(wallets).set({ balance: wallet.balance - order.total, updatedAt: now }).where(eq(wallets.id, wallet.id));
@@ -57,7 +57,7 @@ export async function POST(_request: Request, { params }: { params: Promise<{ id
           userId: admin.id,
           kind: "SYSTEM" as const,
           title: "Pembayaran SERJAFAN Pay diterima",
-          body: `Customer membayar pesanan ${order.id} Rp ${new Intl.NumberFormat("id-ID").format(order.total)} dari saldo. Estimasi komisi 20% Rp ${new Intl.NumberFormat("id-ID").format(commission)}, payout partner Rp ${new Intl.NumberFormat("id-ID").format(payout)} setelah pesanan selesai.`,
+          body: `Customer membayar pesanan ${order.id} Rp ${new Intl.NumberFormat("id-ID").format(order.total)} dari saldo. Estimasi komisi 20% Rp ${new Intl.NumberFormat("id-ID").format(commission)}, payout teknisi Rp ${new Intl.NumberFormat("id-ID").format(payout)} setelah pesanan selesai.`,
           targetUrl: "/admin",
           isRead: false,
           createdAt: now,
@@ -71,7 +71,7 @@ export async function POST(_request: Request, { params }: { params: Promise<{ id
         userId: partner.userId,
         kind: "SYSTEM",
         title: "Customer sudah bayar SERJAFAN Pay",
-        body: `Pesanan ${order.id} sudah dibayar ke admin melalui saldo SERJAFAN Pay. Payout partner diproses admin setelah pekerjaan selesai.`,
+        body: `Pesanan ${order.id} sudah dibayar ke admin melalui saldo SERJAFAN Pay. Payout teknisi diproses admin setelah pekerjaan selesai.`,
         targetUrl: "/partner",
         isRead: false,
         createdAt: now,
@@ -90,15 +90,15 @@ export async function POST(_request: Request, { params }: { params: Promise<{ id
     id: createId("notf"),
     userId: order.customerId,
     kind: "ORDER",
-    title: "Pesanan diterima mitra",
-    body: "Mitra sudah menerima pesanan Anda dan sedang bersiap berangkat.",
+    title: "Teknisi SERJAFAN ditugaskan",
+    body: "SERJAFAN sudah menugaskan teknisi internal dan sedang mempersiapkan layanan Anda.",
     targetUrl: `/orders/${order.id}`,
     createdAt: now,
     updatedAt: now
   });
   await sendPushToUser(order.customerId, {
-    title: "Pesanan diterima mitra",
-    body: `${partner.name} sudah menerima pesanan Anda dan sedang bersiap.`,
+    title: "Teknisi SERJAFAN ditugaskan",
+    body: `Pesanan ${order.id} sedang diproses oleh tim SERJAFAN.`,
     url: "/customer",
     tag: `order-${order.id}`,
     kind: "notification"
@@ -107,9 +107,9 @@ export async function POST(_request: Request, { params }: { params: Promise<{ id
   await db.insert(messages).values({
     id: createId("msg"),
     userId: order.customerId,
-    sender: partner.name,
-    title: "Pesanan diterima",
-    body: `Pesanan ${order.id} sudah saya terima. Saya segera berangkat.`,
+    sender: "SERJAFAN",
+    title: "Pesanan diproses SERJAFAN",
+    body: `Pesanan ${order.id} sudah diterima operasional. Teknisi internal sedang dipersiapkan.`,
     unread: true,
     createdAt: now,
     updatedAt: now
@@ -119,8 +119,8 @@ export async function POST(_request: Request, { params }: { params: Promise<{ id
     id: createId("trk"),
     orderId: order.id,
     status: "PARTNER_READY",
-    title: "Mitra menerima pesanan",
-    description: `${partner.name} sudah mengonfirmasi dan siap memproses pesanan.`,
+    title: "Teknisi SERJAFAN siap",
+    description: "Operasional SERJAFAN sudah mengonfirmasi dan teknisi internal siap memproses pesanan.",
     latitude: partnerCoordinates[partner.id]?.latitude ?? partnerCoordinates.default.latitude,
     longitude: partnerCoordinates[partner.id]?.longitude ?? partnerCoordinates.default.longitude,
     createdAt: now

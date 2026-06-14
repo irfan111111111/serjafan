@@ -94,8 +94,23 @@ export async function POST(request: Request) {
         const partner = await db.query.partnerProfiles.findFirst({
           where: eq(partnerProfiles.id, order.partnerId)
         });
-        recipientId = partner?.userId ?? undefined;
-        title = `${partner?.category ?? "Jasa"} - ${partner?.name ?? "Partner"}`;
+        const admins = await db.select().from(user).where(eq(user.role, "ADMIN")).limit(1);
+        recipientId = admins[0]?.id;
+        title = `SERJAFAN Support - ${partner?.category ?? "Layanan"}`;
+        orderMeta = {
+          orderId: order.id,
+          partnerId: partner?.id,
+          partnerName: partner?.name,
+          serviceName: partner?.category
+        };
+      } else if (session.user.role === "PARTNER") {
+        const partner = await db.query.partnerProfiles.findFirst({
+          where: eq(partnerProfiles.id, order.partnerId)
+        });
+        if (partner?.userId !== session.user.id) return fail("Pesanan ini bukan milik akun teknisi Anda.", 403);
+        const admins = await db.select().from(user).where(eq(user.role, "ADMIN")).limit(1);
+        recipientId = admins[0]?.id;
+        title = `Operasional SERJAFAN - ${partner?.category ?? "Tugas"}`;
         orderMeta = {
           orderId: order.id,
           partnerId: partner?.id,
@@ -106,11 +121,8 @@ export async function POST(request: Request) {
         const partner = await db.query.partnerProfiles.findFirst({
           where: eq(partnerProfiles.id, order.partnerId)
         });
-        if (session.user.role === "PARTNER" && partner?.userId !== session.user.id) {
-          return fail("Pesanan ini bukan milik akun partner Anda.", 403);
-        }
         recipientId = order.customerId;
-        title = `${partner?.category ?? "Jasa"} - ${partner?.name ?? "Partner"}`;
+        title = `SERJAFAN Support - ${partner?.category ?? "Layanan"}`;
         orderMeta = {
           orderId: order.id,
           partnerId: partner?.id,
@@ -123,7 +135,7 @@ export async function POST(request: Request) {
 
   if (!recipientId) {
     if (session.user.role !== "ADMIN") {
-      return fail("Pilih pesanan/jasa dulu sebelum membuka chat, supaya pesan tidak tercampur antar partner.", 400);
+      return fail("Pilih pesanan dulu sebelum membuka chat, supaya pesan tidak tercampur antar layanan.", 400);
     }
     const role = body?.recipientRole ?? "CUSTOMER";
     const recipient = await db.query.user.findFirst({

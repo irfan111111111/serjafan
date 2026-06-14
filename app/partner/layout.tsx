@@ -1,8 +1,8 @@
 import type { Metadata, Viewport } from "next";
 
 export const metadata: Metadata = {
-  title: "SERJAFAN Partner",
-  description: "Aplikasi partner SERJAFAN untuk menerima pesanan, mengatur status, top up deposit, chat, dan navigasi customer.",
+  title: "SERJAFAN Teknisi",
+  description: "Aplikasi teknisi jaringan SERJAFAN untuk menerima tugas operasional, mengatur status, top up deposit, chat operasional, dan navigasi customer.",
   manifest: "/manifest.partner.webmanifest",
   icons: {
     icon: "/serjafan-logo.png",

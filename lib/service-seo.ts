@@ -15,14 +15,14 @@ export const serviceSeoItems: ServiceSeoItem[] = [
     title: "Service AC Padang",
     shortTitle: "Service AC",
     description:
-      "Cari teknisi AC di Kota Padang untuk cuci AC, AC tidak dingin, bocor, berisik, atau butuh pengecekan rutin melalui SERJAFAN.",
+      "Pesan service AC di Kota Padang untuk cuci AC, AC tidak dingin, bocor, berisik, atau pengecekan rutin. SERJAFAN menerima order dan menugaskan teknisi internal.",
     image: "/service-ac.svg",
     price: "Mulai dari Rp 100.000",
-    highlights: ["Teknisi lokal Padang", "Chat dan tracking pesanan", "Bisa bayar tunai atau transfer", "Riwayat pesanan tercatat"],
+    highlights: ["Teknisi SERJAFAN terseleksi", "Chat support dan tracking pesanan", "Bisa bayar tunai atau transfer manual", "Riwayat pesanan tercatat"],
     faq: [
-      { q: "Apakah teknisi bisa datang ke rumah?", a: "Ya, customer bisa memasukkan alamat lengkap agar mitra melihat lokasi tujuan." },
-      { q: "Apakah bisa chat teknisi?", a: "Bisa. Setelah pesanan dibuat, customer dan mitra dapat saling chat di aplikasi." },
-      { q: "Bagaimana pembayaran service AC?", a: "Pembayaran dapat mengikuti metode yang tersedia: saldo SERJAFAN, transfer mitra, transfer admin, atau tunai." }
+      { q: "Apakah teknisi bisa datang ke rumah?", a: "Ya, customer memasukkan alamat lengkap lalu SERJAFAN menugaskan teknisi internal ke lokasi." },
+      { q: "Apakah bisa chat teknisi?", a: "Customer berkomunikasi dengan SERJAFAN. Tim operasional meneruskan instruksi ke teknisi internal." },
+      { q: "Bagaimana pembayaran service AC?", a: "Pembayaran dikelola SERJAFAN melalui metode yang tersedia seperti saldo SERJAFAN, transfer manual, atau tunai." }
     ]
   },
   {
@@ -30,14 +30,14 @@ export const serviceSeoItems: ServiceSeoItem[] = [
     title: "Tukang Kunci Padang",
     shortTitle: "Tukang Kunci",
     description:
-      "Butuh bantuan kunci rumah, kunci kendaraan, atau duplikat kunci di Padang? SERJAFAN membantu menghubungkan customer dengan mitra kunci lokal.",
+      "Butuh bantuan kunci rumah, kunci kendaraan, atau duplikat kunci di Padang? SERJAFAN menerima permintaan dan menugaskan teknisi kunci internal.",
     image: "/service-locksmith.svg",
     price: "Mulai dari Rp 50.000",
-    highlights: ["Cocok untuk kondisi darurat", "Mitra bisa menerima atau menolak order", "Lokasi customer terbaca maps", "Bisa hubungi mitra langsung"],
+    highlights: ["Cocok untuk kondisi darurat", "SERJAFAN mengatur penugasan", "Lokasi customer terbaca maps", "Customer menghubungi SERJAFAN"],
     faq: [
-      { q: "Apakah tukang kunci tersedia untuk panggilan?", a: "Ya, customer dapat membuat pesanan dan menunggu konfirmasi mitra." },
-      { q: "Apakah bisa melihat posisi mitra?", a: "Aplikasi menyediakan tracking pesanan dan tombol Google Maps sesuai data lokasi order." },
-      { q: "Apakah ada rating mitra?", a: "Setelah pekerjaan selesai, customer dapat memberi rating dan ulasan." }
+      { q: "Apakah tukang kunci tersedia untuk panggilan?", a: "Ya, customer membuat pesanan dan SERJAFAN menugaskan teknisi yang tersedia." },
+      { q: "Apakah bisa melihat status teknisi?", a: "Aplikasi menyediakan tracking pesanan dan tombol Google Maps sesuai data lokasi order." },
+      { q: "Apakah ada rating layanan?", a: "Setelah pekerjaan selesai, customer dapat memberi rating dan ulasan untuk layanan SERJAFAN." }
     ]
   },
   {
@@ -48,11 +48,11 @@ export const serviceSeoItems: ServiceSeoItem[] = [
       "Layanan cuci sepatu Padang untuk sepatu harian, sneakers, dan perawatan ringan dengan pemesanan yang tercatat di SERJAFAN.",
     image: "/service-electrician.svg",
     price: "Mulai dari Rp 25.000",
-    highlights: ["Pesanan mudah dari HP", "Catatan kebutuhan bisa ditulis", "Bukti pembayaran dapat diupload", "Admin dapat memantau order"],
+    highlights: ["Pesanan mudah dari HP", "Catatan kebutuhan bisa ditulis", "Bukti pembayaran dapat diupload", "Admin SERJAFAN memantau order"],
     faq: [
-      { q: "Apakah sepatu bisa dijemput?", a: "Alur penjemputan mengikuti pilihan layanan dan kesepakatan dengan mitra." },
+      { q: "Apakah sepatu bisa dijemput?", a: "Alur penjemputan mengikuti pilihan layanan dan arahan operasional SERJAFAN." },
       { q: "Apakah bisa kirim foto sepatu?", a: "Chat aplikasi mendukung lampiran foto untuk memperjelas kebutuhan." },
-      { q: "Bagaimana jika hasil belum sesuai?", a: "Customer dapat menghubungi mitra atau CS agar admin membantu memantau kendala." }
+      { q: "Bagaimana jika hasil belum sesuai?", a: "Customer menghubungi SERJAFAN agar admin membantu memantau dan menyelesaikan kendala." }
     ]
   },
   {
@@ -60,14 +60,14 @@ export const serviceSeoItems: ServiceSeoItem[] = [
     title: "Cleaning Service Padang",
     shortTitle: "Cleaning Service",
     description:
-      "Pesan cleaning service di Padang untuk rumah, kos, kantor kecil, atau kebutuhan bersih-bersih dengan mitra lokal SERJAFAN.",
+      "Pesan cleaning service di Padang untuk rumah, kos, kantor kecil, atau kebutuhan bersih-bersih dengan tim layanan SERJAFAN.",
     image: "/service-electrician.svg",
     price: "Mulai dari Rp 80.000",
-    highlights: ["Mitra lokal", "Order dapat dipantau admin", "Chat customer dan partner", "Rating setelah pekerjaan selesai"],
+    highlights: ["Tim layanan terseleksi", "Order dipantau admin", "Chat customer dengan SERJAFAN", "Rating setelah pekerjaan selesai"],
     faq: [
       { q: "Apakah cleaning bisa datang sesuai alamat?", a: "Ya, customer harus mengisi alamat lengkap agar lokasi bisa dibaca di maps." },
       { q: "Apakah bisa bayar tunai?", a: "Bisa jika metode tunai tersedia untuk pesanan tersebut." },
-      { q: "Apakah mitra diverifikasi?", a: "SERJAFAN menyiapkan alur pendaftaran dan verifikasi mitra melalui dashboard admin." }
+      { q: "Apakah teknisi diverifikasi?", a: "SERJAFAN menyiapkan alur pendaftaran dan verifikasi teknisi melalui dashboard admin." }
     ]
   }
 ];

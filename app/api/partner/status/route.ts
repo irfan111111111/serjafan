@@ -21,14 +21,14 @@ export async function PUT(request: Request) {
     where: eq(partnerProfiles.userId, session.user.id)
   });
 
-  if (!partner) return fail("Partner profile not found.", 404);
+  if (!partner) return fail("Profil teknisi SERJAFAN tidak ditemukan.", 404);
 
   if (body.status === "ONLINE") {
     const wallet = await db.query.wallets.findFirst({
       where: eq(wallets.userId, session.user.id)
     });
     if (!wallet || wallet.balance < MIN_PARTNER_WORK_BALANCE) {
-      return fail("Saldo deposit partner minimal Rp 20.000 sebelum bisa online dan mencari customer.", 422);
+      return fail("Saldo deposit teknisi minimal Rp 20.000 sebelum bisa online menerima tugas SERJAFAN.", 422);
     }
   }
 

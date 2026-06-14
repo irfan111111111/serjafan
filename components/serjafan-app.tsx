@@ -441,7 +441,7 @@ const serviceShortCopy = (service: ServiceItem) =>
       ? "Pembuatan dan perapian plat nomor kendaraan."
       : service.name.toLowerCase().includes("sepatu")
         ? "Cuci, deep clean, dan perawatan sepatu."
-        : "Pilih mitra terverifikasi sesuai kebutuhan Anda.");
+        : "Pesan layanan SERJAFAN dan tim operasional akan menugaskan teknisi internal.");
 
 const serviceToneByIndex = (index: number) =>
   [
@@ -475,7 +475,7 @@ const initialDraft: OrderDraft = {
 
 const roleTabs: { value: Screen; label: string }[] = [
   { value: "home", label: "Customer" },
-  { value: "partner", label: "Partner" },
+  { value: "partner", label: "Teknisi" },
   { value: "admin", label: "Admin" }
 ];
 
@@ -488,7 +488,7 @@ const initialScreenByRole: Record<AppRole, Screen> = {
 
 const appTitleByRole: Record<AppRole, string> = {
   customer: "SERJAFAN Customer",
-  partner: "SERJAFAN Partner",
+  partner: "SERJAFAN Teknisi",
   admin: "SERJAFAN Admin",
   switcher: "SERJAFAN"
 };
@@ -538,7 +538,7 @@ const initialAdminConsole: AdminConsoleData = {
     services: [],
     promos: [],
     partnerRequirements: [],
-    partnerFeatureCopy: { headline: "Gabung Partner SERJAFAN", description: "" },
+    partnerFeatureCopy: { headline: "Gabung Teknisi SERJAFAN", description: "" },
     customerFeatureCopy: { headline: "Customer App", description: "" },
     partnerRegistrationLimited: false
   },
@@ -890,26 +890,26 @@ export function AppLauncher() {
     {
       href: "/customer",
       title: "SERJAFAN Customer",
-      description: "Aplikasi pelanggan untuk cari layanan, pesan mitra, bayar, dan tracking.",
+      description: "Aplikasi pelanggan untuk pesan layanan SERJAFAN, bayar, tracking, dan bantuan CS.",
       Icon: Home,
       tone: "bg-blue-50 text-blue-700",
       actions: [{ href: "/customer", label: "Buka Customer", primary: true }]
     },
     {
       href: "/partner",
-      title: "SERJAFAN Partner",
-      description: "Aplikasi mitra untuk status online, menerima pesanan, dan mengelola pekerjaan.",
+      title: "SERJAFAN Teknisi",
+      description: "Aplikasi jaringan teknisi internal untuk menerima tugas dan mengelola pekerjaan.",
       Icon: Wrench,
       tone: "bg-emerald-50 text-emerald-700",
       actions: [
-        { href: "/login/partner", label: "Buka Login Partner", primary: true },
-        { href: "/register/partner", label: "Daftar Mitra" }
+        { href: "/login/partner", label: "Login Teknisi", primary: true },
+        { href: "/register/partner", label: "Daftar Teknisi" }
       ]
     },
     {
       href: "/admin",
       title: "SERJAFAN Admin",
-      description: "Dashboard operasional untuk memantau sistem, verifikasi mitra, dan edit konfigurasi.",
+      description: "Dashboard operasional untuk menerima order, menugaskan teknisi, monitoring kualitas, pembayaran, dan konfigurasi.",
       Icon: ShieldCheck,
       tone: "bg-orange-50 text-orange-700",
       actions: [
@@ -922,51 +922,51 @@ export function AppLauncher() {
   const landingStats = [
     { value: "Kota Padang", label: "fokus area layanan" },
     { value: `${landingServices.length}+`, label: "kategori jasa siap tampil" },
-    { value: "3", label: "sistem customer partner admin" },
+    { value: "3", label: "sistem customer teknisi admin" },
     { value: "4", label: "halaman SEO layanan lokal" }
   ];
   const valueProps = [
-    { Icon: ShieldCheck, title: "Mitra terverifikasi", body: "Data mitra, dokumen, status online, saldo kerja, dan pembayaran dipantau dari admin." },
-    { Icon: Navigation, title: "Tracking jelas", body: "Customer dan partner memakai data order yang sama untuk chat, peta, status, dan bukti pekerjaan." },
-    { Icon: Wallet, title: "Pembayaran fleksibel", body: "Mendukung top up manual, transfer mitra, tunai, bukti transfer, dan riwayat saldo." }
+    { Icon: ShieldCheck, title: "Teknisi terseleksi", body: "SERJAFAN menyeleksi, menugaskan, dan memantau teknisi agar kualitas layanan tetap terkontrol." },
+    { Icon: Navigation, title: "Tracking jelas", body: "Customer melihat status pesanan dari SERJAFAN: diterima, teknisi ditugaskan, menuju lokasi, dikerjakan, selesai." },
+    { Icon: Wallet, title: "Pembayaran dikelola", body: "SERJAFAN mengelola top up manual, bukti transfer, tunai, riwayat saldo, dan pemantauan pembayaran." }
   ];
-  const steps = ["Pilih jasa yang dibutuhkan", "Pilih mitra terdekat", "Chat dan lacak pekerjaan", "Bayar lalu beri ulasan"];
+  const steps = ["Pilih layanan", "Isi detail kebutuhan", "Tim SERJAFAN menghubungi Anda", "Teknisi ditugaskan", "Pekerjaan selesai"];
   const proofCards = [
     { title: "Produk bisa dibuka", label: "Customer App", body: "Pengunjung dapat mencoba alur customer langsung dari website, termasuk cari layanan dan mulai pesanan.", Icon: Home, tone: "bg-blue-100 text-blue-700" },
-    { title: "Mitra punya ruang kerja", label: "Partner App", body: "Mitra memiliki dashboard sendiri untuk menerima order, status online, chat, peta, dan saldo kerja.", Icon: Wrench, tone: "bg-emerald-100 text-emerald-700" },
-    { title: "Operasional dikendalikan", label: "Admin Dashboard", body: "Admin dapat mengelola layanan, promo, partner, customer, top up manual, maps, dan pengaturan aplikasi.", Icon: ShieldCheck, tone: "bg-orange-100 text-orange-700" }
+    { title: "Teknisi punya ruang kerja", label: "Technician App", body: "Teknisi internal memiliki dashboard sendiri untuk menerima tugas, status kerja, peta, dan saldo kerja.", Icon: Wrench, tone: "bg-emerald-100 text-emerald-700" },
+    { title: "Operasional dikendalikan", label: "Admin Dashboard", body: "Admin mengelola layanan, promo, teknisi, customer, top up manual, maps, dan pengaturan aplikasi.", Icon: ShieldCheck, tone: "bg-orange-100 text-orange-700" }
   ];
   const appPreviews = [
     {
       title: "Customer App",
-      body: "Cari layanan, pilih mitra, buat pesanan, chat, top up, tracking, dan ulasan.",
+      body: "Cari layanan, buat pesanan ke SERJAFAN, top up, tracking, bantuan CS, dan ulasan.",
       Icon: Home,
       tone: "from-[#0d47d9] to-[#003cb5]"
     },
     {
-      title: "Partner App",
-      body: "Terima atau tolak order, status online, navigasi maps, chat pelanggan, dan saldo kerja.",
+      title: "Technician App",
+      body: "Teknisi internal menerima tugas dari SERJAFAN, status online, navigasi maps, dan saldo kerja.",
       Icon: Wrench,
       tone: "from-emerald-600 to-emerald-800"
     },
     {
       title: "Admin Dashboard",
-      body: "Pantau customer, partner, top up manual, promo, layanan, maps, dan laporan operasional.",
+      body: "Pantau customer, teknisi, top up manual, promo, layanan, maps, dan laporan operasional.",
       Icon: ShieldCheck,
       tone: "from-orange-500 to-orange-700"
     },
     {
       title: "Tracking Order",
-      body: "Customer dan mitra melihat status order yang sama dari menunggu sampai selesai.",
+      body: "Customer melihat status dari SERJAFAN; teknisi internal menerima instruksi operasional.",
       Icon: Navigation,
       tone: "from-slate-800 to-[#061b56]"
     }
   ];
   const faqs = [
-    { q: "Bagaimana cara pesan jasa di SERJAFAN?", a: "Buka aplikasi customer, isi data pelanggan, pilih layanan, pilih mitra, lalu buat pesanan." },
-    { q: "Bagaimana pembayaran dilakukan?", a: "Customer bisa memakai saldo SERJAFAN, transfer ke admin, transfer ke mitra, atau tunai sesuai metode yang tersedia." },
-    { q: "Bagaimana jika mitra tidak datang?", a: "Customer bisa chat, telepon, melihat status pesanan, dan menghubungi CS agar admin memantau order tersebut." },
-    { q: "Apakah mitra langsung bisa menerima order?", a: "Mitra harus melengkapi data, metode pembayaran, dan saldo kerja minimum yang diverifikasi admin." }
+    { q: "Bagaimana cara pesan jasa di SERJAFAN?", a: "Buka aplikasi customer, isi data pelanggan, pilih layanan, isi detail kebutuhan, lalu kirim pesanan ke SERJAFAN." },
+    { q: "Apakah customer memilih teknisi?", a: "Tidak. SERJAFAN menerima order, menghubungi customer bila perlu, lalu menugaskan teknisi internal yang sesuai." },
+    { q: "Bagaimana pembayaran dilakukan?", a: "Pembayaran dikelola SERJAFAN melalui metode yang tersedia seperti saldo SERJAFAN, transfer manual, atau tunai sesuai kebijakan layanan." },
+    { q: "Bagaimana jika ada kendala?", a: "Customer berkomunikasi dengan SERJAFAN. Admin memantau pesanan, teknisi, pembayaran, dan komplain." }
   ];
   const seoLinks = [
     { href: "/layanan/service-ac-padang", label: "Service AC Padang" },
@@ -994,14 +994,14 @@ export function AppLauncher() {
               Pesan jasa harian dalam 1 menit.
             </h1>
             <p className="mt-5 max-w-xl text-base font-semibold leading-7 text-white/82 md:text-lg">
-              SERJAFAN menghubungkan pelanggan Padang dengan mitra jasa terdekat untuk kunci, AC, cleaning, cuci sepatu, fotokopi, dan layanan harian lain.
+              SERJAFAN membantu Anda mendapatkan layanan profesional untuk rumah, perbaikan, kebersihan, dan kebutuhan harian lain. Pesanan diterima SERJAFAN, lalu teknisi internal ditugaskan.
             </p>
             <div className="mt-6 flex flex-wrap gap-3">
               <Link href="/customer" className="inline-flex h-12 items-center justify-center gap-2 rounded-full bg-[#ffd54a] px-6 text-sm font-black text-slate-950 shadow-[0_14px_28px_rgba(255,213,74,0.28)] transition hover:-translate-y-0.5">
                 Pesan Jasa Dalam 1 Menit <ChevronRight className="h-4 w-4" />
               </Link>
               <Link href="/register/partner" className="inline-flex h-12 items-center justify-center gap-2 rounded-full border border-white/20 bg-white/10 px-6 text-sm font-black text-white transition hover:bg-white/15">
-                Jadi Mitra Sekarang
+                Gabung Teknisi SERJAFAN
               </Link>
               <Link href="/support" className="inline-flex h-12 items-center justify-center gap-2 rounded-full border border-white/20 bg-white/5 px-6 text-sm font-black text-white transition hover:bg-white/15">
                 Hubungi Admin
@@ -1058,7 +1058,7 @@ export function AppLauncher() {
                 <div className="grid grid-cols-2 gap-2 px-4 pb-4">
                   {[
                     ["Order", "Customer"],
-                    ["Status", "Partner"],
+                    ["Status", "Teknisi"],
                     ["Maps", "Tracking"],
                     ["Panel", "Admin"]
                   ].map(([label, value]) => (
@@ -1073,7 +1073,7 @@ export function AppLauncher() {
             <div className="absolute -bottom-4 left-2 right-2 grid grid-cols-3 gap-2">
               {[
                 ["Customer", "Pesan"],
-                ["Partner", "Terima"],
+                ["Teknisi", "Tugas"],
                 ["Admin", "Pantau"]
               ].map(([title, label]) => (
                 <div key={title} className="rounded-[16px] border border-white/18 bg-white/90 p-2 text-center text-slate-950 shadow-[0_10px_25px_rgba(15,23,42,0.16)] backdrop-blur">
@@ -1099,7 +1099,7 @@ export function AppLauncher() {
           <div className="mb-5 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
             <div>
               <p className="text-xs font-black uppercase tracking-[0.14em] text-[#0d47d9]">Preview aplikasi</p>
-              <h2 className="mt-1 text-2xl font-black">Bukan hanya landing page, SERJAFAN punya sistem operasional.</h2>
+            <h2 className="mt-1 text-2xl font-black">SERJAFAN adalah perusahaan layanan dengan sistem operasional sendiri.</h2>
             </div>
             <Link href="/customer" className="inline-flex h-10 items-center justify-center rounded-full bg-[#ffd54a] px-4 text-sm font-black text-slate-950">Coba Customer</Link>
           </div>
@@ -1234,8 +1234,8 @@ export function AppLauncher() {
         <section className="mt-6 rounded-[28px] bg-white p-5 shadow-[0_16px_34px_rgba(15,23,42,0.07)] ring-1 ring-slate-100">
           <div className="mb-4">
             <p className="text-xs font-black uppercase tracking-[0.14em] text-[#0d47d9]">Aplikasi SERJAFAN</p>
-            <h2 className="mt-1 text-2xl font-black">Customer, partner, dan admin tetap dipisah.</h2>
-            <p className="mt-2 text-sm leading-6 text-slate-500">Pemisahan ini membuat akses lebih aman, rapi, dan cocok untuk operasional nyata.</p>
+            <h2 className="mt-1 text-2xl font-black">Customer, teknisi, dan admin tetap dipisah.</h2>
+            <p className="mt-2 text-sm leading-6 text-slate-500">Customer hanya berhubungan dengan SERJAFAN. Teknisi memakai aplikasi internal untuk menerima tugas dari operasional.</p>
           </div>
           <div className="grid gap-3 md:grid-cols-3">
           {apps.map(({ href, title, description, Icon, tone, actions }) => (
@@ -1268,10 +1268,10 @@ export function AppLauncher() {
           <div className="rounded-[28px] bg-gradient-to-br from-[#0d47d9] to-[#003cb5] p-5 text-white shadow-[0_16px_34px_rgba(13,71,217,0.18)]">
             <p className="text-xs font-black uppercase tracking-[0.14em] text-[#ffd54a]">Call to action</p>
             <h2 className="mt-2 text-3xl font-black leading-tight">Siap bikin pemesanan pertama lebih meyakinkan?</h2>
-            <p className="mt-3 text-sm font-semibold leading-6 text-white/78">Mulai dari 2 sampai 3 layanan utama, kumpulkan testimoni nyata, lalu naikkan iklan khusus Kota Padang.</p>
+            <p className="mt-3 text-sm font-semibold leading-6 text-white/78">Mulai dari layanan utama, terima order dari customer, lalu tim SERJAFAN menugaskan teknisi internal yang sesuai.</p>
             <div className="mt-5 flex flex-wrap gap-2">
               <Link href="/customer" className="inline-flex h-11 items-center justify-center rounded-full bg-[#ffd54a] px-5 text-sm font-black text-slate-950">Mulai Pesan</Link>
-              <Link href="/register/partner" className="inline-flex h-11 items-center justify-center rounded-full border border-white/20 bg-white/10 px-5 text-sm font-black text-white">Jadi Mitra</Link>
+              <Link href="/register/partner" className="inline-flex h-11 items-center justify-center rounded-full border border-white/20 bg-white/10 px-5 text-sm font-black text-white">Gabung Teknisi</Link>
             </div>
           </div>
 
@@ -2035,7 +2035,7 @@ export function SerjafanApp({ appRole = "switcher" }: { appRole?: AppRole }) {
       const payload = (await parseJsonResponse(response)) as { data?: { partner?: any }; error?: { message?: string } };
       if (!response.ok) throw new Error(payload.error?.message ?? "Data pembayaran gagal disimpan.");
       setPartnerProfile(payload.data?.partner ?? null);
-      notify("success", "Data pembayaran partner tersimpan dan dapat dipantau admin.");
+      notify("success", "Data pembayaran teknisi tersimpan dan dapat dipantau admin.");
       return true;
     } catch (error) {
       notify("error", error instanceof Error ? error.message : "Data pembayaran gagal disimpan.");
@@ -2051,11 +2051,11 @@ export function SerjafanApp({ appRole = "switcher" }: { appRole?: AppRole }) {
       });
       const payload = (await parseJsonResponse(response)) as { data?: { payment?: { provider?: string; checkoutUrl?: string | null } }; error?: { message?: string } };
       if (!response.ok) throw new Error(payload.error?.message ?? "Top Up partner gagal dibuat.");
-      notify("success", payload.data?.payment?.provider === "manual" ? "Top up partner menunggu verifikasi admin. Saldo aktif setelah transfer disetujui." : "Invoice top up partner dibuat. Selesaikan pembayaran dulu.");
+      notify("success", payload.data?.payment?.provider === "manual" ? "Top up teknisi menunggu verifikasi admin. Saldo aktif setelah transfer disetujui." : "Invoice top up teknisi dibuat. Selesaikan pembayaran dulu.");
       if (payload.data?.payment?.checkoutUrl) window.open(payload.data.payment.checkoutUrl, "_blank", "noopener,noreferrer");
       goTo("partnerAccount");
     } catch (error) {
-      notify("error", error instanceof Error ? error.message : "Top Up partner gagal dibuat.");
+      notify("error", error instanceof Error ? error.message : "Top Up teknisi gagal dibuat.");
     }
   };
 
@@ -2125,12 +2125,12 @@ export function SerjafanApp({ appRole = "switcher" }: { appRole?: AppRole }) {
 
   const updatePartnerOnline = async (online: boolean) => {
     if (online && partnerWalletBalance < 20000) {
-      notify("error", "Top up deposit partner minimal Rp 20.000 dulu sebelum bisa mencari customer.");
+      notify("error", "Top up deposit teknisi minimal Rp 20.000 dulu sebelum bisa menerima tugas SERJAFAN.");
       goTo("partnerTopup");
       return;
     }
     if (online && !hasPartnerDirectPayment(partnerProfile as Partial<Partner> | null)) {
-      notify("error", "Isi minimal rekening bank lengkap atau akun DANA partner dulu sebelum menerima customer.");
+      notify("error", "Isi minimal rekening bank lengkap atau akun DANA teknisi dulu sebelum menerima tugas SERJAFAN.");
       goTo("partnerAccount");
       return;
     }
@@ -2142,10 +2142,10 @@ export function SerjafanApp({ appRole = "switcher" }: { appRole?: AppRole }) {
       });
       const payload = (await parseJsonResponse(response)) as { error?: { message?: string } };
       if (!response.ok) throw new Error(payload.error?.message ?? "status failed");
-      notify("success", online ? "Status mitra online." : "Status mitra offline.");
+      notify("success", online ? "Status teknisi online." : "Status teknisi offline.");
     } catch {
       setPartnerOnline(!online);
-      notify("error", "Gagal mengubah status mitra. Pastikan deposit minimal Rp 20.000 aktif.");
+      notify("error", "Gagal mengubah status teknisi. Pastikan deposit minimal Rp 20.000 aktif.");
     }
   };
 
@@ -2466,7 +2466,7 @@ export function SerjafanApp({ appRole = "switcher" }: { appRole?: AppRole }) {
       scheduleNote: `Estimasi tiba ${partner.eta}`,
       discount: draft.promoStatus === "valid" ? adminSettings.promoDiscount : 0
     }));
-    goTo("detail");
+    goTo("order");
   };
 
   const updateDraft = (patch: Partial<OrderDraft>) => {
@@ -2518,7 +2518,7 @@ export function SerjafanApp({ appRole = "switcher" }: { appRole?: AppRole }) {
     }
 
     if (!orderDraft.partnerId) {
-      notify("error", "Belum ada mitra tersedia untuk jasa ini. Silakan tunggu partner terverifikasi.");
+      notify("error", "Tim SERJAFAN belum tersedia untuk layanan ini. Silakan pilih layanan lain atau hubungi admin.");
       return;
     }
 
@@ -2538,7 +2538,7 @@ export function SerjafanApp({ appRole = "switcher" }: { appRole?: AppRole }) {
     }
 
     if (orderDraft.paymentMethod === "Transfer Bank/DANA Mitra" && !hasPartnerDirectPayment(currentPartner)) {
-      notify("error", "Mitra belum mengisi rekening bank atau DANA lengkap untuk transfer langsung.");
+      notify("error", "Metode transfer manual SERJAFAN belum siap untuk layanan ini. Gunakan SERJAFAN Pay atau Tunai.");
       return;
     }
 
@@ -3171,8 +3171,8 @@ function ServiceDetail({
         <div className="rounded-[18px] bg-white p-4 shadow-[0_10px_28px_rgba(15,23,42,0.08)]">
           <h2 className="text-[15px] font-black text-slate-950">Tentang Layanan</h2>
           <p className="mt-2 text-xs leading-6 text-slate-500">
-            Layanan {partner.category.toLowerCase()} profesional dari mitra terverifikasi. Estimasi kedatangan,
-            biaya, dan status mitra dibaca dari state yang sama untuk detail, checkout, dan tracking.
+            Layanan {partner.category.toLowerCase()} profesional dari SERJAFAN. Estimasi kedatangan,
+            biaya, dan status penugasan dibaca dari state yang sama untuk detail, checkout, dan tracking.
           </p>
         </div>
 
@@ -3205,7 +3205,7 @@ function ServiceDetail({
 
         <div className="mt-4 grid grid-cols-[1fr_1.4fr] gap-2.5">
           <Button variant="outline" size="lg" className="rounded-[14px] border-2 border-[#075bdd] text-[#075bdd]" onClick={onOpenMessages}>
-            <MessageCircle className="h-4 w-4" /> Chat Mitra
+            <MessageCircle className="h-4 w-4" /> Chat SERJAFAN
           </Button>
           <Button size="lg" className="rounded-[14px] bg-[#075bdd] text-white hover:bg-[#0648bd]" onClick={onOrder}>
             <ShoppingCart className="h-4 w-4" /> Pesan Sekarang
@@ -3239,7 +3239,7 @@ function SearchScreen({
         <Input
           value={query}
           onChange={(event) => onQueryChange(event.target.value)}
-          placeholder="Cari kategori atau mitra"
+          placeholder="Cari layanan SERJAFAN"
           className="border-0 bg-transparent px-0 shadow-none focus-visible:ring-0"
         />
       </div>
@@ -3257,11 +3257,21 @@ function SearchScreen({
         </div>
       </Section>
 
-      <Section title={query ? "Mitra ditemukan" : "Mitra trending"}>
-        <div className="space-y-2">
-          {partners.map((partner) => (
-            <PartnerListItem key={partner.id} partner={partner} onSelect={() => onSelectPartner(partner)} />
-          ))}
+      <Section title="Cara SERJAFAN menangani pesanan">
+        <div className="rounded-[18px] bg-white p-4 shadow-soft">
+          <div className="grid gap-2">
+            {["Customer memilih layanan", "SERJAFAN menerima detail kebutuhan", "Admin menugaskan teknisi internal", "Customer memantau status dari SERJAFAN"].map((item, index) => (
+              <div key={item} className="flex items-center gap-3 rounded-[14px] bg-[#f8fbff] p-3">
+                <span className="flex h-7 w-7 items-center justify-center rounded-full bg-[#0d47d9] text-xs font-black text-white">{index + 1}</span>
+                <span className="text-xs font-extrabold text-slate-700">{item}</span>
+              </div>
+            ))}
+          </div>
+          {partners.length > 0 && (
+            <Button type="button" className="mt-4 h-11 w-full rounded-2xl bg-[#0d47d9] text-white" onClick={() => onSelectPartner(partners[0])}>
+              Mulai Pesanan SERJAFAN
+            </Button>
+          )}
         </div>
       </Section>
     </section>
@@ -3284,6 +3294,7 @@ function PartnerListScreen({
   onBack: () => void;
 }) {
   const Icon = selectedService?.icon ?? Wrench;
+  const assignedTechnician = partners.find((partner) => partner.status === "Online") ?? partners[0];
   return (
     <section className="animate-in fade-in slide-in-from-bottom-3 duration-300">
       <div className="relative overflow-hidden rounded-b-[28px] bg-navy px-5 pb-6 pt-5 text-white">
@@ -3293,7 +3304,7 @@ function PartnerListScreen({
             <ArrowLeft className="h-5 w-5" />
           </Button>
           <div className="min-w-0">
-            <p className="text-[10px] font-black uppercase tracking-[0.16em] text-white/55">Kategori Layanan</p>
+            <p className="text-[10px] font-black uppercase tracking-[0.16em] text-white/55">Permintaan Layanan</p>
             <h1 className="truncate text-xl font-black">{title}</h1>
           </div>
         </div>
@@ -3303,36 +3314,60 @@ function PartnerListScreen({
               <Icon className="h-6 w-6" />
             </span>
             <div className="min-w-0 flex-1">
-              <p className="text-sm font-extrabold">{selectedCategory ? `Mitra khusus ${title}` : "Semua mitra SERJAFAN"}</p>
+              <p className="text-sm font-extrabold">Pesanan ditangani oleh SERJAFAN</p>
               <p className="mt-1 text-xs leading-5 text-white/70">
-                {selectedService ? serviceShortCopy(selectedService) : "Pilih mitra terverifikasi sesuai kategori layanan yang dibutuhkan customer."}
+                {selectedService ? serviceShortCopy(selectedService) : "Customer tidak memilih teknisi. SERJAFAN menerima order dan menugaskan teknisi internal yang sesuai."}
               </p>
             </div>
           </div>
           <div className="mt-4 grid grid-cols-2 gap-2">
             <div className="rounded-[14px] bg-white/10 p-3">
-              <p className="text-[10px] font-bold uppercase text-white/55">Mitra tersedia</p>
-              <p className="mt-1 text-lg font-black">{partners.length}</p>
+              <p className="text-[10px] font-bold uppercase text-white/55">Penugasan</p>
+              <p className="mt-1 text-lg font-black">{assignedTechnician ? "Siap" : "Menunggu"}</p>
             </div>
             <div className="rounded-[14px] bg-white/10 p-3">
               <p className="text-[10px] font-bold uppercase text-white/55">Harga mulai</p>
-              <p className="mt-1 text-lg font-black">{selectedService?.basePrice ? `Rp ${formatRupiah(selectedService.basePrice)}` : "Sesuai mitra"}</p>
+              <p className="mt-1 text-lg font-black">{selectedService?.basePrice ? `Rp ${formatRupiah(selectedService.basePrice)}` : "Cek admin"}</p>
             </div>
           </div>
         </div>
       </div>
 
       <div className="space-y-3 p-5">
-        {partners.length ? (
-          partners.map((partner) => <PartnerListItem key={partner.id} partner={partner} onSelect={() => onSelectPartner(partner)} />)
+        {assignedTechnician ? (
+          <div className="rounded-[24px] bg-white p-5 shadow-soft">
+            <div className="flex items-start gap-3">
+              <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-[16px] bg-[#eef4ff] text-[#0d47d9]">
+                <ShieldCheck className="h-6 w-6" />
+              </span>
+              <div>
+                <h2 className="text-base font-black">Tim SERJAFAN akan mengatur teknisi</h2>
+                <p className="mt-2 text-sm leading-6 text-slate-500">
+                  Pesanan Anda masuk ke operasional SERJAFAN. Admin memantau order, menugaskan teknisi internal,
+                  dan customer tetap berkomunikasi melalui SERJAFAN.
+                </p>
+              </div>
+            </div>
+            <div className="mt-4 grid gap-2">
+              {["Pesanan diterima SERJAFAN", "Detail kebutuhan dicek", "Teknisi internal ditugaskan", "Status bisa dilacak"].map((item, index) => (
+                <div key={item} className="flex items-center gap-3 rounded-[14px] bg-slate-50 p-3">
+                  <span className="flex h-7 w-7 items-center justify-center rounded-full bg-[#0d47d9] text-xs font-black text-white">{index + 1}</span>
+                  <span className="text-sm font-bold text-slate-700">{item}</span>
+                </div>
+              ))}
+            </div>
+            <Button className="mt-5 h-12 w-full rounded-2xl bg-[#0d47d9] text-sm font-black text-white hover:bg-[#003cb5]" onClick={() => onSelectPartner(assignedTechnician)}>
+              Isi Detail Kebutuhan <ChevronRight className="h-4 w-4" />
+            </Button>
+          </div>
         ) : (
           <div className="rounded-[20px] bg-white p-5 text-center shadow-soft">
             <span className="mx-auto flex h-14 w-14 items-center justify-center rounded-[18px] bg-orange-50 text-flame">
               <Inbox className="h-7 w-7" />
             </span>
-            <h2 className="mt-3 text-base font-black">Belum ada mitra {selectedCategory ? serviceDisplayName(selectedCategory).toLowerCase() : "aktif"}</h2>
+            <h2 className="mt-3 text-base font-black">Tim SERJAFAN belum tersedia untuk layanan ini</h2>
             <p className="mt-2 text-xs leading-5 text-slate-500">
-              Mitra akan tampil otomatis di halaman ini setelah partner mendaftar, admin menyetujui, dan saldo kerja minimal aktif.
+              Layanan akan aktif setelah admin menambahkan teknisi internal yang terverifikasi dan siap menerima penugasan.
             </p>
           </div>
         )}
@@ -3390,6 +3425,7 @@ function OrderFlow({
   const [editor, setEditor] = useState<"address" | "schedule" | "note" | null>(null);
   const total = orderTotal(draft);
   const partnerDirectPaymentReady = hasPartnerDirectPayment(partner);
+  const paymentLabel = (name: PayMethod) => (name === "Transfer Bank/DANA Mitra" ? "Transfer Manual SERJAFAN" : name);
   const payments: { name: PayMethod; Icon: React.ElementType }[] = [
     { name: "SERJAFAN Pay", Icon: Wallet },
     { name: "Transfer Bank/DANA Mitra", Icon: CreditCard },
@@ -3404,7 +3440,7 @@ function OrderFlow({
         </Button>
         <div>
           <h1 className="text-xl font-extrabold">Konfirmasi Pesanan</h1>
-          <p className="text-xs text-slate-500">{partner.name}</p>
+          <p className="text-xs text-slate-500">Pesanan diterima dan dikelola SERJAFAN</p>
         </div>
       </div>
 
@@ -3420,13 +3456,13 @@ function OrderFlow({
         {[
           {
             value: "PARTNER_TO_CUSTOMER" as FulfillmentMode,
-            title: "Jasa ke Saya",
-            note: "Panggilan ke lokasi customer"
+            title: "Teknisi ke Saya",
+            note: "SERJAFAN menugaskan teknisi ke lokasi customer"
           },
           {
             value: "CUSTOMER_TO_PARTNER" as FulfillmentMode,
-            title: "Saya ke Jasa",
-            note: "Jemput atau antar barang"
+            title: "Saya ke Lokasi",
+            note: "Untuk layanan antar atau datang ke titik SERJAFAN"
           }
         ].map((option) => (
           <button
@@ -3454,9 +3490,9 @@ function OrderFlow({
         onClick={() => setEditor("schedule")}
       />
       <FormBlock
-        label="Catatan untuk Mitra"
+        label="Detail Kebutuhan untuk SERJAFAN"
         icon={MessageCircle}
-        title={draft.note || "Tambahkan catatan"}
+        title={draft.note || "Jelaskan masalah atau kebutuhan Anda"}
         note={draft.noteMeta}
         onClick={() => setEditor("note")}
       />
@@ -3480,7 +3516,7 @@ function OrderFlow({
             )}
           >
             <Icon className="mx-auto mb-1 h-5 w-5" />
-            <span className="text-[10px] font-bold leading-tight">{name}</span>
+            <span className="text-[10px] font-bold leading-tight">{paymentLabel(name)}</span>
           </button>
           );
         })}
@@ -3525,26 +3561,26 @@ function OrderFlow({
         )}
         {draft.paymentMethod === "Transfer Bank/DANA Mitra" && (
           <div className="mt-3 rounded-[14px] bg-white p-3 text-[11px] font-bold leading-5 text-slate-600">
-            <p className="text-navy">Customer transfer langsung ke rekening bank atau DANA milik mitra di luar aplikasi SERJAFAN. Foto bukti transfer dapat dikirim lewat chat ke partner.</p>
+            <p className="text-navy">Customer mengikuti instruksi pembayaran manual SERJAFAN. Bukti transfer dikirim ke SERJAFAN agar admin dapat memverifikasi dan meneruskan proses layanan.</p>
             {hasCompletePartnerBank(partner) && (
               <div className="mt-2 rounded-[10px] bg-cloud p-2">
-                <p>Bank: <span className="text-navy">{partner.paymentBankName || "Bank partner"}</span></p>
+                <p>Bank operasional: <span className="text-navy">{partner.paymentBankName || "Bank SERJAFAN"}</span></p>
                 <p>Rekening: <span className="text-navy">{partner.paymentBankAccount}</span></p>
-                <p>Nama: <span className="text-navy">{partner.paymentBankHolder || partner.name}</span></p>
+                <p>Nama: <span className="text-navy">{partner.paymentBankHolder || "SERJAFAN"}</span></p>
               </div>
             )}
             {hasCompletePartnerDana(partner) && (
               <div className="mt-2 rounded-[10px] bg-cloud p-2">
                 <p>DANA: <span className="text-navy">{partner.paymentDanaNumber}</span></p>
-                <p>Nama: <span className="text-navy">{partner.paymentDanaName || partner.name}</span></p>
+                <p>Nama: <span className="text-navy">{partner.paymentDanaName || "SERJAFAN"}</span></p>
               </div>
             )}
-            {!partnerDirectPaymentReady && <p className="mt-2 text-red-600">Partner belum mengisi rekening bank lengkap atau DANA lengkap. Pilih SERJAFAN Pay atau tunai jika tersedia.</p>}
+            {!partnerDirectPaymentReady && <p className="mt-2 text-red-600">Data pembayaran manual SERJAFAN belum lengkap. Pilih SERJAFAN Pay atau tunai jika tersedia.</p>}
           </div>
         )}
         {draft.paymentMethod === "Tunai" && (
           <p className="mt-2 text-[11px] font-bold leading-5 text-slate-500">
-            Customer membayar tunai langsung ke mitra saat jasa/barang selesai. Pesanan tetap tercatat di admin dan komisi 20% tetap dipotong dari deposit partner.
+            Customer membayar tunai setelah pekerjaan selesai. Pesanan tetap tercatat di admin dan kualitas layanan dipantau SERJAFAN.
           </p>
         )}
       </div>
@@ -3587,7 +3623,7 @@ function OrderEditor({
       <div className="w-full max-w-[388px] rounded-[20px] bg-white p-4 shadow-soft">
         <div className="mb-3 flex items-center justify-between">
           <h2 className="text-sm font-extrabold">
-            {editor === "address" ? "Pilih Alamat" : editor === "schedule" ? "Pilih Jadwal" : "Catatan Mitra"}
+            {editor === "address" ? "Pilih Alamat" : editor === "schedule" ? "Pilih Jadwal" : "Catatan SERJAFAN"}
           </h2>
           <Button size="icon" variant="ghost" className="h-8 w-8" onClick={onClose}>
             <X className="h-4 w-4" />
@@ -3691,7 +3727,7 @@ function LiveTracking({
   const backLabel = viewerRole === "PARTNER" ? "Kembali ke dashboard pemesanan" : "Kembali ke pesanan saya";
   const progressPercent = sourceOrder?.status === "DONE" ? 100 : sourceOrder?.status === "ON_THE_WAY" ? 75 : sourceOrder?.status === "PARTNER_READY" ? 50 : 35;
   const shareOrder = () => {
-    const text = `Pesanan SERJAFAN ${route.orderId ?? ""} - ${partner.name}`;
+    const text = `Pesanan SERJAFAN ${route.orderId ?? ""} - ${partner.category}`;
     const nav =
       typeof navigator !== "undefined"
         ? (navigator as Navigator & {
@@ -3711,7 +3747,7 @@ function LiveTracking({
     <section className="animate-in fade-in slide-in-from-bottom-3 pb-36 duration-300">
       <div className="overflow-hidden rounded-b-[26px] bg-white shadow-soft">
         <div className="relative">
-          <ConnectedGoogleMap title={isPartnerComing ? "Map jasa menuju customer" : "Map customer menuju partner"} route={route} height={210} compact showExternal={false} />
+          <ConnectedGoogleMap title={isPartnerComing ? "Map teknisi SERJAFAN menuju customer" : "Map customer menuju titik SERJAFAN"} route={route} height={210} compact showExternal={false} />
           <Button size="icon" variant="secondary" className="absolute left-4 top-4 rounded-xl bg-white/95 shadow-soft backdrop-blur" onClick={() => onNavigate(backTarget)}>
             <ArrowLeft className="h-5 w-5" />
           </Button>
@@ -3723,16 +3759,16 @@ function LiveTracking({
           <div className="mb-3 flex items-start justify-between gap-3">
             <div className="min-w-0">
               <p className="text-[10px] font-black uppercase tracking-[0.14em] text-slate-400">{route.orderId ? `Order ${route.orderId}` : "Pesanan aktif"}</p>
-              <h1 className="mt-1 text-lg font-black leading-tight text-navy">{isPartnerComing ? "Jasa menuju customer" : "Customer menuju jasa"}</h1>
-              <p className="mt-1 text-xs font-semibold leading-5 text-slate-500">{isPartnerComing ? "Navigasi partner ke alamat customer." : "Navigasi customer ke lokasi partner."}</p>
+              <h1 className="mt-1 text-lg font-black leading-tight text-navy">{isPartnerComing ? "Teknisi SERJAFAN menuju customer" : "Customer menuju titik SERJAFAN"}</h1>
+              <p className="mt-1 text-xs font-semibold leading-5 text-slate-500">{isPartnerComing ? "Navigasi teknisi internal ke alamat customer." : "Navigasi customer ke titik layanan SERJAFAN."}</p>
             </div>
             <Badge variant="orange" className="shrink-0">{partner.eta}</Badge>
           </div>
 
           <div className="grid grid-cols-2 gap-2 rounded-[16px] bg-cloud p-1.5">
             {[
-              ["PARTNER_TO_CUSTOMER", "Jasa ke Customer"],
-              ["CUSTOMER_TO_PARTNER", "Customer ke Jasa"]
+              ["PARTNER_TO_CUSTOMER", "Teknisi ke Customer"],
+              ["CUSTOMER_TO_PARTNER", "Customer ke SERJAFAN"]
             ].map(([mode, label]) => (
               <button
                 key={mode}
@@ -3768,8 +3804,8 @@ function LiveTracking({
           <div className="flex items-center gap-3">
             <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-[14px] bg-navy text-sm font-extrabold text-white">MT</span>
             <div className="min-w-0 flex-1">
-              <h2 className="truncate text-sm font-extrabold">{partner.name}</h2>
-              <p className="truncate text-xs text-slate-500">{partner.rating} - {partner.category}</p>
+              <h2 className="truncate text-sm font-extrabold">Teknisi SERJAFAN ditugaskan</h2>
+              <p className="truncate text-xs text-slate-500">{partner.category} - dipantau operasional</p>
             </div>
             <Button size="icon" variant="navy" className="rounded-[14px]" onClick={onOpenPhone}>
               <Phone className="h-4 w-4" />
@@ -3781,7 +3817,7 @@ function LiveTracking({
 
           <div className="mt-4 grid grid-cols-1 gap-2 min-[430px]:grid-cols-2">
             <a href={googleMapsDirectionsUrl(route)} target="_blank" rel="noreferrer" className="inline-flex min-h-12 items-center justify-center gap-2 rounded-[15px] bg-navy px-4 py-3 text-center text-xs font-extrabold leading-tight text-white">
-              <Navigation className="h-4 w-4" /> Lacak Lokasi Mitra
+              <Navigation className="h-4 w-4" /> Lacak Teknisi SERJAFAN
             </a>
             <Button variant="outline" className="min-h-12 whitespace-normal border-2 border-navy px-3 py-3 text-center text-[11px] font-extrabold leading-tight text-navy" onClick={onOpenMessages}>
               <MessageCircle className="h-4 w-4 shrink-0" /> Chat CS
@@ -3823,7 +3859,7 @@ function TrackingSteps() {
       <div className="grid grid-cols-4">
         {[
           ["Dikonfirmasi", "done"],
-          ["Mitra Siap", "done"],
+          ["Teknisi Siap", "done"],
           ["Perjalanan", "active"],
           ["Selesai", "pending"]
         ].map(([label, status], index) => (
@@ -3863,8 +3899,8 @@ function ConnectedGoogleMap({
   const origin = mapLocationQuery(route.origin);
   const destination = mapLocationQuery(route.destination);
   const externalUrl = googleMapsDirectionsUrl(route);
-  const originCaption = route.origin.role === "partner" ? "Titik Partner/Jasa" : "Titik Customer";
-  const destinationCaption = route.destination.role === "partner" ? "Titik Partner/Jasa" : "Titik Customer";
+  const originCaption = route.origin.role === "partner" ? "Titik Teknisi SERJAFAN" : "Titik Customer";
+  const destinationCaption = route.destination.role === "partner" ? "Titik Teknisi SERJAFAN" : "Titik Customer";
   const OriginIcon = route.origin.role === "partner" ? Bike : MapPin;
   const DestinationIcon = route.destination.role === "partner" ? Bike : MapPin;
   const embedUrl = apiKey
@@ -3917,7 +3953,7 @@ function ConnectedGoogleMap({
             </div>
             {!compact && showExternal && (
               <p className="rounded-[12px] bg-white/85 p-3 text-xs font-semibold leading-5 text-slate-600">
-                Rute ini memakai data order yang sama dengan aplikasi customer, partner, dan admin. Tombol Google Maps membuka navigasi asli sesuai koordinat pesanan.
+                Rute ini memakai data order yang sama dengan aplikasi customer, teknisi, dan admin. Tombol Google Maps membuka navigasi asli sesuai koordinat pesanan.
               </p>
             )}
             {showExternal && (
@@ -4067,7 +4103,7 @@ function OrdersCenter({
               </div>
               {order.status === "DONE" && (
                 <div className="mt-3 rounded-[14px] bg-orange-50 p-3">
-                  <p className="text-xs font-extrabold text-orange-800">Isi rating dan ulasan partner</p>
+                  <p className="text-xs font-extrabold text-orange-800">Isi rating dan ulasan layanan SERJAFAN</p>
                   <div className="mt-2 flex gap-1">
                     {Array.from({ length: 5 }).map((_, index) => {
                       const value = index + 1;
@@ -4105,14 +4141,14 @@ function OrdersCenter({
                   </Button>
                 </div>
               )}
-              {order.status === "PENDING" && <p className="mt-2 text-xs font-bold text-amber-700">Menunggu konfirmasi pemilik jasa.</p>}
+              {order.status === "PENDING" && <p className="mt-2 text-xs font-bold text-amber-700">Menunggu operasional SERJAFAN menugaskan teknisi.</p>}
             </div>
           ))}
           </div>
         ) : (
           <div className="rounded-[18px] bg-white p-5 text-center shadow-soft">
             <p className="text-sm font-bold">Belum ada pesanan</p>
-            <p className="mt-1 text-xs text-slate-500">{orders.length ? "Tidak ada pesanan pada filter ini." : "Silakan buat pesanan baru dari layanan atau mitra."}</p>
+            <p className="mt-1 text-xs text-slate-500">{orders.length ? "Tidak ada pesanan pada filter ini." : "Silakan buat pesanan baru dari layanan SERJAFAN."}</p>
             <Button variant="navy" className="mt-4" onClick={onOrderNow}>
               Pesan Sekarang
             </Button>
@@ -4362,7 +4398,7 @@ function TopUpScreen({
         <Button size="icon" variant="secondary" className="rounded-[10px]" onClick={onBack}>
           <ArrowLeft className="h-5 w-5" />
         </Button>
-        <h1 className="text-xl font-extrabold">{isPartnerTopUp ? "Top Up Deposit Partner" : "Top Up"}</h1>
+        <h1 className="text-xl font-extrabold">{isPartnerTopUp ? "Top Up Deposit Teknisi" : "Top Up"}</h1>
       </div>
       <div className="mb-3 rounded-[16px] border border-amber-200 bg-amber-50 p-3 text-[11px] font-bold leading-5 text-amber-800">
         Transfer tidak dilakukan di dalam aplikasi SERJAFAN. Aplikasi hanya menampilkan nomor rekening/DANA admin, lalu pengguna transfer dari aplikasi bank/DANA sendiri dan upload screenshot bukti transfer di sini.
@@ -4410,7 +4446,7 @@ function TopUpScreen({
         </div>
         <div className="rounded-[14px] border border-amber-200 bg-amber-50 p-3 text-[11px] font-bold leading-5 text-amber-800">
           {isPartnerTopUp
-            ? "Saldo partner baru aktif setelah admin melihat uang masuk, bukti transfer lengkap, dan menekan Setujui. Minimal Rp 20.000 agar bisa menerima pelanggan."
+            ? "Saldo teknisi baru aktif setelah admin melihat uang masuk, bukti transfer lengkap, dan menekan Setujui. Minimal Rp 20.000 agar bisa menerima tugas SERJAFAN."
             : "Saldo customer baru masuk setelah admin melihat uang masuk, bukti transfer lengkap, dan menekan Setujui. Setelah saldo masuk, pembayaran pesanan SERJAFAN Pay akan terpotong otomatis sesuai total jasa."}
         </div>
         <div className="grid gap-2 rounded-[14px] bg-slate-50 p-3">
@@ -4468,7 +4504,7 @@ function CustomerAccessScreen({
             </div>
           </div>
           <p className="mt-3 text-sm leading-6 text-white/75">
-            Tidak perlu daftar atau login. Isi data ini satu kali agar mitra bisa menghubungi Anda dan alamat pesanan terbaca di maps.
+            Tidak perlu daftar atau login. Isi data ini satu kali agar SERJAFAN bisa menghubungi Anda dan alamat pesanan terbaca di maps.
           </p>
         </div>
 
@@ -4653,16 +4689,16 @@ function PartnerApp({
       <div className="rounded-b-[28px] bg-gradient-to-br from-navy to-[#1a3a6e] px-4 pb-6 pt-4 text-white sm:px-5">
         <div className="mb-4 flex items-center justify-between">
           <div className="min-w-0 flex-1 pr-3">
-            <p className="text-[11px] font-bold text-white/70">PARTNER DASHBOARD</p>
-            <h1 className="mt-1 truncate text-lg font-extrabold">{featureCopy.headline?.trim() || "Akun Partner"}</h1>
+            <p className="text-[11px] font-bold text-white/70">TEKNISI DASHBOARD</p>
+            <h1 className="mt-1 truncate text-lg font-extrabold">{featureCopy.headline?.trim() || "Akun Teknisi"}</h1>
             {featureCopy.description?.trim() && <p className="mt-1 line-clamp-2 text-[11px] font-semibold leading-4 text-white/70">{featureCopy.description}</p>}
           </div>
-          <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-[14px] bg-white/15 text-sm font-extrabold">PT</span>
+          <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-[14px] bg-white/15 text-sm font-extrabold">TS</span>
         </div>
         <div className="flex items-start gap-3">
           <Switch checked={online && walletBalance >= 20000} onCheckedChange={setOnline} />
           <span className="text-balance-mobile text-[13px] font-bold leading-5">
-            {walletBalance >= 20000 ? (online ? "Online - Siap Menerima Pesanan" : "Offline - Tidak Menerima Pesanan") : "Deposit kurang - Top up minimal Rp 20.000"}
+            {walletBalance >= 20000 ? (online ? "Online - Siap Menerima Tugas" : "Offline - Tidak Menerima Tugas") : "Deposit kurang - Top up minimal Rp 20.000"}
           </span>
         </div>
         <div className="mt-3 grid grid-cols-2 gap-2 min-[380px]:grid-cols-4">
@@ -4699,21 +4735,21 @@ function PartnerApp({
         </div>
       </div>
 
-      <Section title="Deposit Kerja Partner" action={walletBalance >= 20000 ? "Aktif" : "Wajib Top Up"}>
+      <Section title="Deposit Kerja Teknisi" action={walletBalance >= 20000 ? "Aktif" : "Wajib Top Up"}>
         <div className="rounded-[20px] bg-white p-4 shadow-soft">
           <div className="mb-3 flex items-start gap-3">
             <span className={cn("flex h-11 w-11 items-center justify-center rounded-[14px]", walletBalance >= 20000 ? "bg-emerald-50 text-emerald-700" : "bg-orange-50 text-flame")}>
               <ShieldCheck className="h-5 w-5" />
             </span>
             <div>
-              <p className="text-sm font-extrabold">{walletBalance >= 20000 ? "Partner bisa aktif menerima pelanggan" : "Top up minimal Rp 20.000"}</p>
+              <p className="text-sm font-extrabold">{walletBalance >= 20000 ? "Teknisi bisa menerima tugas SERJAFAN" : "Top up minimal Rp 20.000"}</p>
               <p className="mt-1 text-xs leading-5 text-slate-500">
-                Partner yang saldo depositnya kurang dari Rp 20.000 otomatis tidak tampil ke customer dan tidak bisa online.
+                Teknisi yang saldo depositnya kurang dari Rp 20.000 otomatis tidak menerima penugasan SERJAFAN.
               </p>
             </div>
           </div>
           <div className={cn("mt-3 rounded-[14px] p-3 text-xs font-bold", walletBalance >= 20000 ? "bg-emerald-50 text-emerald-700" : "bg-red-50 text-red-700")}>
-            Deposit kerja: Rp {formatRupiah(walletBalance)}. Minimal Rp 20.000 agar partner tampil ke customer dan bisa menerima order.
+            Deposit kerja: Rp {formatRupiah(walletBalance)}. Minimal Rp 20.000 agar teknisi bisa menerima tugas operasional.
           </div>
           {walletBalance < 20000 && (
             <Button variant="orange" className="mt-3 w-full" onClick={onOpenTopup}>
@@ -4775,7 +4811,7 @@ function PartnerApp({
                 <Badge variant="blue">{order.status}</Badge>
               </div>
               <div className="mt-3">
-                <ConnectedGoogleMap title="Rute Aktif Partner" route={routeForOrder(order, partnerSelf)} height={176} compact showExternal={false} />
+                <ConnectedGoogleMap title="Rute Aktif Teknisi" route={routeForOrder(order, partnerSelf)} height={176} compact showExternal={false} />
               </div>
               <Button variant="navy" className="mt-3 w-full" onClick={() => onOpenTracking(order)}>
                 <Navigation className="h-4 w-4" /> Buka Map & Navigasi Pesanan
@@ -4809,7 +4845,7 @@ function PartnerApp({
             </div>
             <p className="mt-1 text-xs text-slate-500">4.9 dari 5.0 - 287 ulasan</p>
             <div className="mt-3 flex flex-wrap gap-2">
-              {["Top Partner", "Respon Cepat", "100% Hadir", "Premium"].map((badge) => (
+              {["Teknisi Andalan", "Respon Cepat", "100% Hadir", "Premium"].map((badge) => (
                 <Badge key={badge} variant="secondary" className="rounded-[10px]">
                   {badge}
                 </Badge>
@@ -4909,17 +4945,17 @@ function PartnerAccountScreen({
           <ArrowLeft className="h-5 w-5" />
         </Button>
         <div>
-          <h1 className="text-xl font-extrabold">Akun Partner</h1>
-          <p className="text-xs text-slate-500">Data pemilik jasa dan aktivitas layanan.</p>
+          <h1 className="text-xl font-extrabold">Akun Teknisi</h1>
+          <p className="text-xs text-slate-500">Data teknisi jaringan dan aktivitas layanan SERJAFAN.</p>
         </div>
       </div>
 
       <div className="rounded-[18px] bg-navy p-5 text-white shadow-soft">
         <div className="flex items-center gap-3">
-          <span className="flex h-14 w-14 items-center justify-center rounded-[14px] bg-white/15 text-sm font-extrabold">PT</span>
+          <span className="flex h-14 w-14 items-center justify-center rounded-[14px] bg-white/15 text-sm font-extrabold">TS</span>
           <div>
-            <h2 className="text-lg font-extrabold">Partner SERJAFAN</h2>
-            <p className="text-xs text-white/65">Profil partner akan tampil setelah registrasi disetujui admin.</p>
+            <h2 className="text-lg font-extrabold">Teknisi SERJAFAN</h2>
+            <p className="text-xs text-white/65">Profil teknisi aktif setelah registrasi disetujui admin.</p>
           </div>
         </div>
       </div>
@@ -4931,7 +4967,7 @@ function PartnerAccountScreen({
           ["Pesanan Aktif", `${activeOrders}`],
           ["Pesanan Selesai", `${doneOrders}`],
           ["Area Layanan", "Kota Padang"],
-          ["Saldo Partner", `Rp ${formatRupiah(walletBalance)}`]
+          ["Saldo Teknisi", `Rp ${formatRupiah(walletBalance)}`]
         ].map(([label, value]) => (
           <div key={label} className="rounded-[14px] bg-white p-4 shadow-soft">
             <p className="text-[11px] font-bold text-slate-500">{label}</p>
@@ -4942,34 +4978,34 @@ function PartnerAccountScreen({
 
       <div className="mt-4 grid gap-2">
         <Button variant="outline" className="justify-start border-2 border-navy text-navy" onClick={onOpenTopup}>
-          <Wallet className="h-4 w-4" /> Top Up Deposit Partner
+          <Wallet className="h-4 w-4" /> Top Up Deposit Teknisi
         </Button>
         <Button variant="outline" className="justify-start border-2 border-navy text-navy" onClick={onOpenMessages}>
-          <MessageCircle className="h-4 w-4" /> Menu Pesan Customer
+          <MessageCircle className="h-4 w-4" /> Menu Pesan Operasional
         </Button>
         <Button variant="outline" className="justify-start border-2 border-navy text-navy" onClick={onOpenPhone}>
-          <Phone className="h-4 w-4" /> Menu Telepon Customer
+          <Phone className="h-4 w-4" /> Menu Telepon Operasional
         </Button>
         <Button variant="orange" onClick={onBack}>
-          Kembali ke Dashboard Partner
+          Kembali ke Dashboard Teknisi
         </Button>
       </div>
 
       <div className="mt-4 rounded-[18px] bg-white p-4 shadow-soft">
-        <p className="text-sm font-extrabold">Pembayaran Customer ke Partner</p>
+        <p className="text-sm font-extrabold">Data Pembayaran Teknisi</p>
         <p className="mt-1 text-xs leading-5 text-slate-500">
-          Customer melihat data ini untuk membayar langsung ke rekening bank atau DANA partner di luar aplikasi SERJAFAN. Minimal isi satu metode lengkap sebelum partner bisa online menerima customer.
+          Data ini dipantau admin SERJAFAN untuk verifikasi operasional dan payout. Minimal isi satu metode lengkap sebelum teknisi bisa online menerima tugas.
         </p>
         <div className="mt-3 grid gap-2">
-          <Input value={payments.paymentBankName} onChange={(event) => updatePaymentField({ paymentBankName: event.target.value })} placeholder="Nama bank partner, contoh: Bank Nagari" />
-          <Input value={payments.paymentBankAccount} onChange={(event) => updatePaymentField({ paymentBankAccount: event.target.value })} placeholder="Nomor rekening partner" inputMode="numeric" />
+          <Input value={payments.paymentBankName} onChange={(event) => updatePaymentField({ paymentBankName: event.target.value })} placeholder="Nama bank teknisi, contoh: Bank Nagari" />
+          <Input value={payments.paymentBankAccount} onChange={(event) => updatePaymentField({ paymentBankAccount: event.target.value })} placeholder="Nomor rekening teknisi" inputMode="numeric" />
           <Input value={payments.paymentBankHolder} onChange={(event) => updatePaymentField({ paymentBankHolder: event.target.value })} placeholder="Nama pemilik rekening" />
-          <Input value={payments.paymentDanaNumber} onChange={(event) => updatePaymentField({ paymentDanaNumber: event.target.value })} placeholder="Nomor DANA partner" inputMode="tel" />
-          <Input value={payments.paymentDanaName} onChange={(event) => updatePaymentField({ paymentDanaName: event.target.value })} placeholder="Nama akun DANA partner" />
+          <Input value={payments.paymentDanaNumber} onChange={(event) => updatePaymentField({ paymentDanaNumber: event.target.value })} placeholder="Nomor DANA teknisi" inputMode="tel" />
+          <Input value={payments.paymentDanaName} onChange={(event) => updatePaymentField({ paymentDanaName: event.target.value })} placeholder="Nama akun DANA teknisi" />
           <div className="flex items-center justify-between rounded-[14px] bg-cloud p-3">
             <div>
               <p className="text-xs font-extrabold">Terima pembayaran cash</p>
-              <p className="text-[11px] text-slate-500">Customer bisa memilih bayar tunai.</p>
+              <p className="text-[11px] text-slate-500">Admin dapat mencatat pembayaran tunai sesuai operasional.</p>
             </div>
             <Switch checked={payments.acceptsCash} onCheckedChange={(acceptsCash) => updatePaymentField({ acceptsCash })} />
           </div>
@@ -5502,9 +5538,9 @@ function AdminMapsCenter({ mapData }: { mapData: AdminMapData }) {
   if (!primaryPair) {
     return (
       <div className="px-4 pb-4 sm:px-5">
-        <h2 className="mb-2 text-sm font-extrabold">Maps Pantau Customer & Partner</h2>
+        <h2 className="mb-2 text-sm font-extrabold">Maps Pantau Customer & Teknisi</h2>
         <div className="rounded-[16px] bg-white p-4 text-sm text-slate-500 shadow-soft">
-          Belum ada customer dan partner yang sedang terhubung order aktif.
+          Belum ada customer dan teknisi yang sedang terhubung order aktif.
         </div>
       </div>
     );
@@ -5531,13 +5567,13 @@ function AdminMapsCenter({ mapData }: { mapData: AdminMapData }) {
 
   return (
     <div className="px-4 pb-4 sm:px-5">
-      <h2 className="mb-2 text-sm font-extrabold">Maps Pantau Customer & Partner</h2>
+      <h2 className="mb-2 text-sm font-extrabold">Maps Pantau Customer & Teknisi</h2>
       <div className="grid gap-3">
         <div className="grid grid-cols-1 gap-2 min-[360px]:grid-cols-3">
           {[
             ["Order Dipantau", mapData.summary.monitoredOrders],
             ["Customer", mapData.summary.monitoredCustomers],
-            ["Partner", mapData.summary.monitoredPartners]
+            ["Teknisi", mapData.summary.monitoredPartners]
           ].map(([label, value]) => (
             <div key={label} className="rounded-[14px] bg-white p-3 text-center shadow-soft">
               <p className="text-[10px] font-bold text-slate-500">{label}</p>
@@ -5549,7 +5585,7 @@ function AdminMapsCenter({ mapData }: { mapData: AdminMapData }) {
         <ConnectedGoogleMap title="Google Maps Pantauan Admin" route={primaryRoute} height={230} />
 
         <div className="rounded-[16px] bg-white p-3 shadow-soft">
-          <p className="mb-2 text-[11px] font-bold uppercase text-slate-500">Posisi customer dan partner</p>
+          <p className="mb-2 text-[11px] font-bold uppercase text-slate-500">Posisi customer dan teknisi</p>
           <div className="space-y-2">
             {mapData.pairs.slice(0, 6).map((pair) => {
               const route: ConnectedRoute = {
@@ -5584,7 +5620,7 @@ function AdminMapsCenter({ mapData }: { mapData: AdminMapData }) {
                     <div className="flex items-start gap-2 rounded-[12px] bg-blue-50 p-2">
                       <Bike className="mt-0.5 h-4 w-4 shrink-0 text-blue-700" />
                       <span className="min-w-0">
-                        <span className="block font-extrabold text-blue-800">Partner: {pair.partner.label}</span>
+                        <span className="block font-extrabold text-blue-800">Teknisi: {pair.partner.label}</span>
                         <span className="block truncate text-blue-700">{pair.partner.address}</span>
                         <span className="block text-blue-600">{pair.partner.latitude.toFixed(4)}, {pair.partner.longitude.toFixed(4)}</span>
                       </span>
@@ -6259,16 +6295,16 @@ type GateMode = "login" | "register";
 const gateCopy: Record<GateRole, { title: string; subtitle: string; registerTitle: string; endpoint: string; home: string; Icon: React.ElementType }> = {
   CUSTOMER: {
     title: "SERJAFAN Customer",
-    subtitle: "Masuk untuk pesan jasa, bayar, chat mitra, dan tracking.",
+    subtitle: "Masuk untuk pesan jasa, bayar, chat SERJAFAN, dan tracking.",
     registerTitle: "Daftar Akun Customer",
     endpoint: "/api/register/customer",
     home: "/customer",
     Icon: Home
   },
   PARTNER: {
-    title: "SERJAFAN Partner",
-    subtitle: "Masuk untuk menerima pesanan, mengatur jasa, dan membalas customer.",
-    registerTitle: "Daftar Akun Partner",
+    title: "SERJAFAN Teknisi",
+    subtitle: "Masuk sebagai teknisi jaringan SERJAFAN untuk menerima tugas operasional.",
+    registerTitle: "Daftar Akun Teknisi",
     endpoint: "/api/register/partner",
     home: "/partner",
     Icon: Wrench
@@ -6419,7 +6455,7 @@ function RoleAuthGate({ role, onAuthenticated }: { role: GateRole; onAuthenticat
               className="inline-flex h-11 items-center justify-center gap-2 rounded-[14px] border-2 border-navy text-sm font-extrabold text-navy"
             >
               <UserPlus className="h-4 w-4" />
-              {role === "ADMIN" ? "Belum punya admin? Daftar admin pertama" : role === "PARTNER" ? "Belum punya akun? Daftar mitra" : "Belum punya akun? Daftar"}
+              {role === "ADMIN" ? "Belum punya admin? Daftar admin pertama" : role === "PARTNER" ? "Belum punya akun? Daftar teknisi" : "Belum punya akun? Daftar"}
             </Link>
           </div>
         </div>
@@ -7213,8 +7249,8 @@ function PhoneDrawer({
   partner: Partner;
   onClose: () => void;
 }) {
-  const target = role === "CUSTOMER" ? partner.name : "Customer aktif";
-  const phone = role === "CUSTOMER" ? partner.phone || "Nomor mitra belum diatur" : "Nomor customer tersedia di detail pesanan";
+  const target = role === "CUSTOMER" ? "SERJAFAN Support" : "Customer aktif";
+  const phone = role === "CUSTOMER" ? partner.phone || "Nomor support SERJAFAN belum diatur" : "Nomor customer tersedia di detail pesanan";
   const canCall = phone.startsWith("+") || phone.startsWith("08");
   const [calling, setCalling] = useState(false);
   const [seconds, setSeconds] = useState(0);
@@ -7297,7 +7333,7 @@ function SearchDrawer({
         <div className="flex items-center justify-between bg-navy px-5 py-4 text-white">
           <div>
             <p className="text-[11px] font-bold text-white/65">PENCARIAN</p>
-            <h2 className="text-base font-extrabold">Cari layanan atau mitra</h2>
+            <h2 className="text-base font-extrabold">Cari layanan SERJAFAN</h2>
           </div>
           <Button size="icon" variant="ghost" className="rounded-xl bg-white/10 text-white hover:bg-white/20" onClick={onClose}>
             <X className="h-5 w-5" />
@@ -7328,7 +7364,7 @@ function SearchDrawer({
           </div>
 
           <div className="mt-4">
-            <h3 className="mb-2 text-sm font-extrabold">Mitra</h3>
+            <h3 className="mb-2 text-sm font-extrabold">Layanan Siap Diproses SERJAFAN</h3>
             <div className="grid gap-2">
               {partners.map((partner) => (
                 <button
@@ -7338,15 +7374,15 @@ function SearchDrawer({
                   className="flex items-center justify-between rounded-[14px] bg-cloud p-3 text-left"
                 >
                   <div>
-                    <p className="text-sm font-bold">{partner.name}</p>
+                    <p className="text-sm font-bold">{partner.category}</p>
                     <p className="text-xs text-slate-500">
-                      {partner.category} - {partner.distance}
+                      SERJAFAN menugaskan teknisi internal - {partner.distance}
                     </p>
                   </div>
                   <Badge variant={partner.status === "Online" ? "success" : "warning"}>{partner.status}</Badge>
                 </button>
               ))}
-              {!partners.length && <p className="text-xs text-slate-500">Tidak ada mitra yang cocok.</p>}
+              {!partners.length && <p className="text-xs text-slate-500">Belum ada layanan SERJAFAN yang cocok.</p>}
             </div>
           </div>
         </div>

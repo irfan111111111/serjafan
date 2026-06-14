@@ -43,7 +43,7 @@ export default function ServicesIndexPage() {
                   <MapPin className="h-3.5 w-3.5" /> Kota Padang
                 </span>
                 <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-3 py-1.5 text-xs font-black text-emerald-700">
-                  <ShieldCheck className="h-3.5 w-3.5" /> Mitra lokal
+                  <ShieldCheck className="h-3.5 w-3.5" /> Teknisi SERJAFAN
                 </span>
               </div>
               <span className="mt-5 inline-flex h-11 items-center justify-center gap-2 rounded-full bg-[#0d47d9] px-5 text-sm font-black text-white">

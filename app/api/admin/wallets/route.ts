@@ -172,7 +172,7 @@ export async function POST(request: Request) {
       userId: intent.userId,
       kind: "SYSTEM",
       title: "Top Up berhasil diverifikasi",
-      body: `Saldo bertambah Rp ${new Intl.NumberFormat("id-ID").format(intent.amount)}. ${targetUser.role === "PARTNER" ? "Jika akun sudah disetujui, partner bisa menerima pelanggan." : ""}`,
+      body: `Saldo bertambah Rp ${new Intl.NumberFormat("id-ID").format(intent.amount)}. ${targetUser.role === "PARTNER" ? "Jika akun sudah disetujui, teknisi bisa menerima tugas SERJAFAN." : ""}`,
       targetUrl: targetUser.role === "PARTNER" ? "/partner?screen=wallet" : "/customer?screen=wallet",
       isRead: false,
       createdAt: now,
