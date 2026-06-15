@@ -70,7 +70,7 @@ export async function POST(request: Request) {
 
     const settings = await getAdminConsoleSettings();
     if (settings.partnerRegistrationLimited) {
-      return fail("Pendaftaran partner sedang dibatasi. Kuota mitra SERJAFAN sudah cukup, silakan coba lagi setelah admin membuka pendaftaran.", 403);
+      return fail("Pendaftaran teknisi lapangan sedang dibatasi. Kuota jaringan SERJAFAN sudah cukup, silakan coba lagi setelah admin membuka pendaftaran.", 403);
     }
 
     const existing = await db.query.user.findFirst({ where: eq(user.email, email) });

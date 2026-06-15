@@ -51,8 +51,8 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
             id: createId("notif"),
             userId: admin.id,
             kind: "SYSTEM" as const,
-            title: "Payout partner perlu diproses",
-            body: `Pesanan ${existingOrder.id} dibayar lewat saldo customer. Potong komisi 20% Rp ${new Intl.NumberFormat("id-ID").format(commission)}, lalu transfer Rp ${new Intl.NumberFormat("id-ID").format(partnerPayout)} ke DANA/rekening partner di luar aplikasi.`,
+            title: "Payout teknisi perlu diproses",
+            body: `Pesanan ${existingOrder.id} dibayar lewat saldo customer. Potong biaya platform 20% Rp ${new Intl.NumberFormat("id-ID").format(commission)}, lalu proses pembayaran teknisi lapangan Rp ${new Intl.NumberFormat("id-ID").format(partnerPayout)} sesuai data operasional.`,
             targetUrl: "/admin",
             isRead: false,
             createdAt: now,
@@ -78,7 +78,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
         where: eq(wallets.userId, session.user.id)
       });
       if (!partnerWallet || partnerWallet.balance < commission) {
-        return fail(`Saldo deposit partner tidak cukup untuk komisi 20% Rp ${new Intl.NumberFormat("id-ID").format(commission)}. Top up dulu agar pesanan bisa diselesaikan.`, 422);
+        return fail(`Saldo deposit teknisi tidak cukup untuk biaya platform 20% Rp ${new Intl.NumberFormat("id-ID").format(commission)}. Top up dulu agar pesanan bisa diselesaikan.`, 422);
       }
 
       const nextBalance = partnerWallet.balance - commission;
@@ -110,7 +110,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
         userId: session.user.id,
         kind: "SYSTEM",
         title: "Komisi platform dipotong",
-        body: `Komisi 20% pesanan ${existingOrder.id} sebesar Rp ${new Intl.NumberFormat("id-ID").format(commission)} dipotong dari deposit partner.${nextBalance < MIN_PARTNER_WORK_BALANCE ? " Saldo sekarang di bawah Rp 20.000, akun otomatis offline sampai top up lagi." : ""}`,
+        body: `Biaya platform 20% pesanan ${existingOrder.id} sebesar Rp ${new Intl.NumberFormat("id-ID").format(commission)} dipotong dari deposit teknisi.${nextBalance < MIN_PARTNER_WORK_BALANCE ? " Saldo sekarang di bawah Rp 20.000, akun otomatis offline sampai top up lagi." : ""}`,
         targetUrl: "/partner",
         isRead: false,
         createdAt: now,
@@ -121,8 +121,8 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
       id: createId("notif"),
       userId: existingOrder.customerId,
       kind: "ORDER",
-      title: "Beri rating dan ulasan partner",
-      body: `Pesanan ${existingOrder.id} sudah selesai. Mohon isi rating dan ulasan untuk membantu customer lain memilih partner terbaik.`,
+      title: "Beri rating layanan SERJAFAN",
+      body: `Pesanan ${existingOrder.id} sudah selesai. Mohon isi rating dan ulasan untuk membantu SERJAFAN menjaga kualitas layanan.`,
       targetUrl: "/customer?screen=orders",
       isRead: false,
       createdAt: now,
@@ -161,8 +161,8 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
     title: nextStatus === "DONE" ? "Pesanan selesai" : "Status pesanan diperbarui",
     body:
       nextStatus === "DONE"
-        ? `Pesanan ${updatedOrder.id} selesai. Silakan beri rating dan ulasan partner.`
-        : `${partner.name} memperbarui status pesanan ${updatedOrder.id}.`,
+        ? `Pesanan ${updatedOrder.id} selesai. Silakan beri rating layanan SERJAFAN.`
+        : `Status pesanan ${updatedOrder.id} diperbarui oleh operasional SERJAFAN.`,
     url: "/customer",
     tag: `order-${updatedOrder.id}`,
     kind: "notification"

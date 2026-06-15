@@ -53,7 +53,7 @@ export async function PUT(request: Request) {
   const hasDanaPayment = Boolean(paymentDanaNumber && paymentDanaName);
 
   if (!hasBankPayment && !hasDanaPayment) {
-    return fail("Isi minimal rekening bank lengkap atau akun DANA partner lengkap.", 422);
+    return fail("Isi minimal rekening bank lengkap atau akun DANA teknisi lapangan lengkap.", 422);
   }
 
   const now = new Date();
@@ -78,8 +78,8 @@ export async function PUT(request: Request) {
         id: createId("notif"),
         userId: admin.id,
         kind: "SYSTEM" as const,
-        title: "Data pembayaran partner berubah",
-        body: `${partner.name} memperbarui rekening/DANA/cash untuk pembayaran customer. Periksa di dashboard admin.`,
+        title: "Data pembayaran teknisi berubah",
+        body: `${partner.name} memperbarui rekening/DANA/cash untuk operasional layanan. Periksa di dashboard admin.`,
         targetUrl: "/admin",
         isRead: false,
         createdAt: now,

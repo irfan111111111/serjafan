@@ -69,7 +69,7 @@ type Screen =
   | "partner"
   | "partnerAccount"
   | "admin";
-type PayMethod = "SERJAFAN Pay" | "Transfer Bank/DANA Mitra" | "Tunai";
+type PayMethod = "SERJAFAN Pay" | "Transfer Manual SERJAFAN" | "Tunai";
 type PromoStatus = "idle" | "valid" | "invalid";
 type ToastKind = "success" | "error";
 type AppRole = "customer" | "partner" | "admin" | "switcher";
@@ -343,7 +343,7 @@ const partners: Partner[] = [];
 
 const emptyPartner: Partner = {
   id: "",
-  name: "Belum ada mitra",
+  name: "SERJAFAN Operasional",
   category: "Jasa",
   distance: "-",
   rating: "-",
@@ -367,7 +367,7 @@ const customerMapPoint: MapPoint = {
 
 const partnerMapPoints: Record<string, MapPoint> = {
   default: {
-    label: "Mitra - Kota Padang",
+    label: "Operasional SERJAFAN - Kota Padang",
     address: "Kota Padang, Sumatera Barat",
     lat: -0.9471,
     lng: 100.4172,
@@ -1829,8 +1829,34 @@ export function SerjafanApp({ appRole = "switcher" }: { appRole?: AppRole }) {
       notify("error", "Lengkapi nama, nomor HP, dan alamat lengkap dulu.");
       return;
     }
-    setSelectedCategory(category && category !== "Lainnya" ? category : null);
-    goTo("partnerList");
+    const service = category && category !== "Lainnya"
+      ? customerServices.find((item) => serviceCategoryKey(item.name) === serviceCategoryKey(category)) ?? null
+      : null;
+    const serviceName = service?.name ?? (category && category !== "Lainnya" ? category : "Layanan SERJAFAN");
+    const operationalRequest: Partner = {
+      ...emptyPartner,
+      id: "",
+      name: "SERJAFAN Operasional",
+      category: serviceName,
+      Icon: service?.icon ?? serviceIconByName(serviceName),
+      tone: service?.tone ?? emptyPartner.tone,
+      priceFrom: service?.basePrice ?? emptyPartner.priceFrom,
+      eta: "Admin konfirmasi",
+      status: "Online",
+      acceptsCash: true
+    };
+
+    setSelectedCategory(serviceName);
+    setCurrentPartner(operationalRequest);
+    setOrderDraft((draft) => ({
+      ...draft,
+      partnerId: "",
+      serviceCategoryId: `SC-${serviceCategoryKey(serviceName).toUpperCase().replaceAll("-", "-")}`,
+      serviceFee: service?.basePrice ?? (serviceName === "Cuci Sepatu" ? 45000 : serviceName === "Servis Kipas" ? 65000 : 30000),
+      scheduleNote: "Tim SERJAFAN akan menghubungi Anda untuk konfirmasi jadwal.",
+      discount: draft.promoStatus === "valid" ? adminSettings.promoDiscount : 0
+    }));
+    goTo("order");
   };
 
   const openWalletHistory = async () => {
@@ -2291,10 +2317,10 @@ export function SerjafanApp({ appRole = "switcher" }: { appRole?: AppRole }) {
         body: action === "reject" ? JSON.stringify({ reason: "Dokumen belum lengkap" }) : undefined
       });
       if (!response.ok) throw new Error("review failed");
-      notify("success", action === "approve" ? "Mitra disetujui." : "Mitra ditolak.");
+      notify("success", action === "approve" ? "Teknisi lapangan disetujui." : "Teknisi lapangan ditolak.");
       await loadAdminData();
     } catch {
-      notify("error", "Gagal memproses verifikasi mitra.");
+      notify("error", "Gagal memproses verifikasi teknisi lapangan.");
     }
   };
 
@@ -2627,7 +2653,7 @@ export function SerjafanApp({ appRole = "switcher" }: { appRole?: AppRole }) {
     }
 
     if (
-      orderDraft.paymentMethod === "Transfer Bank/DANA Mitra" &&
+      orderDraft.paymentMethod === "Transfer Manual SERJAFAN" &&
       !adminSettings.manualBankAccount.trim() &&
       !adminSettings.manualDanaNumber.trim()
     ) {
@@ -2663,7 +2689,7 @@ export function SerjafanApp({ appRole = "switcher" }: { appRole?: AppRole }) {
         paymentMethod:
           orderDraft.paymentMethod === "SERJAFAN Pay"
             ? "SERJAFAN_PAY"
-            : orderDraft.paymentMethod === "Transfer Bank/DANA Mitra"
+            : orderDraft.paymentMethod === "Transfer Manual SERJAFAN"
               ? "DIRECT_TRANSFER"
               : "CASH",
         promoCode: orderDraft.promoStatus === "valid" ? orderDraft.promoCode : null,
@@ -2766,14 +2792,12 @@ export function SerjafanApp({ appRole = "switcher" }: { appRole?: AppRole }) {
             query={searchQuery}
             onQueryChange={setSearchQuery}
             services={searchResults.services}
-            partners={searchResults.partners}
-            onSelectPartner={selectPartner}
             onOpenPartnerList={openPartnerList}
           />
         )}
         {screen === "partnerList" && (
           <PartnerListScreen
-            title={selectedCategory ? serviceDisplayName(selectedCategory) : "Daftar Mitra"}
+            title={selectedCategory ? serviceDisplayName(selectedCategory) : "Permintaan SERJAFAN"}
             selectedService={selectedService}
             selectedCategory={selectedCategory}
             partners={partnerListPartners}
@@ -2964,15 +2988,6 @@ function CustomerHome({
   onOpenPartnerList: (category?: string) => void;
   onOpenSearch: () => void;
 }) {
-  const partnerCountByCategory = useMemo(() => {
-    const counts = new Map<string, number>();
-    partners.forEach((partner) => {
-      const key = serviceCategoryKey(partner.category);
-      counts.set(key, (counts.get(key) ?? 0) + 1);
-    });
-    return counts;
-  }, [partners]);
-
   const resolveCategory = (target: string) =>
     services.find((service) => serviceCategoryKey(service.name) === serviceCategoryKey(target))?.name ?? target;
 
@@ -2981,7 +2996,6 @@ function CustomerHome({
   };
   const dashboardServices = services.length ? services.slice(0, 8) : [];
   const popularServices = services.length ? services.slice(0, 3) : [];
-  const nearbyPartners = partners.filter((partner) => partner.status === "Online").slice(0, 3);
   const rawHeroTitle = featureCopy.headline?.trim() || "";
   const heroTitle = !rawHeroTitle || rawHeroTitle.toLowerCase() === "customer app" ? "Semua Jasa" : rawHeroTitle;
   const heroDescription = featureCopy.description?.trim() || "Cepat - Mudah - Terpercaya";
@@ -3036,7 +3050,6 @@ function CustomerHome({
           <div className="grid grid-cols-4 gap-x-2 gap-y-7">
           {dashboardServices.map((service) => {
             const Icon = service.icon;
-            const count = partnerCountByCategory.get(serviceCategoryKey(service.name)) ?? 0;
             return (
             <button
               key={service.id ?? service.name}
@@ -3048,7 +3061,7 @@ function CustomerHome({
                 <Icon className="h-7 w-7" />
               </span>
               <span className="mt-3 block text-balance-mobile text-[13px] font-semibold leading-4 text-slate-900">{customerCategoryLabel(service.name)}</span>
-              <span className="sr-only">{count ? `${count} mitra aktif` : "Belum ada mitra"}</span>
+              <span className="sr-only">Pesan {customerCategoryLabel(service.name)} melalui admin SERJAFAN</span>
             </button>
             );
           })}
@@ -3083,27 +3096,25 @@ function CustomerHome({
         <Card className="mt-4 rounded-[20px] border-0 bg-white shadow-[0_10px_28px_rgba(15,23,42,0.07)] ring-1 ring-slate-100">
           <CardContent className="p-4">
             <div className="mb-4 flex items-center justify-between">
-              <h2 className="text-lg font-black text-slate-950">Layanan Terdekat</h2>
+              <h2 className="text-lg font-black text-slate-950">Diproses Tim SERJAFAN</h2>
               <Button type="button" variant="ghost" size="sm" onClick={() => openCategory()} className="h-auto px-0 text-sm font-black text-[#0d47d9] hover:bg-transparent hover:text-[#003cb5]">
-                Lihat Semua
+                Pesan
               </Button>
             </div>
             <div className="grid gap-2">
-              {nearbyPartners.length ? nearbyPartners.map((partner) => {
-                const Icon = partner.Icon;
-                return (
-                  <button key={partner.id} type="button" onClick={() => onOpenPartnerList(partner.category)} className="flex items-center gap-3 rounded-[16px] bg-[#f7faff] p-3 text-left">
-                    <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-[14px] bg-[#eef4ff] text-[#0d47d9]">
-                      <Icon className="h-5 w-5" />
-                    </span>
-                    <span className="min-w-0 flex-1">
-                      <span className="block truncate text-sm font-black">{partner.name}</span>
-                      <span className="mt-0.5 block truncate text-xs font-semibold text-slate-500">{partner.category} - {partner.distance}</span>
-                    </span>
-                    <Badge variant="success" className="shrink-0">{partner.eta}</Badge>
-                  </button>
-                );
-              }) : <p className="rounded-[16px] bg-[#f7faff] p-4 text-xs font-semibold text-slate-500">Belum ada mitra online di sekitar lokasi customer.</p>}
+              {[
+                ["1", "Admin menerima order", "Data layanan, alamat, foto, dan catatan customer masuk ke SERJAFAN."],
+                ["2", "Tim menghubungi customer", "SERJAFAN memastikan kebutuhan, jadwal, estimasi biaya, dan lokasi."],
+                ["3", "Teknisi lapangan ditugaskan", "Customer tetap mendapat update dari SERJAFAN sampai pekerjaan selesai."]
+              ].map(([step, title, body]) => (
+                <div key={step} className="flex items-start gap-3 rounded-[16px] bg-[#f7faff] p-3">
+                  <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#0d47d9] text-xs font-black text-white">{step}</span>
+                  <span className="min-w-0">
+                    <span className="block text-sm font-black text-slate-950">{title}</span>
+                    <span className="mt-1 block text-xs font-semibold leading-5 text-slate-500">{body}</span>
+                  </span>
+                </div>
+              ))}
             </div>
           </CardContent>
         </Card>
@@ -3313,15 +3324,11 @@ function SearchScreen({
   query,
   onQueryChange,
   services,
-  partners,
-  onSelectPartner,
   onOpenPartnerList
 }: {
   query: string;
   onQueryChange: (value: string) => void;
   services: ServiceItem[];
-  partners: PartnerItem[];
-  onSelectPartner: (partner: Partner) => void;
   onOpenPartnerList: (category?: string) => void;
 }) {
   return (
@@ -3353,18 +3360,16 @@ function SearchScreen({
       <Section title="Cara SERJAFAN menangani pesanan">
         <div className="rounded-[18px] bg-white p-4 shadow-soft">
           <div className="grid gap-2">
-            {["Customer memilih layanan", "SERJAFAN menerima detail kebutuhan", "Admin menugaskan teknisi internal", "Customer memantau status dari SERJAFAN"].map((item, index) => (
+            {["Customer memilih layanan", "SERJAFAN menerima detail kebutuhan", "Admin menghubungi customer", "Teknisi lapangan ditugaskan"].map((item, index) => (
               <div key={item} className="flex items-center gap-3 rounded-[14px] bg-[#f8fbff] p-3">
                 <span className="flex h-7 w-7 items-center justify-center rounded-full bg-[#0d47d9] text-xs font-black text-white">{index + 1}</span>
                 <span className="text-xs font-extrabold text-slate-700">{item}</span>
               </div>
             ))}
           </div>
-          {partners.length > 0 && (
-            <Button type="button" className="mt-4 h-11 w-full rounded-2xl bg-[#0d47d9] text-white" onClick={() => onSelectPartner(partners[0])}>
-              Mulai Pesanan SERJAFAN
-            </Button>
-          )}
+          <Button type="button" className="mt-4 h-11 w-full rounded-2xl bg-[#0d47d9] text-white" onClick={() => onOpenPartnerList(services[0]?.name)}>
+            Mulai Pesanan SERJAFAN
+          </Button>
         </div>
       </Section>
     </section>
@@ -3514,10 +3519,9 @@ function OrderFlow({
   const [editor, setEditor] = useState<"address" | "schedule" | "note" | null>(null);
   const total = orderTotal(draft);
   const manualPaymentReady = Boolean(settings.manualBankAccount.trim() || settings.manualDanaNumber.trim());
-  const paymentLabel = (name: PayMethod) => (name === "Transfer Bank/DANA Mitra" ? "Transfer Manual SERJAFAN" : name);
   const payments: { name: PayMethod; Icon: React.ElementType }[] = [
     { name: "SERJAFAN Pay", Icon: Wallet },
-    { name: "Transfer Bank/DANA Mitra", Icon: CreditCard },
+    { name: "Transfer Manual SERJAFAN", Icon: CreditCard },
     ...(partner.acceptsCash === false ? [] : [{ name: "Tunai" as PayMethod, Icon: Wallet }])
   ];
 
@@ -3589,7 +3593,7 @@ function OrderFlow({
       <Label>Metode Pembayaran</Label>
       <div className="mb-4 grid grid-cols-1 gap-2 min-[380px]:grid-cols-3">
         {payments.map(({ name, Icon }) => {
-          const disabled = name === "Transfer Bank/DANA Mitra" && !manualPaymentReady;
+          const disabled = name === "Transfer Manual SERJAFAN" && !manualPaymentReady;
           return (
           <button
             key={name}
@@ -3605,7 +3609,7 @@ function OrderFlow({
             )}
           >
             <Icon className="mx-auto mb-1 h-5 w-5" />
-            <span className="text-[10px] font-bold leading-tight">{paymentLabel(name)}</span>
+            <span className="text-[10px] font-bold leading-tight">{name}</span>
           </button>
           );
         })}
@@ -3648,7 +3652,7 @@ function OrderFlow({
         {draft.paymentMethod === "SERJAFAN Pay" && (
           <p className="mt-2 text-[11px] text-slate-500">Saldo tersedia: Rp {formatRupiah(user.walletBalance)}</p>
         )}
-        {draft.paymentMethod === "Transfer Bank/DANA Mitra" && (
+        {draft.paymentMethod === "Transfer Manual SERJAFAN" && (
           <div className="mt-3 rounded-[14px] bg-white p-3 text-[11px] font-bold leading-5 text-slate-600">
             <p className="text-navy">Customer mengikuti instruksi pembayaran manual SERJAFAN. Bukti transfer dikirim ke SERJAFAN agar admin dapat memverifikasi dan meneruskan proses layanan.</p>
             {settings.manualBankAccount.trim() && (
@@ -3749,8 +3753,8 @@ function OrderEditor({
           <div className="grid gap-2">
             {[
               ["Sekarang (ASAP)", "Estimasi tiba ~15 menit"],
-              ["Hari ini, 19:00", "Mitra datang sesuai slot malam"],
-              ["Besok, 09:00", "Mitra datang di pagi hari"]
+              ["Hari ini, 19:00", "Teknisi datang sesuai slot malam"],
+              ["Besok, 09:00", "Teknisi datang di pagi hari"]
             ].map(([schedule, note]) => (
               <button
                 key={schedule}
@@ -5178,7 +5182,7 @@ function AdminDashboard({
         {[
           ["Revenue Bulan Ini", `Rp ${formatRupiah(dashboard?.revenueMonth ?? 128000000)}`, "+24.5% vs bulan lalu"],
           ["Total Pesanan", `${dashboard?.totalOrders ?? 4827}`, "+18.3% growth"],
-          ["Mitra Aktif", `${dashboard?.activePartners ?? 312}`, "45 baru minggu ini"],
+          ["Teknisi Lapangan", `${dashboard?.activePartners ?? 0}`, "terpantau admin"],
           ["Pelanggan Aktif", `${dashboard?.activeCustomers ?? 8241}`, "+31.2% MoM"]
         ].map(([label, value, trend]) => (
           <Card key={label} className="rounded-[16px] border-slate-100 shadow-[0_2px_12px_rgba(11,31,58,0.06)]">
@@ -5239,7 +5243,7 @@ function AdminDashboard({
       </div>
 
       <div className="px-4 pb-6 sm:px-5">
-        <h2 className="mb-2 text-sm font-extrabold">Verifikasi Mitra Baru</h2>
+        <h2 className="mb-2 text-sm font-extrabold">Verifikasi Teknisi Lapangan</h2>
         <div className="space-y-3">
           {pendingPartners.length ? (
             pendingPartners.map((partner) => (
@@ -5287,7 +5291,7 @@ function AdminDashboard({
               </Card>
             ))
           ) : (
-            <div className="rounded-[16px] bg-white p-4 text-sm text-slate-500 shadow-soft">Tidak ada mitra pending.</div>
+            <div className="rounded-[16px] bg-white p-4 text-sm text-slate-500 shadow-soft">Tidak ada teknisi lapangan pending.</div>
           )}
         </div>
       </div>
@@ -5919,7 +5923,7 @@ function AdminControlCenter({
               onChange={(patch) => mutateDraft((current) => ({ ...current, partnerFeatureCopy: { ...current.partnerFeatureCopy, ...patch } }))}
             />
             <div className="rounded-[16px] bg-[#eef4ff] p-3 text-xs font-semibold leading-5 text-[#0d47d9]">
-              Yang diedit di sini tersambung ke aplikasi partner: teks dashboard partner, data pembayaran mitra, status, rekening, DANA, dan profil layanan.
+              Yang diedit di sini tersambung ke sistem jaringan lapangan: teks dashboard teknisi, data pembayaran, status, rekening, DANA, dan profil layanan.
             </div>
             <div className="rounded-[16px] bg-white p-4 shadow-soft">
               <p className="mb-3 text-xs font-extrabold uppercase text-slate-500">Partner Terdaftar & Data Pembayaran</p>
@@ -6046,7 +6050,7 @@ function AdminControlCenter({
               <div>
                 <p className="text-xs font-extrabold text-navy">Batasi pendaftaran partner</p>
                 <p className="mt-1 text-[11px] font-bold leading-5 text-slate-500">
-                  Jika aktif, orang yang daftar partner akan ditolak dengan notifikasi kuota mitra sudah cukup.
+                  Jika aktif, pendaftaran jaringan teknisi akan ditolak dengan notifikasi kuota teknisi sudah cukup.
                 </p>
               </div>
               <Switch

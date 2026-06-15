@@ -31,15 +31,15 @@ export async function POST(_request: Request, { params }: { params: Promise<{ id
     id: createId("notf"),
     userId: order.customerId,
     kind: "ORDER",
-    title: "Pesanan ditolak mitra",
-    body: "Pesanan Anda belum bisa diproses oleh mitra ini.",
+    title: "Pesanan belum bisa diproses",
+    body: "Pesanan Anda belum bisa diproses oleh teknisi lapangan saat ini. Tim SERJAFAN akan membantu tindak lanjut.",
     targetUrl: `/orders/${order.id}`,
     createdAt: now,
     updatedAt: now
   });
   await sendPushToUser(order.customerId, {
-    title: "Pesanan ditolak mitra",
-    body: `${partner.name} belum bisa memproses pesanan ini.`,
+    title: "Pesanan belum bisa diproses",
+    body: `Teknisi lapangan belum bisa memproses pesanan ini. Tim SERJAFAN akan membantu tindak lanjut.`,
     url: "/customer",
     tag: `order-${order.id}`,
     kind: "notification"
@@ -48,9 +48,9 @@ export async function POST(_request: Request, { params }: { params: Promise<{ id
   await db.insert(messages).values({
     id: createId("msg"),
     userId: order.customerId,
-    sender: partner.name,
+    sender: "SERJAFAN Support",
     title: "Pesanan ditolak",
-    body: `Mohon maaf, pesanan ${order.id} belum bisa saya ambil saat ini.`,
+    body: `Mohon maaf, pesanan ${order.id} belum bisa diproses oleh teknisi saat ini. Tim SERJAFAN akan membantu tindak lanjut.`,
     unread: true,
     createdAt: now,
     updatedAt: now

@@ -1,4 +1,4 @@
-import { asc, eq } from "drizzle-orm";
+import { asc, eq, ne } from "drizzle-orm";
 import { db } from "@/db";
 import { addresses, partnerProfiles, user } from "@/db/schema";
 import { defaultAdminConsole, getAdminConsoleSettings, saveAdminConsoleSettings } from "@/lib/admin-console";
@@ -6,6 +6,7 @@ import { ok, readJson, requireRole } from "@/lib/api";
 import { ensurePartnerPaymentColumns } from "@/lib/partner-payments";
 
 export const runtime = "nodejs";
+const SERJAFAN_OPS_PARTNER_ID = "ptr_serjafan_ops";
 
 type AdminConsoleBody = Partial<typeof defaultAdminConsole>;
 
@@ -18,7 +19,7 @@ export async function GET() {
     getAdminConsoleSettings(),
     db.select().from(user).where(eq(user.role, "CUSTOMER")).orderBy(asc(user.name)),
     db.select().from(addresses),
-    db.select().from(partnerProfiles).orderBy(asc(partnerProfiles.name))
+    db.select().from(partnerProfiles).where(ne(partnerProfiles.id, SERJAFAN_OPS_PARTNER_ID)).orderBy(asc(partnerProfiles.name))
   ]);
   const customers = customerRows.map((customer) => {
     const address = addressRows.find((item) => item.userId === customer.id);

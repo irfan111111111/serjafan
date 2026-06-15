@@ -12,11 +12,11 @@ export async function GET(_request: Request, { params }: { params: Promise<{ id:
     where: and(eq(partnerProfiles.id, id), eq(partnerProfiles.verificationStatus, "APPROVED"))
   });
 
-  if (!partner) return fail("Partner not found.", 404);
+  if (!partner) return fail("Teknisi lapangan tidak ditemukan.", 404);
 
   const meta = serviceMetaByPartnerId[id] ?? {
     headline: `Layanan ${partner.category.toLowerCase()} profesional.`,
-    description: "Layanan tersedia berdasarkan kategori mitra.",
+    description: "Layanan tersedia berdasarkan kategori jaringan lapangan SERJAFAN.",
     serviceCategoryIds: []
   };
 
