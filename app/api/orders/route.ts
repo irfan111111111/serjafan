@@ -7,6 +7,39 @@ import { sendPushToUser } from "@/lib/push";
 
 export const runtime = "nodejs";
 
+const SERJAFAN_OPS_PARTNER_ID = "ptr_serjafan_ops";
+
+async function ensureSerjafanOpsPartner(now: Date) {
+  const existing = await db.query.partnerProfiles.findFirst({
+    where: eq(partnerProfiles.id, SERJAFAN_OPS_PARTNER_ID)
+  });
+  if (existing) return existing;
+
+  await db.insert(partnerProfiles).values({
+    id: SERJAFAN_OPS_PARTNER_ID,
+    userId: null,
+    name: "SERJAFAN Operasional",
+    category: "Order SERJAFAN",
+    distanceKm: 0,
+    rating: 0,
+    reviewCount: 0,
+    completedOrders: 0,
+    etaMinutes: 15,
+    priceFrom: 0,
+    status: "OFFLINE",
+    verificationStatus: "APPROVED",
+    verified: true,
+    createdAt: now,
+    updatedAt: now
+  });
+
+  const createdPartner = await db.query.partnerProfiles.findFirst({
+    where: eq(partnerProfiles.id, SERJAFAN_OPS_PARTNER_ID)
+  });
+  if (!createdPartner) throw new Error("Failed to create SERJAFAN operational partner.");
+  return createdPartner;
+}
+
 type CreateOrderBody = {
   partnerId?: string;
   serviceCategoryId?: string;
@@ -53,7 +86,6 @@ export async function POST(request: Request) {
   const body = await readJson<CreateOrderBody>(request);
   if (!body) return fail("Invalid JSON body.", 400);
 
-  if (!body.partnerId) return fail("partnerId is required.");
   if (!body.serviceCategoryId) return fail("serviceCategoryId is required.");
   if (!body.address?.title) return fail("address.title is required.");
   if (!body.paymentMethod) return fail("paymentMethod is required.");
@@ -67,31 +99,37 @@ export async function POST(request: Request) {
 
   const orderId = createId("ord");
   const now = new Date();
-  const partner = await db.query.partnerProfiles.findFirst({
-    where: eq(partnerProfiles.id, body.partnerId)
-  });
+  const requestedPartnerId = body.partnerId?.trim();
+  const isOperationalRequest = !requestedPartnerId;
+  const partner = requestedPartnerId
+    ? await db.query.partnerProfiles.findFirst({
+        where: eq(partnerProfiles.id, requestedPartnerId)
+      })
+    : await ensureSerjafanOpsPartner(now);
 
   if (!partner) return fail("Teknisi SERJAFAN tidak ditemukan.", 404);
-  if (partner.verificationStatus !== "APPROVED" || partner.status !== "ONLINE" || !partner.userId) {
-    return fail("Tim SERJAFAN belum siap menugaskan teknisi untuk layanan ini. Silakan coba layanan lain atau hubungi admin.", 409);
-  }
-  const hasPartnerBankPayment = Boolean(partner.paymentBankName && partner.paymentBankAccount && partner.paymentBankHolder);
-  const hasPartnerDanaPayment = Boolean(partner.paymentDanaNumber && partner.paymentDanaName);
-  if (body.paymentMethod === "DIRECT_TRANSFER" && !hasPartnerBankPayment && !hasPartnerDanaPayment) {
-    return fail("Metode transfer manual SERJAFAN belum siap untuk layanan ini.", 409);
-  }
-  if (body.paymentMethod === "CASH" && partner.acceptsCash === false) {
-    return fail("Pembayaran tunai belum tersedia untuk layanan ini.", 409);
-  }
-  const partnerWallet = await db.query.wallets.findFirst({ where: eq(wallets.userId, partner.userId) });
-  if (!partnerWallet || partnerWallet.balance < 20_000) {
-    return fail("Teknisi internal belum memenuhi saldo kerja minimum untuk menerima penugasan.", 409);
+  if (!isOperationalRequest) {
+    if (partner.verificationStatus !== "APPROVED" || partner.status !== "ONLINE" || !partner.userId) {
+      return fail("Tim SERJAFAN belum siap menugaskan teknisi untuk layanan ini. Silakan coba layanan lain atau hubungi admin.", 409);
+    }
+    const hasPartnerBankPayment = Boolean(partner.paymentBankName && partner.paymentBankAccount && partner.paymentBankHolder);
+    const hasPartnerDanaPayment = Boolean(partner.paymentDanaNumber && partner.paymentDanaName);
+    if (body.paymentMethod === "DIRECT_TRANSFER" && !hasPartnerBankPayment && !hasPartnerDanaPayment) {
+      return fail("Metode transfer manual SERJAFAN belum siap untuk layanan ini.", 409);
+    }
+    if (body.paymentMethod === "CASH" && partner.acceptsCash === false) {
+      return fail("Pembayaran tunai belum tersedia untuk layanan ini.", 409);
+    }
+    const partnerWallet = await db.query.wallets.findFirst({ where: eq(wallets.userId, partner.userId) });
+    if (!partnerWallet || partnerWallet.balance < 20_000) {
+      return fail("Teknisi internal belum memenuhi saldo kerja minimum untuk menerima penugasan.", 409);
+    }
   }
 
   await db.insert(orders).values({
     id: orderId,
     customerId: session.user.id,
-    partnerId: body.partnerId,
+    partnerId: partner.id,
     serviceCategoryId: body.serviceCategoryId,
     addressTitle: body.address.title,
     addressSubtitle: body.address.subtitle ?? "",
@@ -128,7 +166,7 @@ export async function POST(request: Request) {
     title: "Pesanan diterima SERJAFAN",
     body: `Pesanan ${orderId} sudah diterima SERJAFAN. Metode pembayaran: ${
       body.paymentMethod === "CASH" ? "tunai" : body.paymentMethod === "DIRECT_TRANSFER" ? "transfer manual SERJAFAN" : "SERJAFAN Pay"
-    }. Tim operasional akan menugaskan teknisi internal.`,
+    }. Tim operasional akan menghubungi Anda dan menugaskan teknisi lapangan.`,
     targetUrl: `/orders/${orderId}`,
     createdAt: now,
     updatedAt: now
@@ -141,7 +179,7 @@ export async function POST(request: Request) {
     kind: "notification"
   });
 
-  if (partner?.userId) {
+  if (!isOperationalRequest && partner.userId) {
     await db.insert(notifications).values({
       id: createId("notf"),
       userId: partner.userId,
@@ -179,6 +217,7 @@ export async function POST(request: Request) {
     });
   }
 
+  const serviceLabel = isOperationalRequest ? body.serviceCategoryId : partner.category;
   const admins = await db.select().from(user).where(eq(user.role, "ADMIN"));
   if (admins.length) {
     await db.insert(notifications).values(
@@ -187,7 +226,7 @@ export async function POST(request: Request) {
         userId: admin.id,
         kind: "ORDER" as const,
         title: "Pesanan customer baru",
-        body: `${session.user.name} membuat pesanan ${orderId} untuk layanan ${partner.category}. Pantau assignment teknisi di dashboard admin.`,
+        body: `${session.user.name} membuat pesanan ${orderId} untuk layanan ${serviceLabel}. Hubungi customer lalu tugaskan teknisi lapangan.`,
         targetUrl: "/admin",
         createdAt: now,
         updatedAt: now
@@ -197,7 +236,7 @@ export async function POST(request: Request) {
       admins.map((admin) =>
         sendPushToUser(admin.id, {
           title: "Pesanan customer baru",
-          body: `${session.user.name} membuat pesanan ${orderId} untuk layanan ${partner.category}.`,
+          body: `${session.user.name} membuat pesanan ${orderId} untuk layanan ${serviceLabel}.`,
           url: "/admin",
           tag: `admin-order-${orderId}`,
           kind: "notification"

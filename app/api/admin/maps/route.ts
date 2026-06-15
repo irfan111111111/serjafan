@@ -37,8 +37,9 @@ export async function GET() {
   }
 
   const pairs = liveOrders.map((order) => {
-    const partner = partnersById.get(order.partnerId);
-    const partnerPoint = partnerCoordinates[order.partnerId] ?? partnerCoordinates.default;
+    const partnerId = order.partnerId ?? "";
+    const partner = partnerId ? partnersById.get(partnerId) : null;
+    const partnerPoint = partnerId ? partnerCoordinates[partnerId] ?? partnerCoordinates.default : partnerCoordinates.default;
     const orderEvents = trackingByOrder.get(order.id) ?? [];
     const customerEvent =
       orderEvents.find((event) => event.status === "PENDING" && event.latitude !== null && event.longitude !== null) ??
@@ -61,8 +62,8 @@ export async function GET() {
         lastSignal: customerEvent?.createdAt ?? order.createdAt
       },
       partner: {
-        id: order.partnerId,
-        label: partner?.name ?? "Partner",
+        id: partnerId || "unassigned",
+        label: partner?.name ?? "Menunggu assignment SERJAFAN",
         address: partnerPoint.address,
         latitude: partnerPoint.latitude,
         longitude: partnerPoint.longitude,

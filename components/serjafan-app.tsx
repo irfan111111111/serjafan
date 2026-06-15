@@ -538,7 +538,7 @@ const initialAdminConsole: AdminConsoleData = {
     services: [],
     promos: [],
     partnerRequirements: [],
-    partnerFeatureCopy: { headline: "Gabung Teknisi SERJAFAN", description: "" },
+    partnerFeatureCopy: { headline: "Jaringan Teknisi SERJAFAN", description: "" },
     customerFeatureCopy: { headline: "Customer App", description: "" },
     partnerRegistrationLimited: false
   },
@@ -896,20 +896,9 @@ export function AppLauncher() {
       actions: [{ href: "/customer", label: "Buka Customer", primary: true }]
     },
     {
-      href: "/partner",
-      title: "SERJAFAN Teknisi",
-      description: "Aplikasi jaringan teknisi internal untuk menerima tugas dan mengelola pekerjaan.",
-      Icon: Wrench,
-      tone: "bg-emerald-50 text-emerald-700",
-      actions: [
-        { href: "/login/partner", label: "Login Teknisi", primary: true },
-        { href: "/register/partner", label: "Daftar Teknisi" }
-      ]
-    },
-    {
       href: "/admin",
       title: "SERJAFAN Admin",
-      description: "Dashboard operasional untuk menerima order, menugaskan teknisi, monitoring kualitas, pembayaran, dan konfigurasi.",
+      description: "Dashboard operasional untuk menerima order, menghubungi customer, menugaskan teknisi lapangan, monitoring kualitas, pembayaran, dan konfigurasi.",
       Icon: ShieldCheck,
       tone: "bg-orange-50 text-orange-700",
       actions: [
@@ -922,23 +911,23 @@ export function AppLauncher() {
   const landingStats = [
     { value: "Kota Padang", label: "fokus area layanan" },
     { value: `${landingServices.length}+`, label: "kategori jasa siap tampil" },
-    { value: "3", label: "sistem customer teknisi admin" },
+    { value: "V1", label: "order dikelola langsung SERJAFAN" },
     { value: "4", label: "halaman SEO layanan lokal" }
   ];
   const valueProps = [
-    { Icon: ShieldCheck, title: "Teknisi terseleksi", body: "SERJAFAN menyeleksi, menugaskan, dan memantau teknisi agar kualitas layanan tetap terkontrol." },
-    { Icon: Navigation, title: "Tracking jelas", body: "Customer melihat status pesanan dari SERJAFAN: diterima, teknisi ditugaskan, menuju lokasi, dikerjakan, selesai." },
-    { Icon: Wallet, title: "Pembayaran dikelola", body: "SERJAFAN mengelola top up manual, bukti transfer, tunai, riwayat saldo, dan pemantauan pembayaran." }
+    { Icon: Phone, title: "Respon dari tim SERJAFAN", body: "Customer cukup kirim kebutuhan. Tim SERJAFAN menghubungi customer, mencatat detail, dan mengatur teknisi lapangan." },
+    { Icon: ShieldCheck, title: "Teknisi ditugaskan oleh SERJAFAN", body: "Customer tidak memilih teknisi sendiri. SERJAFAN menugaskan teknisi yang sesuai agar kualitas tetap terkontrol." },
+    { Icon: Wallet, title: "Pembayaran dipantau admin", body: "SERJAFAN mengelola instruksi pembayaran, bukti transfer, tunai, riwayat saldo, dan pemantauan pembayaran." }
   ];
   const steps = ["Pilih layanan", "Isi detail kebutuhan", "Tim SERJAFAN menghubungi Anda", "Teknisi ditugaskan", "Pekerjaan selesai"];
   const proofCards = [
-    { title: "Produk bisa dibuka", label: "Customer App", body: "Pengunjung dapat mencoba alur customer langsung dari website, termasuk cari layanan dan mulai pesanan.", Icon: Home, tone: "bg-blue-100 text-blue-700" },
-    { title: "Teknisi punya ruang kerja", label: "Technician App", body: "Teknisi internal memiliki dashboard sendiri untuk menerima tugas, status kerja, peta, dan saldo kerja.", Icon: Wrench, tone: "bg-emerald-100 text-emerald-700" },
-    { title: "Operasional dikendalikan", label: "Admin Dashboard", body: "Admin mengelola layanan, promo, teknisi, customer, top up manual, maps, dan pengaturan aplikasi.", Icon: ShieldCheck, tone: "bg-orange-100 text-orange-700" }
+    { title: "Form order customer", label: "Customer App", body: "Pengunjung dapat mencoba alur customer langsung dari website, termasuk cari layanan, isi alamat, dan kirim kebutuhan ke SERJAFAN.", Icon: Home, tone: "bg-blue-100 text-blue-700" },
+    { title: "Admin menerima order", label: "Admin Dashboard", body: "Admin mengelola layanan, promo, customer, top up manual, maps, keluhan, dan assignment teknisi lapangan.", Icon: ShieldCheck, tone: "bg-orange-100 text-orange-700" },
+    { title: "Komunikasi terpusat", label: "SERJAFAN Support", body: "Customer berkomunikasi dengan SERJAFAN, bukan langsung dengan teknisi. Ini lebih realistis untuk launch awal.", Icon: MessageCircle, tone: "bg-emerald-100 text-emerald-700" }
   ];
   const faqs = [
     { q: "Bagaimana cara pesan jasa di SERJAFAN?", a: "Buka aplikasi customer, isi data pelanggan, pilih layanan, isi detail kebutuhan, lalu kirim pesanan ke SERJAFAN." },
-    { q: "Apakah customer memilih teknisi?", a: "Tidak. SERJAFAN menerima order, menghubungi customer bila perlu, lalu menugaskan teknisi internal yang sesuai." },
+    { q: "Apakah customer memilih teknisi?", a: "Tidak. SERJAFAN menerima order, menghubungi customer bila perlu, lalu menugaskan teknisi lapangan yang sesuai." },
     { q: "Bagaimana pembayaran dilakukan?", a: "Pembayaran dikelola SERJAFAN melalui metode yang tersedia seperti saldo SERJAFAN, transfer manual, atau tunai sesuai kebijakan layanan." },
     { q: "Bagaimana jika ada kendala?", a: "Customer berkomunikasi dengan SERJAFAN. Admin memantau pesanan, teknisi, pembayaran, dan komplain." }
   ];
@@ -962,39 +951,39 @@ export function AppLauncher() {
       rows: ["Pilih layanan", "Isi alamat & kebutuhan", "Pantau status dari SERJAFAN"]
     },
     {
-      title: "Teknisi App",
-      subtitle: "Ruang kerja jaringan internal",
-      Icon: Wrench,
+      title: "Admin Order Desk",
+      subtitle: "Order diterima tim SERJAFAN",
+      Icon: Inbox,
       tone: "from-emerald-600 to-emerald-800",
       metrics: [
-        ["Tugas", "Masuk"],
-        ["Deposit", "Aktif"],
-        ["Maps", "Siap"]
+        ["Order", "Masuk"],
+        ["CS", "Follow up"],
+        ["Teknisi", "Ditugaskan"]
       ],
-      rows: ["Terima tugas SERJAFAN", "Navigasi ke customer", "Update pekerjaan selesai"]
+      rows: ["Hubungi customer", "Cari teknisi lapangan", "Update status pekerjaan"]
     },
     {
-      title: "Admin Dashboard",
-      subtitle: "Kendali operasional pusat",
-      Icon: ShieldCheck,
+      title: "Tracking & Support",
+      subtitle: "Customer memantau status",
+      Icon: MessageCircle,
       tone: "from-orange-500 to-orange-700",
       metrics: [
-        ["Order", "Pantau"],
-        ["Top Up", "Verifikasi"],
-        ["Teknisi", "Kelola"]
+        ["Status", "Jelas"],
+        ["Admin", "Siaga"],
+        ["Bantuan", "Aktif"]
       ],
-      rows: ["Atur layanan & promo", "Assign teknisi internal", "Audit pembayaran & kualitas"]
+      rows: ["Menunggu konfirmasi", "Sedang diproses", "Teknisi menuju lokasi"]
     }
   ];
   const trustAssets = [
-    { title: "Foto teknisi asli", body: "Gunakan foto tim lapangan SERJAFAN setelah verifikasi, bukan avatar generik.", Icon: Camera },
+    { title: "Foto tim lapangan asli", body: "Gunakan foto teknisi lapangan SERJAFAN setelah verifikasi, bukan avatar generik.", Icon: Camera },
     { title: "Bukti pekerjaan selesai", body: "Kumpulkan foto before-after dari service AC, kunci, dan cleaning saat pilot pertama.", Icon: ImageIcon },
     { title: "Testimoni nyata", body: "Tampilkan nama, layanan, area Padang, dan ulasan singkat dari customer pertama.", Icon: Star },
-    { title: "Statistik real-time", body: "Angka order, rating, dan teknisi aktif baru ditampilkan setelah data production benar-benar ada.", Icon: Bolt }
+    { title: "Statistik real-time", body: "Angka order selesai, rating, dan waktu respons baru ditampilkan setelah data production benar-benar ada.", Icon: Bolt }
   ];
   const pilotMilestones = [
-    ["Minggu 1", "Rekrut 10 teknisi awal untuk kunci, AC, dan cleaning."],
-    ["Minggu 2", "Kumpulkan foto pekerjaan, profil teknisi, dan bukti verifikasi."],
+    ["Minggu 1", "Siapkan 10 kontak teknisi lapangan untuk kunci, AC, dan cleaning tanpa memaksa mereka memakai dashboard dulu."],
+    ["Minggu 2", "Kumpulkan foto pekerjaan, profil lapangan, dan bukti verifikasi sederhana."],
     ["Minggu 3", "Jalankan 20-50 order pilot dan simpan ulasan customer."],
     ["Minggu 4", "Tampilkan statistik nyata, testimoni asli, lalu mulai iklan Padang."]
   ];
@@ -1018,14 +1007,11 @@ export function AppLauncher() {
               Pesan jasa harian dalam 1 menit.
             </h1>
             <p className="mt-5 max-w-xl text-base font-semibold leading-7 text-white/82 md:text-lg">
-              SERJAFAN membantu Anda mendapatkan layanan profesional untuk rumah, perbaikan, kebersihan, dan kebutuhan harian lain. Pesanan diterima SERJAFAN, lalu teknisi internal ditugaskan.
+              SERJAFAN membantu Anda mendapatkan layanan profesional untuk rumah, perbaikan, kebersihan, dan kebutuhan harian lain. Customer cukup pesan, lalu tim SERJAFAN menghubungi Anda dan menugaskan teknisi lapangan.
             </p>
             <div className="mt-6 flex flex-wrap gap-3">
               <Link href="/customer" className="inline-flex h-12 items-center justify-center gap-2 rounded-full bg-[#ffd54a] px-6 text-sm font-black text-slate-950 shadow-[0_14px_28px_rgba(255,213,74,0.28)] transition hover:-translate-y-0.5">
                 Pesan Jasa Dalam 1 Menit <ChevronRight className="h-4 w-4" />
-              </Link>
-              <Link href="/register/partner" className="inline-flex h-12 items-center justify-center gap-2 rounded-full border border-white/20 bg-white/10 px-6 text-sm font-black text-white transition hover:bg-white/15">
-                Gabung Teknisi SERJAFAN
               </Link>
               <Link href="/support" className="inline-flex h-12 items-center justify-center gap-2 rounded-full border border-white/20 bg-white/5 px-6 text-sm font-black text-white transition hover:bg-white/15">
                 Hubungi Admin
@@ -1281,10 +1267,10 @@ export function AppLauncher() {
         <section className="mt-6 rounded-[28px] bg-white p-5 shadow-[0_16px_34px_rgba(15,23,42,0.07)] ring-1 ring-slate-100">
           <div className="mb-4">
             <p className="text-xs font-black uppercase tracking-[0.14em] text-[#0d47d9]">Aplikasi SERJAFAN</p>
-            <h2 className="mt-1 text-2xl font-black">Customer, teknisi, dan admin tetap dipisah.</h2>
-            <p className="mt-2 text-sm leading-6 text-slate-500">Customer hanya berhubungan dengan SERJAFAN. Teknisi memakai aplikasi internal untuk menerima tugas dari operasional.</p>
+            <h2 className="mt-1 text-2xl font-black">Untuk V1, customer dan admin operasional dibuat paling kuat dulu.</h2>
+            <p className="mt-2 text-sm leading-6 text-slate-500">Customer hanya berhubungan dengan SERJAFAN. Tim admin menerima order, menghubungi customer, lalu menugaskan teknisi lapangan secara operasional.</p>
           </div>
-          <div className="grid gap-3 md:grid-cols-3">
+          <div className="grid gap-3 md:grid-cols-2">
           {apps.map(({ href, title, description, Icon, tone, actions }) => (
             <div key={href} className="rounded-[20px] border border-slate-100 bg-white p-4 shadow-soft transition hover:-translate-y-0.5">
               <span className={cn("mb-4 flex h-12 w-12 items-center justify-center rounded-[14px]", tone)}>
@@ -1315,10 +1301,10 @@ export function AppLauncher() {
           <div className="rounded-[28px] bg-gradient-to-br from-[#0d47d9] to-[#003cb5] p-5 text-white shadow-[0_16px_34px_rgba(13,71,217,0.18)]">
             <p className="text-xs font-black uppercase tracking-[0.14em] text-[#ffd54a]">Call to action</p>
             <h2 className="mt-2 text-3xl font-black leading-tight">Siap bikin pemesanan pertama lebih meyakinkan?</h2>
-            <p className="mt-3 text-sm font-semibold leading-6 text-white/78">Mulai dari layanan utama, terima order dari customer, lalu tim SERJAFAN menugaskan teknisi internal yang sesuai.</p>
+            <p className="mt-3 text-sm font-semibold leading-6 text-white/78">Mulai dari layanan utama, terima order dari customer, hubungi customer lewat admin, lalu tim SERJAFAN menugaskan teknisi lapangan yang sesuai.</p>
             <div className="mt-5 flex flex-wrap gap-2">
               <Link href="/customer" className="inline-flex h-11 items-center justify-center rounded-full bg-[#ffd54a] px-5 text-sm font-black text-slate-950">Mulai Pesan</Link>
-              <Link href="/register/partner" className="inline-flex h-11 items-center justify-center rounded-full border border-white/20 bg-white/10 px-5 text-sm font-black text-white">Gabung Teknisi</Link>
+              <Link href="/support" className="inline-flex h-11 items-center justify-center rounded-full border border-white/20 bg-white/10 px-5 text-sm font-black text-white">Chat Admin</Link>
             </div>
           </div>
 
@@ -2625,11 +2611,6 @@ export function SerjafanApp({ appRole = "switcher" }: { appRole?: AppRole }) {
       return;
     }
 
-    if (!orderDraft.partnerId) {
-      notify("error", "Tim SERJAFAN belum tersedia untuk layanan ini. Silakan pilih layanan lain atau hubungi admin.");
-      return;
-    }
-
     if (!orderDraft.address.trim()) {
       notify("error", "Alamat pengiriman wajib diisi.");
       return;
@@ -2645,15 +2626,19 @@ export function SerjafanApp({ appRole = "switcher" }: { appRole?: AppRole }) {
       return;
     }
 
-    if (orderDraft.paymentMethod === "Transfer Bank/DANA Mitra" && !hasPartnerDirectPayment(currentPartner)) {
-      notify("error", "Metode transfer manual SERJAFAN belum siap untuk layanan ini. Gunakan SERJAFAN Pay atau Tunai.");
+    if (
+      orderDraft.paymentMethod === "Transfer Bank/DANA Mitra" &&
+      !adminSettings.manualBankAccount.trim() &&
+      !adminSettings.manualDanaNumber.trim()
+    ) {
+      notify("error", "Metode transfer manual SERJAFAN belum lengkap. Admin perlu mengisi rekening atau DANA.");
       return;
     }
 
     setIsSubmitting(true);
     try {
       const orderPayload = {
-        partnerId: orderDraft.partnerId,
+        partnerId: orderDraft.partnerId || undefined,
         serviceCategoryId: orderDraft.serviceCategoryId,
         fulfillmentMode: orderDraft.fulfillmentMode,
         partnerSnapshot: {
@@ -2704,7 +2689,7 @@ export function SerjafanApp({ appRole = "switcher" }: { appRole?: AppRole }) {
       setLastOrder(createdOrder);
       setSelectedOrder({
         id: createdOrder.id,
-        partnerId: currentPartner.id,
+        partnerId: currentPartner.id || null,
         partner: currentPartner,
         status: "PENDING",
         total: createdOrder.total,
@@ -2712,7 +2697,7 @@ export function SerjafanApp({ appRole = "switcher" }: { appRole?: AppRole }) {
         addressSubtitle: orderDraft.addressNote,
         fulfillmentMode: orderDraft.fulfillmentMode
       });
-      notify("success", `Pesanan ${createdOrder.id} dikirim. Tunggu konfirmasi mitra.`);
+      notify("success", `Pesanan ${createdOrder.id} dikirim ke SERJAFAN. Tim admin akan menghubungi Anda.`);
       await loadCustomerOrders(true);
       goTo("orders");
     } catch {
@@ -3403,6 +3388,14 @@ function PartnerListScreen({
 }) {
   const Icon = selectedService?.icon ?? Wrench;
   const assignedTechnician = partners.find((partner) => partner.status === "Online") ?? partners[0];
+  const operationalRequest: Partner = assignedTechnician ?? {
+    ...emptyPartner,
+    category: selectedCategory ?? selectedService?.name ?? "Jasa SERJAFAN",
+    Icon,
+    priceFrom: selectedService?.basePrice ?? emptyPartner.priceFrom,
+    eta: "Admin konfirmasi",
+    status: "Online"
+  };
   return (
     <section className="animate-in fade-in slide-in-from-bottom-3 duration-300">
       <div className="relative overflow-hidden rounded-b-[28px] bg-navy px-5 pb-6 pt-5 text-white">
@@ -3424,14 +3417,14 @@ function PartnerListScreen({
             <div className="min-w-0 flex-1">
               <p className="text-sm font-extrabold">Pesanan ditangani oleh SERJAFAN</p>
               <p className="mt-1 text-xs leading-5 text-white/70">
-                {selectedService ? serviceShortCopy(selectedService) : "Customer tidak memilih teknisi. SERJAFAN menerima order dan menugaskan teknisi internal yang sesuai."}
+                {selectedService ? serviceShortCopy(selectedService) : "Customer tidak memilih teknisi. SERJAFAN menerima order dan menugaskan teknisi lapangan yang sesuai."}
               </p>
             </div>
           </div>
           <div className="mt-4 grid grid-cols-2 gap-2">
             <div className="rounded-[14px] bg-white/10 p-3">
               <p className="text-[10px] font-bold uppercase text-white/55">Penugasan</p>
-              <p className="mt-1 text-lg font-black">{assignedTechnician ? "Siap" : "Menunggu"}</p>
+              <p className="mt-1 text-lg font-black">{assignedTechnician ? "Siap" : "Admin"}</p>
             </div>
             <div className="rounded-[14px] bg-white/10 p-3">
               <p className="text-[10px] font-bold uppercase text-white/55">Harga mulai</p>
@@ -3442,43 +3435,31 @@ function PartnerListScreen({
       </div>
 
       <div className="space-y-3 p-5">
-        {assignedTechnician ? (
           <div className="rounded-[24px] bg-white p-5 shadow-soft">
             <div className="flex items-start gap-3">
               <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-[16px] bg-[#eef4ff] text-[#0d47d9]">
                 <ShieldCheck className="h-6 w-6" />
               </span>
               <div>
-                <h2 className="text-base font-black">Tim SERJAFAN akan mengatur teknisi</h2>
+                <h2 className="text-base font-black">Tim SERJAFAN akan mengatur layanan</h2>
                 <p className="mt-2 text-sm leading-6 text-slate-500">
-                  Pesanan Anda masuk ke operasional SERJAFAN. Admin memantau order, menugaskan teknisi internal,
+                  Pesanan Anda masuk ke operasional SERJAFAN. Admin memantau order, menghubungi customer, menugaskan teknisi lapangan,
                   dan customer tetap berkomunikasi melalui SERJAFAN.
                 </p>
               </div>
             </div>
             <div className="mt-4 grid gap-2">
-              {["Pesanan diterima SERJAFAN", "Detail kebutuhan dicek", "Teknisi internal ditugaskan", "Status bisa dilacak"].map((item, index) => (
+              {["Pesanan diterima SERJAFAN", "Detail kebutuhan dicek", "Teknisi lapangan ditugaskan", "Status bisa dilacak"].map((item, index) => (
                 <div key={item} className="flex items-center gap-3 rounded-[14px] bg-slate-50 p-3">
                   <span className="flex h-7 w-7 items-center justify-center rounded-full bg-[#0d47d9] text-xs font-black text-white">{index + 1}</span>
                   <span className="text-sm font-bold text-slate-700">{item}</span>
                 </div>
               ))}
             </div>
-            <Button className="mt-5 h-12 w-full rounded-2xl bg-[#0d47d9] text-sm font-black text-white hover:bg-[#003cb5]" onClick={() => onSelectPartner(assignedTechnician)}>
+            <Button className="mt-5 h-12 w-full rounded-2xl bg-[#0d47d9] text-sm font-black text-white hover:bg-[#003cb5]" onClick={() => onSelectPartner(operationalRequest)}>
               Isi Detail Kebutuhan <ChevronRight className="h-4 w-4" />
             </Button>
           </div>
-        ) : (
-          <div className="rounded-[20px] bg-white p-5 text-center shadow-soft">
-            <span className="mx-auto flex h-14 w-14 items-center justify-center rounded-[18px] bg-orange-50 text-flame">
-              <Inbox className="h-7 w-7" />
-            </span>
-            <h2 className="mt-3 text-base font-black">Tim SERJAFAN belum tersedia untuk layanan ini</h2>
-            <p className="mt-2 text-xs leading-5 text-slate-500">
-              Layanan akan aktif setelah admin menambahkan teknisi internal yang terverifikasi dan siap menerima penugasan.
-            </p>
-          </div>
-        )}
       </div>
     </section>
   );
@@ -3532,7 +3513,7 @@ function OrderFlow({
 }) {
   const [editor, setEditor] = useState<"address" | "schedule" | "note" | null>(null);
   const total = orderTotal(draft);
-  const partnerDirectPaymentReady = hasPartnerDirectPayment(partner);
+  const manualPaymentReady = Boolean(settings.manualBankAccount.trim() || settings.manualDanaNumber.trim());
   const paymentLabel = (name: PayMethod) => (name === "Transfer Bank/DANA Mitra" ? "Transfer Manual SERJAFAN" : name);
   const payments: { name: PayMethod; Icon: React.ElementType }[] = [
     { name: "SERJAFAN Pay", Icon: Wallet },
@@ -3608,7 +3589,7 @@ function OrderFlow({
       <Label>Metode Pembayaran</Label>
       <div className="mb-4 grid grid-cols-1 gap-2 min-[380px]:grid-cols-3">
         {payments.map(({ name, Icon }) => {
-          const disabled = name === "Transfer Bank/DANA Mitra" && !partnerDirectPaymentReady;
+          const disabled = name === "Transfer Bank/DANA Mitra" && !manualPaymentReady;
           return (
           <button
             key={name}
@@ -3670,20 +3651,20 @@ function OrderFlow({
         {draft.paymentMethod === "Transfer Bank/DANA Mitra" && (
           <div className="mt-3 rounded-[14px] bg-white p-3 text-[11px] font-bold leading-5 text-slate-600">
             <p className="text-navy">Customer mengikuti instruksi pembayaran manual SERJAFAN. Bukti transfer dikirim ke SERJAFAN agar admin dapat memverifikasi dan meneruskan proses layanan.</p>
-            {hasCompletePartnerBank(partner) && (
+            {settings.manualBankAccount.trim() && (
               <div className="mt-2 rounded-[10px] bg-cloud p-2">
-                <p>Bank operasional: <span className="text-navy">{partner.paymentBankName || "Bank SERJAFAN"}</span></p>
-                <p>Rekening: <span className="text-navy">{partner.paymentBankAccount}</span></p>
-                <p>Nama: <span className="text-navy">{partner.paymentBankHolder || "SERJAFAN"}</span></p>
+                <p>Bank operasional: <span className="text-navy">{settings.manualBankName || "Bank SERJAFAN"}</span></p>
+                <p>Rekening: <span className="text-navy">{settings.manualBankAccount}</span></p>
+                <p>Nama: <span className="text-navy">{settings.manualBankHolder || "SERJAFAN"}</span></p>
               </div>
             )}
-            {hasCompletePartnerDana(partner) && (
+            {settings.manualDanaNumber.trim() && (
               <div className="mt-2 rounded-[10px] bg-cloud p-2">
-                <p>DANA: <span className="text-navy">{partner.paymentDanaNumber}</span></p>
-                <p>Nama: <span className="text-navy">{partner.paymentDanaName || "SERJAFAN"}</span></p>
+                <p>DANA: <span className="text-navy">{settings.manualDanaNumber}</span></p>
+                <p>Nama: <span className="text-navy">{settings.manualDanaName || "SERJAFAN"}</span></p>
               </div>
             )}
-            {!partnerDirectPaymentReady && <p className="mt-2 text-red-600">Data pembayaran manual SERJAFAN belum lengkap. Pilih SERJAFAN Pay atau tunai jika tersedia.</p>}
+            {!manualPaymentReady && <p className="mt-2 text-red-600">Data pembayaran manual SERJAFAN belum lengkap. Admin perlu mengisi rekening atau DANA.</p>}
           </div>
         )}
         {draft.paymentMethod === "Tunai" && (

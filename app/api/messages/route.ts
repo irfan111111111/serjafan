@@ -91,9 +91,11 @@ export async function POST(request: Request) {
 
     if (order) {
       if (session.user.role === "CUSTOMER") {
-        const partner = await db.query.partnerProfiles.findFirst({
-          where: eq(partnerProfiles.id, order.partnerId)
-        });
+        const partner = order.partnerId
+          ? await db.query.partnerProfiles.findFirst({
+              where: eq(partnerProfiles.id, order.partnerId)
+            })
+          : null;
         const admins = await db.select().from(user).where(eq(user.role, "ADMIN")).limit(1);
         recipientId = admins[0]?.id;
         title = `SERJAFAN Support - ${partner?.category ?? "Layanan"}`;
@@ -104,6 +106,7 @@ export async function POST(request: Request) {
           serviceName: partner?.category
         };
       } else if (session.user.role === "PARTNER") {
+        if (!order.partnerId) return fail("Pesanan ini belum ditugaskan ke teknisi.", 403);
         const partner = await db.query.partnerProfiles.findFirst({
           where: eq(partnerProfiles.id, order.partnerId)
         });
@@ -118,9 +121,11 @@ export async function POST(request: Request) {
           serviceName: partner?.category
         };
       } else {
-        const partner = await db.query.partnerProfiles.findFirst({
-          where: eq(partnerProfiles.id, order.partnerId)
-        });
+        const partner = order.partnerId
+          ? await db.query.partnerProfiles.findFirst({
+              where: eq(partnerProfiles.id, order.partnerId)
+            })
+          : null;
         recipientId = order.customerId;
         title = `SERJAFAN Support - ${partner?.category ?? "Layanan"}`;
         orderMeta = {

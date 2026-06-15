@@ -31,6 +31,17 @@ function finishDirectTransferOrder(partnerDepositBalance, orderTotal) {
   };
 }
 
+function createManagedServiceOrder({ serviceCategoryId, addressTitle, partnerId }) {
+  if (!serviceCategoryId) return { ok: false, reason: "SERVICE_REQUIRED" };
+  if (!addressTitle) return { ok: false, reason: "ADDRESS_REQUIRED" };
+  return {
+    ok: true,
+    partnerId: partnerId || null,
+    status: "PENDING",
+    nextAction: partnerId ? "NOTIFY_ASSIGNED_TECHNICIAN" : "ADMIN_FOLLOW_UP_CUSTOMER"
+  };
+}
+
 test("partner cannot receive customers before minimum verified deposit", () => {
   assert.equal(canPartnerReceiveCustomer(0), false);
   assert.equal(canPartnerReceiveCustomer(19_999), false);
@@ -64,6 +75,18 @@ test("direct transfer or cash order charges partner deposit and can force offlin
     reason: "INSUFFICIENT_COMMISSION_DEPOSIT",
     commission: 10_000,
     nextBalance: 9_000
+  });
+});
+
+test("customer can create managed service order before technician assignment", () => {
+  assert.deepEqual(createManagedServiceOrder({
+    serviceCategoryId: "SC-DUPLIKAT-KUNCI",
+    addressTitle: "Sawahan, Kota Padang"
+  }), {
+    ok: true,
+    partnerId: null,
+    status: "PENDING",
+    nextAction: "ADMIN_FOLLOW_UP_CUSTOMER"
   });
 });
 
