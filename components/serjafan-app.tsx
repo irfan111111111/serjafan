@@ -955,7 +955,9 @@ export function AppLauncher() {
           <div className="relative mx-auto w-full max-w-[440px] md:pt-10">
             <div className="absolute -right-8 top-2 h-28 w-28 rounded-full bg-[#ffd54a]/30 blur-3xl" />
             <div className="relative overflow-hidden rounded-[32px] border border-white/18 bg-white p-5 text-slate-950 shadow-[0_26px_70px_rgba(0,0,0,0.28)]">
-              <img src="/rumah-gadang-padang.svg" alt="Rumah Gadang Padang" className="absolute right-0 top-0 h-40 w-44 object-cover opacity-90" />
+              <img src="/rumah-gadang-padang-real.jfif" alt="Rumah Gadang Padang" className="absolute inset-y-0 right-0 h-full w-[48%] object-cover object-center opacity-95" />
+              <div className="absolute inset-y-0 right-0 w-[64%] bg-gradient-to-r from-white via-white/90 to-white/18" />
+              <div className="absolute right-4 top-4 h-20 w-20 rounded-full bg-[#ffd54a]/20 blur-2xl" />
               <div className="relative max-w-[270px]">
                 <p className="text-xs font-black uppercase tracking-[0.16em] text-[#0d47d9]">Alur layanan nyata</p>
                 <h2 className="mt-2 text-2xl font-black leading-tight">Customer pesan, SERJAFAN yang mengatur.</h2>
@@ -2685,11 +2687,12 @@ function CustomerHome({
         <Card className="mt-5 h-[160px] overflow-hidden rounded-[20px] border-0 bg-gradient-to-br from-[#0f5bff] to-[#003ccf] shadow-[0_16px_34px_rgba(13,71,217,0.18)]">
           <CardContent className="relative h-full p-0">
           <img
-            src="/rumah-gadang-padang.svg"
+            src="/rumah-gadang-padang-real.jfif"
             alt="Rumah Gadang Padang"
-            className="absolute inset-y-0 right-0 h-full w-[50%] rounded-r-[20px] object-cover object-center"
+            className="absolute inset-y-0 right-0 h-full w-[52%] rounded-r-[20px] object-cover object-center"
           />
-          <div className="absolute inset-y-0 left-0 w-[66%] bg-gradient-to-r from-[#0f5bff] via-[#0f5bff]/96 to-[#0f5bff]/18" />
+          <div className="absolute inset-0 bg-gradient-to-r from-[#0f5bff] via-[#0f5bff]/92 to-[#0f5bff]/8" />
+          <div className="absolute inset-y-0 right-0 w-[35%] bg-gradient-to-l from-transparent to-[#0f5bff]/18" />
           <div className="relative flex h-full max-w-[64%] flex-col justify-center px-5">
             <h1 className="line-clamp-2 text-[32px] font-black leading-none tracking-tight text-white">{heroTitle}</h1>
             <p className="mt-2 text-[24px] font-extrabold leading-tight text-[#ffd54a]">Dalam Satu Aplikasi</p>
