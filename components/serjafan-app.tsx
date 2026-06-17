@@ -2730,6 +2730,28 @@ function CustomerHome({
 
         <PromoShowcase promos={promos} onOpenPartnerList={openCategory} />
 
+        <Card className="mt-4 rounded-[22px] border-0 bg-white shadow-[0_10px_28px_rgba(15,23,42,0.07)] ring-1 ring-slate-100">
+          <CardContent className="p-4">
+            <div className="flex items-start gap-3">
+              <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-[#eef4ff] text-[#0d47d9]">
+                <Sparkles className="h-6 w-6" />
+              </span>
+              <div className="min-w-0">
+                <h2 className="text-base font-black text-slate-950">Mulai dari sini</h2>
+                <p className="mt-1 text-xs font-semibold leading-5 text-slate-500">Pilih layanan, tulis kebutuhan, lalu admin SERJAFAN akan menghubungi Anda untuk memastikan detail dan jadwal.</p>
+              </div>
+            </div>
+            <div className="mt-4 grid grid-cols-2 gap-2">
+              <Button type="button" variant="navy" className="rounded-[14px]" onClick={() => openCategory()}>
+                <ShoppingBag className="h-4 w-4" /> Pesan Jasa
+              </Button>
+              <Button type="button" variant="outline" className="rounded-[14px] border-2 border-[#0d47d9] text-[#0d47d9]" onClick={onOpenSearch}>
+                <Search className="h-4 w-4" /> Cari Layanan
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+
         <Card className="mt-4 rounded-[24px] border-0 bg-white shadow-[0_10px_28px_rgba(15,23,42,0.08)] ring-1 ring-slate-100">
           <CardContent className="p-5">
           <div className="mb-6 flex items-center justify-between">
@@ -4887,6 +4909,24 @@ function AdminDashboard({
   const pendingOrders = dashboard?.pendingOrders ?? liveOrders.filter((order) => order.status === "PENDING").length;
   const completedThisMonth = dashboard?.completedThisMonth ?? 0;
   const cancelledThisMonth = dashboard?.cancelledThisMonth ?? 0;
+  const cleanPhone = (value?: string | null) => value?.replace(/[^\d+]/g, "") ?? "";
+  const contactCustomer = (phone?: string | null, orderId?: string, mode: "call" | "wa" = "call") => {
+    const normalized = cleanPhone(phone);
+    if (!normalized) return;
+    if (mode === "wa") {
+      const waNumber = normalized.startsWith("0") ? `62${normalized.slice(1)}` : normalized.replace(/^\+/, "");
+      window.location.href = `https://wa.me/${waNumber}?text=${encodeURIComponent(`Halo, kami dari SERJAFAN. Kami ingin konfirmasi pesanan ${orderId ?? ""}.`)}`;
+      return;
+    }
+    window.location.href = `tel:${normalized}`;
+  };
+  const copyOrderId = async (orderId: string) => {
+    try {
+      await navigator.clipboard.writeText(orderId);
+    } catch {
+      window.prompt("Salin nomor order:", orderId);
+    }
+  };
 
   return (
     <section className="animate-in fade-in slide-in-from-bottom-3 duration-300">
@@ -5000,7 +5040,18 @@ function AdminDashboard({
                   <span className="truncate min-[420px]:col-span-2">Alamat: <strong className="text-navy">{order.addressTitle || order.customerLocation || "Belum ada"}</strong></span>
                 </div>
                 {order.note && <p className="mt-3 rounded-[14px] bg-amber-50 p-3 text-[11px] font-bold leading-5 text-amber-800">Catatan customer: {order.note}</p>}
-                <div className="mt-3 grid grid-cols-1 gap-2 min-[360px]:grid-cols-2">
+                <div className="mt-3 grid grid-cols-3 gap-2">
+                  <Button variant="outline" className="border-2 border-[#0d47d9] px-2 text-[11px] text-[#0d47d9]" disabled={!order.customerPhone} onClick={() => contactCustomer(order.customerPhone, order.id, "call")}>
+                    <Phone className="h-4 w-4" /> Telepon
+                  </Button>
+                  <Button variant="outline" className="border-2 border-emerald-600 px-2 text-[11px] text-emerald-700" disabled={!order.customerPhone} onClick={() => contactCustomer(order.customerPhone, order.id, "wa")}>
+                    <MessageCircle className="h-4 w-4" /> WA
+                  </Button>
+                  <Button variant="outline" className="border-2 border-slate-300 px-2 text-[11px] text-slate-700" onClick={() => void copyOrderId(order.id)}>
+                    <ListOrdered className="h-4 w-4" /> Salin
+                  </Button>
+                </div>
+                <div className="mt-2 grid grid-cols-1 gap-2 min-[360px]:grid-cols-2">
                   {actionPlan(order.status).map((action) => {
                     const key = `${order.id}:${action.next}`;
                     return (
