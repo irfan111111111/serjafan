@@ -907,13 +907,6 @@ export function AppLauncher() {
       ]
     }
   ];
-  const landingServices = services.slice(0, 8);
-  const landingStats = [
-    { value: "Kota Padang", label: "fokus area layanan" },
-    { value: `${landingServices.length}+`, label: "kategori jasa dapat dipesan" },
-    { value: "Admin", label: "semua order diproses tim SERJAFAN" },
-    { value: "CS", label: "customer berkomunikasi dengan SERJAFAN" }
-  ];
   const infoMenus = [
     {
       title: "Apa itu SERJAFAN?",
@@ -928,25 +921,6 @@ export function AppLauncher() {
       body: "Buka Customer, isi nama, nomor HP, dan alamat lengkap. Pilih jasa, isi detail kebutuhan, kirim pesanan, lalu tunggu admin SERJAFAN menghubungi dan memproses order."
     }
   ];
-  const valueProps = [
-    { Icon: Phone, title: "Respon dari tim SERJAFAN", body: "Customer cukup kirim kebutuhan. Tim SERJAFAN menghubungi customer, mencatat detail, dan mengatur teknisi lapangan." },
-    { Icon: ShieldCheck, title: "Teknisi ditugaskan oleh SERJAFAN", body: "Customer tidak memilih teknisi sendiri. SERJAFAN menugaskan teknisi yang sesuai agar kualitas tetap terkontrol." },
-    { Icon: Wallet, title: "Pembayaran dipantau admin", body: "SERJAFAN mengelola instruksi pembayaran, bukti transfer, tunai, riwayat saldo, dan pemantauan pembayaran." }
-  ];
-  const steps = ["Pilih layanan", "Isi detail kebutuhan", "Tim SERJAFAN menghubungi Anda", "Teknisi ditugaskan", "Pekerjaan selesai"];
-  const faqs = [
-    { q: "Bagaimana cara pesan jasa di SERJAFAN?", a: "Buka aplikasi customer, isi data pelanggan, pilih layanan, isi detail kebutuhan, lalu kirim pesanan ke SERJAFAN." },
-    { q: "Apakah customer memilih teknisi?", a: "Tidak. SERJAFAN menerima order, menghubungi customer bila perlu, lalu menugaskan teknisi lapangan yang sesuai." },
-    { q: "Bagaimana pembayaran dilakukan?", a: "Pembayaran dikelola SERJAFAN melalui metode yang tersedia seperti saldo SERJAFAN, transfer manual, atau tunai sesuai kebijakan layanan." },
-    { q: "Bagaimana jika ada kendala?", a: "Customer berkomunikasi dengan SERJAFAN. Admin memantau pesanan, teknisi, pembayaran, dan komplain." }
-  ];
-  const seoLinks = [
-    { href: "/layanan/service-ac-padang", label: "Service AC Padang" },
-    { href: "/layanan/tukang-kunci-padang", label: "Tukang Kunci Padang" },
-    { href: "/layanan/cuci-sepatu-padang", label: "Cuci Sepatu Padang" },
-    { href: "/layanan/cleaning-service-padang", label: "Cleaning Service Padang" }
-  ];
-
   return (
     <main className="min-h-screen overflow-hidden bg-[#f5f7fb] text-slate-950">
       <section className="relative bg-gradient-to-br from-[#061b56] via-[#0d47d9] to-[#003cb5] text-white">
@@ -1021,24 +995,54 @@ export function AppLauncher() {
             </div>
           </div>
         </div>
-        <div className="relative mx-auto grid max-w-6xl grid-cols-2 gap-3 px-4 pb-8 sm:grid-cols-4 md:px-6">
-          {landingStats.map((item) => (
-            <div key={item.label} className="rounded-[20px] border border-white/15 bg-white/10 p-4 backdrop-blur">
-              <p className="text-2xl font-black">{item.value}</p>
-              <p className="mt-1 text-[11px] font-bold leading-4 text-white/70">{item.label}</p>
-            </div>
-          ))}
-        </div>
       </section>
 
       <div className="mx-auto max-w-6xl px-4 py-8 md:px-6">
-        <section className="rounded-[28px] bg-white p-5 shadow-[0_16px_34px_rgba(15,23,42,0.07)] ring-1 ring-slate-100">
+        <section className="rounded-[30px] bg-white p-5 shadow-[0_18px_45px_rgba(15,23,42,0.08)] ring-1 ring-slate-100">
+          <div className="mb-4">
+            <p className="text-xs font-black uppercase tracking-[0.14em] text-[#0d47d9]">Pilih aplikasi</p>
+            <h2 className="mt-1 text-2xl font-black">Masuk sesuai kebutuhan Anda.</h2>
+            <p className="mt-2 text-sm font-semibold leading-6 text-slate-500">Customer untuk pesan jasa. Admin untuk mengatur order, jasa, promo, pembayaran, dan bantuan.</p>
+          </div>
+          <div className="grid gap-3 md:grid-cols-2">
+          {apps.map(({ href, title, description, Icon, tone, actions }) => (
+            <div key={href} className="group relative overflow-hidden rounded-[24px] border border-slate-100 bg-[#f8fbff] p-4 shadow-soft transition hover:-translate-y-0.5 hover:shadow-[0_18px_38px_rgba(13,71,217,0.12)]">
+              <div className="absolute -right-8 -top-10 h-28 w-28 rounded-full bg-[#0d47d9]/10" />
+              <div className="relative flex items-start gap-3">
+                <span className={cn("flex h-14 w-14 shrink-0 items-center justify-center rounded-[18px]", tone)}>
+                  <Icon className="h-6 w-6" />
+                </span>
+                <div className="min-w-0">
+                  <h2 className="text-base font-black">{title}</h2>
+                  <p className="mt-2 text-xs font-semibold leading-5 text-slate-500">{description}</p>
+                </div>
+              </div>
+              <div className="mt-4 grid gap-2">
+                {actions.map((action) => (
+                  <Link
+                    key={action.href}
+                    href={action.href}
+                    className={cn(
+                      "inline-flex h-11 items-center justify-center gap-1 rounded-[14px] text-xs font-black transition",
+                      action.primary ? "bg-[#0d47d9] text-white hover:bg-[#003cb5]" : "border border-slate-200 bg-white text-navy hover:bg-slate-50"
+                    )}
+                  >
+                    {action.label} <ChevronRight className="h-4 w-4" />
+                  </Link>
+                ))}
+              </div>
+            </div>
+          ))}
+          </div>
+        </section>
+
+        <section className="mt-6 rounded-[30px] bg-white p-5 shadow-[0_18px_45px_rgba(15,23,42,0.08)] ring-1 ring-slate-100">
           <div className="mb-5 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
             <div>
               <p className="text-xs font-black uppercase tracking-[0.14em] text-[#0d47d9]">Panduan singkat</p>
-              <h2 className="mt-1 text-2xl font-black">Pahami SERJAFAN, lalu mulai pesan jasa.</h2>
+              <h2 className="mt-1 text-2xl font-black">Pahami SERJAFAN dalam satu menit.</h2>
             </div>
-            <Link href="/customer" className="inline-flex h-10 items-center justify-center rounded-full bg-[#ffd54a] px-4 text-sm font-black text-slate-950">Buka Customer</Link>
+            <Link href="/customer" className="inline-flex h-10 items-center justify-center rounded-full bg-[#ffd54a] px-4 text-sm font-black text-slate-950">Mulai Pesan</Link>
           </div>
           <div className="grid gap-3 lg:grid-cols-3">
             {infoMenus.map((item) => (
@@ -1051,168 +1055,19 @@ export function AppLauncher() {
               </details>
             ))}
           </div>
-          <div className="mt-5 rounded-[22px] bg-gradient-to-br from-[#0d47d9] to-[#003cb5] p-4 text-white">
-            <p className="text-xs font-black uppercase tracking-[0.14em] text-[#ffd54a]">Mulai dari sini</p>
-            <div className="mt-2 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-              <p className="max-w-2xl text-sm font-semibold leading-6 text-white/85">
-                Untuk customer, proses dibuat sederhana: isi data, pilih jasa, kirim kebutuhan, lalu admin SERJAFAN memproses pesanan.
-              </p>
-              <Link href="/customer" className="inline-flex h-11 shrink-0 items-center justify-center rounded-full bg-[#ffd54a] px-5 text-sm font-black text-slate-950">
-                Mulai Pemesanan
-              </Link>
-            </div>
-          </div>
         </section>
 
-        <section className="mt-6 grid gap-3 md:grid-cols-3">
-          {valueProps.map(({ Icon, title, body }) => (
-            <div key={title} className="rounded-[24px] bg-white p-5 shadow-[0_16px_34px_rgba(15,23,42,0.07)] ring-1 ring-slate-100">
-              <span className="flex h-12 w-12 items-center justify-center rounded-[16px] bg-[#eef4ff] text-[#0d47d9]">
-                <Icon className="h-6 w-6" />
-              </span>
-              <h2 className="mt-4 text-base font-black">{title}</h2>
-              <p className="mt-2 text-sm leading-6 text-slate-500">{body}</p>
-            </div>
-          ))}
-        </section>
-
-        <section className="mt-6 rounded-[28px] bg-white p-5 shadow-[0_16px_34px_rgba(15,23,42,0.07)] ring-1 ring-slate-100">
-          <div className="mb-4 flex items-center justify-between">
-            <div>
-              <p className="text-xs font-black uppercase tracking-[0.14em] text-[#0d47d9]">Kategori utama</p>
-              <h2 className="mt-1 text-2xl font-black">Jasa yang paling sering dicari di Padang</h2>
-            </div>
-            <Link href="/customer" className="hidden rounded-full bg-[#eef4ff] px-4 py-2 text-sm font-black text-[#0d47d9] sm:inline-flex">Lihat Semua</Link>
-          </div>
-          <div className="grid grid-cols-2 gap-3 min-[520px]:grid-cols-4">
-            {landingServices.map((service) => {
-              const Icon = service.icon;
-              return (
-                <Link key={service.name} href="/customer" className="group flex items-center gap-3 rounded-[18px] bg-[#f7faff] p-3 transition hover:-translate-y-0.5 hover:bg-[#eef4ff]">
-                  <span className="flex h-12 w-12 items-center justify-center rounded-full bg-white text-[#0d47d9] shadow-sm">
-                    <Icon className="h-6 w-6" />
-                  </span>
-                  <span className="text-sm font-black">{customerCategoryLabel(service.name)}</span>
-                </Link>
-              );
-            })}
-          </div>
-        </section>
-
-        <section className="mt-6 grid gap-5 lg:grid-cols-[1fr_0.9fr]">
-          <div className="rounded-[28px] bg-white p-5 shadow-[0_16px_34px_rgba(15,23,42,0.07)] ring-1 ring-slate-100">
-            <p className="text-xs font-black uppercase tracking-[0.14em] text-[#0d47d9]">Cara kerja</p>
-            <h2 className="mt-1 text-2xl font-black">Dari pesan sampai selesai, alurnya jelas.</h2>
-            <div className="mt-5 grid gap-3 sm:grid-cols-5">
-            {steps.map((step, index) => (
-              <div key={step} className="relative rounded-[18px] border border-slate-100 bg-slate-50 p-4">
-                <span className="flex h-9 w-9 items-center justify-center rounded-full bg-[#0d47d9] text-xs font-black text-white">{index + 1}</span>
-                <p className="mt-3 text-sm font-black leading-5">{step}</p>
-                {index < steps.length - 1 && <span className="absolute -right-2 top-8 hidden h-0.5 w-4 bg-[#0d47d9]/30 sm:block" />}
-              </div>
-            ))}
-            </div>
-          </div>
-
-          <div className="rounded-[28px] bg-[#071f5c] p-5 text-white shadow-[0_16px_34px_rgba(15,23,42,0.12)]">
-            <p className="text-xs font-black uppercase tracking-[0.14em] text-[#ffd54a]">Fokus awal</p>
-            <h2 className="mt-2 text-2xl font-black">Mulai dari layanan yang paling dibutuhkan.</h2>
-            <div className="mt-5 space-y-3">
-              {["Tukang Kunci Padang", "Service AC Padang", "Cleaning Service Padang"].map((item) => (
-                <div key={item} className="flex items-center gap-3 rounded-[18px] bg-white/10 p-3">
-                  <Check className="h-5 w-5 text-[#ffd54a]" />
-                  <span className="text-sm font-black">{item}</span>
-                </div>
-              ))}
-            </div>
-            <Link href="/customer" className="mt-5 inline-flex h-11 items-center justify-center rounded-full bg-[#ffd54a] px-5 text-sm font-black text-slate-950">
-              Coba Pesan Sekarang
-            </Link>
-          </div>
-        </section>
-
-        <section className="mt-6 rounded-[28px] bg-white p-5 shadow-[0_16px_34px_rgba(15,23,42,0.07)] ring-1 ring-slate-100">
-          <div className="mb-4">
-            <p className="text-xs font-black uppercase tracking-[0.14em] text-[#0d47d9]">Aplikasi SERJAFAN</p>
-            <h2 className="mt-1 text-2xl font-black">Untuk V1, customer dan admin operasional dibuat paling kuat dulu.</h2>
-            <p className="mt-2 text-sm leading-6 text-slate-500">Customer hanya berhubungan dengan SERJAFAN. Tim admin menerima order, menghubungi customer, lalu menugaskan teknisi lapangan secara operasional.</p>
-          </div>
-          <div className="grid gap-3 md:grid-cols-2">
-          {apps.map(({ href, title, description, Icon, tone, actions }) => (
-            <div key={href} className="rounded-[20px] border border-slate-100 bg-white p-4 shadow-soft transition hover:-translate-y-0.5">
-              <span className={cn("mb-4 flex h-12 w-12 items-center justify-center rounded-[14px]", tone)}>
-                <Icon className="h-6 w-6" />
-              </span>
-              <h2 className="text-base font-extrabold">{title}</h2>
-              <p className="mt-2 text-xs leading-5 text-slate-500">{description}</p>
-              <div className="mt-4 grid gap-2">
-                {actions.map((action) => (
-                  <Link
-                    key={action.href}
-                    href={action.href}
-                    className={cn(
-                      "inline-flex h-10 items-center justify-center gap-1 rounded-[12px] text-xs font-extrabold",
-                      action.primary ? "bg-navy text-white" : "border border-slate-200 text-navy"
-                    )}
-                  >
-                    {action.label} <ChevronRight className="h-4 w-4" />
-                  </Link>
-                ))}
-              </div>
-            </div>
-          ))}
-          </div>
-        </section>
-
-        <section className="mt-6 grid gap-5 lg:grid-cols-[0.9fr_1fr]">
-          <div className="rounded-[28px] bg-gradient-to-br from-[#0d47d9] to-[#003cb5] p-5 text-white shadow-[0_16px_34px_rgba(13,71,217,0.18)]">
-            <p className="text-xs font-black uppercase tracking-[0.14em] text-[#ffd54a]">Call to action</p>
-            <h2 className="mt-2 text-3xl font-black leading-tight">Siap bikin pemesanan pertama lebih meyakinkan?</h2>
-            <p className="mt-3 text-sm font-semibold leading-6 text-white/78">Mulai dari layanan utama, terima order dari customer, hubungi customer lewat admin, lalu tim SERJAFAN menugaskan teknisi lapangan yang sesuai.</p>
-            <div className="mt-5 flex flex-wrap gap-2">
-              <Link href="/customer" className="inline-flex h-11 items-center justify-center rounded-full bg-[#ffd54a] px-5 text-sm font-black text-slate-950">Mulai Pesan</Link>
-              <Link href="/support" className="inline-flex h-11 items-center justify-center rounded-full border border-white/20 bg-white/10 px-5 text-sm font-black text-white">Chat Admin</Link>
-            </div>
-          </div>
-
-          <div className="rounded-[28px] bg-white p-5 shadow-[0_16px_34px_rgba(15,23,42,0.07)] ring-1 ring-slate-100">
-            <p className="text-xs font-black uppercase tracking-[0.14em] text-[#0d47d9]">FAQ</p>
-            <h2 className="mt-1 text-2xl font-black">Pertanyaan umum</h2>
-            <div className="mt-4 space-y-3">
-              {faqs.map((item) => (
-                <details key={item.q} className="group rounded-[18px] bg-[#f8fbff] p-4">
-                  <summary className="cursor-pointer list-none text-sm font-black text-slate-950">{item.q}</summary>
-                  <p className="mt-2 text-sm leading-6 text-slate-600">{item.a}</p>
-                </details>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        <section className="mt-6 rounded-[28px] bg-white p-5 shadow-[0_16px_34px_rgba(15,23,42,0.07)] ring-1 ring-slate-100">
-          <p className="text-xs font-black uppercase tracking-[0.14em] text-[#0d47d9]">SEO lokal</p>
-          <h2 className="mt-1 text-2xl font-black">Halaman layanan untuk pencarian Google</h2>
-          <p className="mt-2 text-sm leading-6 text-slate-500">Dibuat khusus untuk keyword jasa lokal di Padang agar SERJAFAN lebih mudah ditemukan.</p>
-          <div className="mt-4 flex flex-wrap gap-2">
-            {seoLinks.map((item) => (
-              <Link key={item.href} href={item.href} className="rounded-full bg-[#eef4ff] px-4 py-2 text-sm font-black text-[#0d47d9]">
-                {item.label}
-              </Link>
-            ))}
-          </div>
-        </section>
-
-        <div className="mt-6 flex flex-wrap justify-center gap-3 text-xs font-semibold text-slate-500">
-          <Link href="/terms" className="hover:text-flame">
+        <div className="mt-6 grid grid-cols-2 gap-3 pb-2 text-sm font-black text-slate-600 sm:flex sm:flex-wrap sm:justify-center">
+          <Link href="/terms" className="rounded-[16px] bg-white px-4 py-3 text-center shadow-soft ring-1 ring-slate-100 transition hover:-translate-y-0.5 hover:text-[#0d47d9]">
             Syarat
           </Link>
-          <Link href="/privacy" className="hover:text-flame">
+          <Link href="/privacy" className="rounded-[16px] bg-white px-4 py-3 text-center shadow-soft ring-1 ring-slate-100 transition hover:-translate-y-0.5 hover:text-[#0d47d9]">
             Privasi
           </Link>
-          <Link href="/refund" className="hover:text-flame">
+          <Link href="/refund" className="rounded-[16px] bg-white px-4 py-3 text-center shadow-soft ring-1 ring-slate-100 transition hover:-translate-y-0.5 hover:text-[#0d47d9]">
             Refund
           </Link>
-          <Link href="/support" className="hover:text-flame">
+          <Link href="/support" className="rounded-[16px] bg-white px-4 py-3 text-center shadow-soft ring-1 ring-slate-100 transition hover:-translate-y-0.5 hover:text-[#0d47d9]">
             Bantuan
           </Link>
         </div>
