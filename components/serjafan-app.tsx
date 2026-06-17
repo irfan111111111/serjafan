@@ -1906,6 +1906,21 @@ export function SerjafanApp({ appRole = "switcher" }: { appRole?: AppRole }) {
     }
   };
 
+  const processAdminOrder = async (orderId: string, status: "CONFIRMED" | "PARTNER_READY" | "ON_THE_WAY" | "DONE" | "CANCELLED") => {
+    try {
+      const response = await apiFetch(`/api/admin/orders/${orderId}/status`, "ADMIN", {
+        method: "POST",
+        body: JSON.stringify({ status })
+      });
+      const result = (await parseJsonResponse(response)) as { error?: { message?: string } };
+      if (!response.ok) throw new Error(result.error?.message ?? "Gagal memproses pesanan.");
+      notify("success", `Pesanan ${orderId} berhasil diperbarui.`);
+      await loadAdminData(true);
+    } catch (error) {
+      notify("error", error instanceof Error ? error.message : "Gagal memproses pesanan.");
+    }
+  };
+
   const updatePartnerOnline = async (online: boolean) => {
     if (online && partnerWalletBalance < 20000) {
       notify("error", "Top up deposit teknisi minimal Rp 20.000 dulu sebelum bisa menerima tugas SERJAFAN.");
@@ -2593,6 +2608,7 @@ export function SerjafanApp({ appRole = "switcher" }: { appRole?: AppRole }) {
             onUpdatePartner={updateAdminPartner}
             onDeletePartner={deleteAdminPartner}
             onAdjustWallet={(payload) => void adjustAdminWallet(payload)}
+            onProcessOrder={processAdminOrder}
             onOpenMessages={() => void openMessages()}
             onOpenNotificationSettings={() => setDrawer("notificationSettings")}
           />
@@ -4798,6 +4814,7 @@ function AdminDashboard({
   onUpdatePartner,
   onDeletePartner,
   onAdjustWallet,
+  onProcessOrder,
   onOpenMessages,
   onOpenNotificationSettings
 }: {
@@ -4818,9 +4835,35 @@ function AdminDashboard({
   onUpdatePartner: (partnerId: string, payload: any) => Promise<void>;
   onDeletePartner: (partnerId: string) => Promise<void>;
   onAdjustWallet: (payload: { userId?: string; amount?: number; description: string; action?: "ADJUST" | "APPROVE_TOPUP" | "REJECT_TOPUP"; paymentIntentId?: string }) => void;
+  onProcessOrder: (orderId: string, status: "CONFIRMED" | "PARTNER_READY" | "ON_THE_WAY" | "DONE" | "CANCELLED") => Promise<void>;
   onOpenMessages: () => void;
   onOpenNotificationSettings: () => void;
 }) {
+  const [processingOrderId, setProcessingOrderId] = useState<string | null>(null);
+  const runOrderAction = async (orderId: string, status: "CONFIRMED" | "PARTNER_READY" | "ON_THE_WAY" | "DONE" | "CANCELLED") => {
+    setProcessingOrderId(`${orderId}:${status}`);
+    try {
+      await onProcessOrder(orderId, status);
+    } finally {
+      setProcessingOrderId(null);
+    }
+  };
+  const statusTone = (status: string) => {
+    if (status === "PENDING") return "bg-amber-50 text-amber-700";
+    if (status === "CONFIRMED" || status === "PARTNER_READY") return "bg-blue-50 text-blue-700";
+    if (status === "ON_THE_WAY") return "bg-orange-50 text-orange-700";
+    if (status === "DONE") return "bg-emerald-50 text-emerald-700";
+    if (status === "CANCELLED") return "bg-red-50 text-red-700";
+    return "bg-slate-100 text-slate-700";
+  };
+  const actionPlan = (status: string) => {
+    if (status === "PENDING") return [{ label: "Konfirmasi", next: "CONFIRMED" as const, variant: "orange" as const }];
+    if (status === "CONFIRMED") return [{ label: "Teknisi Siap", next: "PARTNER_READY" as const, variant: "navy" as const }];
+    if (status === "PARTNER_READY") return [{ label: "Menuju Lokasi", next: "ON_THE_WAY" as const, variant: "navy" as const }];
+    if (status === "ON_THE_WAY") return [{ label: "Selesai", next: "DONE" as const, variant: "orange" as const }];
+    return [];
+  };
+
   return (
     <section className="animate-in fade-in slide-in-from-bottom-3 duration-300">
       <div className="safe-x flex items-center justify-between gap-3 bg-navy py-4 text-white">
@@ -4874,34 +4917,57 @@ function AdminDashboard({
       <AdminMapsCenter mapData={mapData} />
 
       <div className="px-4 pb-4 sm:px-5">
-        <h2 className="mb-2 text-sm font-extrabold">Pesanan Live</h2>
-        <div className="overflow-hidden rounded-[16px] bg-white shadow-soft">
-          <div className="hidden grid-cols-[1.5fr_1fr_1fr_1fr] gap-2 bg-cloud px-4 py-2.5 text-[10px] font-extrabold uppercase text-slate-500 min-[430px]:grid">
-            <span>Pelanggan</span>
-            <span>Layanan</span>
-            <span>Total</span>
-            <span>Status</span>
+        <div className="mb-2 flex items-center justify-between gap-3">
+          <div>
+            <h2 className="text-sm font-extrabold">Pusat Proses Order</h2>
+            <p className="mt-0.5 text-[11px] font-semibold text-slate-500">Konfirmasi, jalankan, selesaikan, atau batalkan order customer.</p>
           </div>
+          <Badge variant="blue" className="shrink-0 rounded-md text-[10px]">{liveOrders.length} Live</Badge>
+        </div>
+        <div className="space-y-3">
           {loading ? (
-            <div className="p-4">
+            <div className="rounded-[18px] bg-white p-4 shadow-soft">
               <div className="h-4 animate-pulse rounded bg-slate-100" />
             </div>
           ) : (
             liveOrders.map((order) => (
-              <div key={order.id} className="border-t border-slate-100 px-3.5 py-3 text-[11px] min-[430px]:grid min-[430px]:grid-cols-[1.5fr_1fr_1fr_1fr] min-[430px]:items-center min-[430px]:gap-2 min-[430px]:py-2.5">
-                <div className="min-w-0">
-                  <span className="block truncate text-xs font-bold">{order.customerId}</span>
-                  <span className="mt-0.5 block text-[10px] text-slate-500 min-[430px]:hidden">{order.serviceCategoryId}</span>
+              <div key={order.id} className="rounded-[20px] bg-white p-4 shadow-soft ring-1 ring-slate-100">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-black text-navy">{order.serviceCategoryId || "Layanan SERJAFAN"}</p>
+                    <p className="mt-1 truncate text-[11px] font-semibold text-slate-500">Order {order.id}</p>
+                  </div>
+                  <span className={cn("shrink-0 rounded-[10px] px-3 py-1.5 text-[10px] font-black", statusTone(order.status))}>{order.status}</span>
                 </div>
-                <span className="hidden truncate text-slate-500 min-[430px]:block">{order.serviceCategoryId}</span>
-                <div className="mt-2 flex items-center justify-between gap-2 min-[430px]:mt-0 min-[430px]:contents">
-                  <span className="font-bold">Rp {formatRupiah(order.total ?? 0)}</span>
-                  <Badge variant="blue" className="justify-center px-2 text-[10px]">
-                    {order.status}
-                  </Badge>
+                <div className="mt-3 grid gap-2 rounded-[16px] bg-cloud p-3 text-[11px] font-semibold text-slate-600 min-[420px]:grid-cols-2">
+                  <span className="truncate">Customer: <strong className="text-navy">{order.customerId}</strong></span>
+                  <span className="truncate">Pembayaran: <strong className="text-navy">{order.paymentMethod}</strong></span>
+                  <span className="truncate">Total: <strong className="text-navy">Rp {formatRupiah(order.total ?? 0)}</strong></span>
+                  <span className="truncate">Alamat: <strong className="text-navy">{order.addressTitle}</strong></span>
+                </div>
+                {order.note && <p className="mt-3 rounded-[14px] bg-amber-50 p-3 text-[11px] font-bold leading-5 text-amber-800">Catatan customer: {order.note}</p>}
+                <div className="mt-3 grid grid-cols-1 gap-2 min-[360px]:grid-cols-2">
+                  {actionPlan(order.status).map((action) => {
+                    const key = `${order.id}:${action.next}`;
+                    return (
+                      <Button key={action.next} variant={action.variant} disabled={processingOrderId === key} onClick={() => void runOrderAction(order.id, action.next)}>
+                        {processingOrderId === key ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />} {action.label}
+                      </Button>
+                    );
+                  })}
+                  {!["DONE", "CANCELLED"].includes(order.status) && (
+                    <Button variant="outline" className="border-2 border-red-600 text-red-600" disabled={processingOrderId === `${order.id}:CANCELLED`} onClick={() => void runOrderAction(order.id, "CANCELLED")}>
+                      {processingOrderId === `${order.id}:CANCELLED` ? <Loader2 className="h-4 w-4 animate-spin" /> : <X className="h-4 w-4" />} Batalkan
+                    </Button>
+                  )}
                 </div>
               </div>
             ))
+          )}
+          {!loading && !liveOrders.length && (
+            <div className="rounded-[18px] bg-white p-4 text-sm font-semibold text-slate-500 shadow-soft">
+              Belum ada order live. Order customer baru akan tampil di sini untuk diproses admin.
+            </div>
           )}
         </div>
       </div>
