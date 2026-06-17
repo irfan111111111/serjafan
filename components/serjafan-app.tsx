@@ -319,6 +319,17 @@ type AdminAuditData = {
   }>;
 };
 
+type AdminDashboardData = {
+  revenueMonth: number;
+  totalOrders: number;
+  activePartners: number;
+  activeCustomers: number;
+  activeOrders?: number;
+  pendingOrders?: number;
+  completedThisMonth?: number;
+  cancelledThisMonth?: number;
+};
+
 type AdminSettings = {
   platformFee: number;
   promoCode: string;
@@ -1122,7 +1133,7 @@ export function SerjafanApp({ appRole = "switcher" }: { appRole?: AppRole }) {
   const [adminWalletData, setAdminWalletData] = useState<AdminWalletData>(initialAdminWalletData);
   const [adminAuditData, setAdminAuditData] = useState<AdminAuditData>(initialAdminAuditData);
   const [pendingPartners, setPendingPartners] = useState<any[]>([]);
-  const [adminDashboard, setAdminDashboard] = useState<{ revenueMonth: number; totalOrders: number; activePartners: number; activeCustomers: number } | null>(null);
+  const [adminDashboard, setAdminDashboard] = useState<AdminDashboardData | null>(null);
   const [adminSettings, setAdminSettings] = useState<AdminSettings>(initialAdminSettings);
   const [loadingPanel, setLoadingPanel] = useState<"notifications" | "messages" | "orders" | "partnerOrders" | "admin" | null>(null);
   const [selectedOrder, setSelectedOrder] = useState<any | null>(null);
@@ -1862,7 +1873,7 @@ export function SerjafanApp({ appRole = "switcher" }: { appRole?: AppRole }) {
   const loadAdminData = async (silent = false) => {
     if (!silent) setLoadingPanel("admin");
     try {
-      const dashboard = await readApi<{ revenueMonth: number; totalOrders: number; activePartners: number; activeCustomers: number }>("/api/admin/dashboard", "ADMIN");
+      const dashboard = await readApi<AdminDashboardData>("/api/admin/dashboard", "ADMIN");
       const liveOrders = await readApi<{ orders: any[] }>("/api/admin/orders/live", "ADMIN");
       const mapData = await readApi<AdminMapData>("/api/admin/maps", "ADMIN");
       const consoleData = await readApi<AdminConsoleData>("/api/admin/console", "ADMIN");
@@ -1879,7 +1890,7 @@ export function SerjafanApp({ appRole = "switcher" }: { appRole?: AppRole }) {
       setPendingPartners(pending.data.partners);
       setAdminSettings(settings.data.settings);
     } catch {
-      setAdminDashboard({ revenueMonth: 0, totalOrders: 0, activePartners: 0, activeCustomers: 0 });
+      setAdminDashboard({ revenueMonth: 0, totalOrders: 0, activePartners: 0, activeCustomers: 0, activeOrders: 0, pendingOrders: 0, completedThisMonth: 0, cancelledThisMonth: 0 });
       setAdminLiveOrders([]);
       setAdminMapData({ pairs: [], summary: { monitoredOrders: 0, monitoredCustomers: 0, monitoredPartners: 0 } });
       setAdminConsole(initialAdminConsole);
@@ -4818,7 +4829,7 @@ function AdminDashboard({
   onOpenMessages,
   onOpenNotificationSettings
 }: {
-  dashboard: { revenueMonth: number; totalOrders: number; activePartners: number; activeCustomers: number } | null;
+  dashboard: AdminDashboardData | null;
   liveOrders: any[];
   mapData: AdminMapData;
   consoleData: AdminConsoleData;
@@ -4863,6 +4874,19 @@ function AdminDashboard({
     if (status === "ON_THE_WAY") return [{ label: "Selesai", next: "DONE" as const, variant: "orange" as const }];
     return [];
   };
+  const statusLabel = (status: string) => {
+    if (status === "PENDING") return "Menunggu";
+    if (status === "CONFIRMED") return "Dikonfirmasi";
+    if (status === "PARTNER_READY") return "Teknisi Siap";
+    if (status === "ON_THE_WAY") return "Menuju Lokasi";
+    if (status === "DONE") return "Selesai";
+    if (status === "CANCELLED") return "Dibatalkan";
+    return status;
+  };
+  const activeOrders = dashboard?.activeOrders ?? liveOrders.length;
+  const pendingOrders = dashboard?.pendingOrders ?? liveOrders.filter((order) => order.status === "PENDING").length;
+  const completedThisMonth = dashboard?.completedThisMonth ?? 0;
+  const cancelledThisMonth = dashboard?.cancelledThisMonth ?? 0;
 
   return (
     <section className="animate-in fade-in slide-in-from-bottom-3 duration-300">
@@ -4885,12 +4909,41 @@ function AdminDashboard({
         </div>
       </div>
 
+      <div className="px-4 pt-4 sm:px-5">
+        <div className="overflow-hidden rounded-[24px] bg-gradient-to-br from-[#0D47D9] to-[#002B8F] p-4 text-white shadow-[0_18px_36px_rgba(13,71,217,0.22)]">
+          <div className="flex items-start justify-between gap-3">
+            <div>
+              <p className="text-[11px] font-black uppercase tracking-[0.16em] text-white/65">Ruang Operasional</p>
+              <h2 className="mt-1 text-xl font-black leading-tight">Proses order customer dari satu tempat.</h2>
+              <p className="mt-2 text-xs font-semibold leading-5 text-white/78">Admin menerima pesanan, menghubungi customer, menugaskan teknisi lapangan, dan menutup pekerjaan saat selesai.</p>
+            </div>
+            <div className="shrink-0 rounded-2xl bg-white/12 p-3">
+              <ListOrdered className="h-7 w-7" />
+            </div>
+          </div>
+          <div className="mt-4 grid grid-cols-3 gap-2">
+            {[
+              ["Aktif", activeOrders],
+              ["Baru", pendingOrders],
+              ["Selesai", completedThisMonth]
+            ].map(([label, value]) => (
+              <div key={label} className="rounded-2xl bg-white/12 p-3 text-center ring-1 ring-white/10">
+                <p className="text-lg font-black">{value}</p>
+                <p className="mt-0.5 text-[10px] font-bold text-white/70">{label}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
       <div className="grid grid-cols-1 gap-2.5 p-4 min-[380px]:grid-cols-2 sm:p-5">
         {[
           ["Revenue Bulan Ini", `Rp ${formatRupiah(dashboard?.revenueMonth ?? 0)}`, "berdasarkan order masuk"],
           ["Total Pesanan", `${dashboard?.totalOrders ?? 0}`, "data order asli"],
           ["Jaringan Lapangan", `${dashboard?.activePartners ?? 0}`, "internal SERJAFAN"],
-          ["Pelanggan Aktif", `${dashboard?.activeCustomers ?? 0}`, "data customer asli"]
+          ["Pelanggan Aktif", `${dashboard?.activeCustomers ?? 0}`, "data customer asli"],
+          ["Selesai Bulan Ini", `${completedThisMonth}`, "pekerjaan tuntas"],
+          ["Batal Bulan Ini", `${cancelledThisMonth}`, "dipantau admin"]
         ].map(([label, value, trend]) => (
           <Card key={label} className="rounded-[16px] border-slate-100 shadow-[0_2px_12px_rgba(11,31,58,0.06)]">
             <CardContent className="p-3">
@@ -4937,13 +4990,14 @@ function AdminDashboard({
                     <p className="truncate text-sm font-black text-navy">{order.serviceCategoryId || "Layanan SERJAFAN"}</p>
                     <p className="mt-1 truncate text-[11px] font-semibold text-slate-500">Order {order.id}</p>
                   </div>
-                  <span className={cn("shrink-0 rounded-[10px] px-3 py-1.5 text-[10px] font-black", statusTone(order.status))}>{order.status}</span>
+                  <span className={cn("shrink-0 rounded-[10px] px-3 py-1.5 text-[10px] font-black", statusTone(order.status))}>{statusLabel(order.status)}</span>
                 </div>
                 <div className="mt-3 grid gap-2 rounded-[16px] bg-cloud p-3 text-[11px] font-semibold text-slate-600 min-[420px]:grid-cols-2">
-                  <span className="truncate">Customer: <strong className="text-navy">{order.customerId}</strong></span>
+                  <span className="truncate">Customer: <strong className="text-navy">{order.customerName ?? order.customerId}</strong></span>
+                  <span className="truncate">Nomor HP: <strong className="text-navy">{order.customerPhone ?? "Belum ada"}</strong></span>
                   <span className="truncate">Pembayaran: <strong className="text-navy">{order.paymentMethod}</strong></span>
                   <span className="truncate">Total: <strong className="text-navy">Rp {formatRupiah(order.total ?? 0)}</strong></span>
-                  <span className="truncate">Alamat: <strong className="text-navy">{order.addressTitle}</strong></span>
+                  <span className="truncate min-[420px]:col-span-2">Alamat: <strong className="text-navy">{order.addressTitle || order.customerLocation || "Belum ada"}</strong></span>
                 </div>
                 {order.note && <p className="mt-3 rounded-[14px] bg-amber-50 p-3 text-[11px] font-bold leading-5 text-amber-800">Catatan customer: {order.note}</p>}
                 <div className="mt-3 grid grid-cols-1 gap-2 min-[360px]:grid-cols-2">
