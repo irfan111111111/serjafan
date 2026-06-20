@@ -530,6 +530,36 @@ function CustomerWordmark() {
   );
 }
 
+function SerjafanCareBand({ compact = false }: { compact?: boolean }) {
+  const items = [
+    ["Cepat", "Admin tanggap"],
+    ["Jelas", "Biaya tercatat"],
+    ["Aman", "Dipantau SERJAFAN"]
+  ];
+
+  return (
+    <div className={cn("overflow-hidden rounded-[22px] bg-gradient-to-br from-[#061b56] via-[#0d47d9] to-[#003cb5] text-white shadow-[0_14px_34px_rgba(13,71,217,0.20)]", compact ? "p-3" : "p-4")}>
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <p className="text-[10px] font-black uppercase tracking-[0.18em] text-[#ffd54a]">SERJAFAN Care</p>
+          <h3 className={cn("mt-1 font-black leading-tight", compact ? "text-base" : "text-lg")}>Ciri khas layanan SERJAFAN.</h3>
+        </div>
+        <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-white/12 ring-1 ring-white/15">
+          <img src="/serjafan-logo.png" alt="SERJAFAN" className="h-8 w-8 object-contain" />
+        </span>
+      </div>
+      <div className="mt-3 grid grid-cols-3 gap-2">
+        {items.map(([title, body]) => (
+          <div key={title} className="rounded-2xl bg-white/12 p-2 text-center ring-1 ring-white/10">
+            <p className="text-xs font-black">{title}</p>
+            <p className="mt-0.5 text-[9px] font-bold leading-3 text-white/70">{body}</p>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 const initialAdminSettings: AdminSettings = {
   platformFee: 3000,
   promoCode: "",
@@ -1011,6 +1041,10 @@ export function AppLauncher() {
       </section>
 
       <div className="mx-auto max-w-6xl px-4 py-8 md:px-6">
+        <section className="mb-6">
+          <SerjafanCareBand />
+        </section>
+
         <section className="rounded-[30px] bg-white p-5 shadow-[0_18px_45px_rgba(15,23,42,0.08)] ring-1 ring-slate-100">
           <div className="mb-4">
             <p className="text-xs font-black uppercase tracking-[0.14em] text-[#0d47d9]">Pilih aplikasi</p>
@@ -2752,6 +2786,10 @@ function CustomerHome({
           </CardContent>
         </Card>
 
+        <div className="mt-4">
+          <SerjafanCareBand compact />
+        </div>
+
         <Card className="mt-4 rounded-[24px] border-0 bg-white shadow-[0_10px_28px_rgba(15,23,42,0.08)] ring-1 ring-slate-100">
           <CardContent className="p-5">
           <div className="mb-6 flex items-center justify-between">
@@ -4354,6 +4392,9 @@ function CustomerAccessScreen({
           </Button>
         </div>
       </div>
+      <div className="mt-4">
+        <SerjafanCareBand compact />
+      </div>
     </section>
   );
 }
@@ -4947,6 +4988,10 @@ function AdminDashboard({
             <Bell className="h-4 w-4" /> Nada Dering
           </Button>
         </div>
+      </div>
+
+      <div className="px-4 pt-4 sm:px-5">
+        <SerjafanCareBand compact />
       </div>
 
       <div className="px-4 pt-4 sm:px-5">
