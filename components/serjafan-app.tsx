@@ -454,9 +454,26 @@ const serviceShortCopy = (service: ServiceItem) =>
     ? "Duplikat kunci rumah, motor, mobil, dan panggilan darurat."
     : service.name.toLowerCase().includes("plat")
       ? "Pembuatan dan perapian plat nomor kendaraan."
+      : serviceRequiresAdminQuote(service.name)
+        ? "Cek harga lewat WhatsApp Admin setelah kirim foto, file, atau contoh kebutuhan."
       : service.name.toLowerCase().includes("sepatu")
         ? "Cuci, deep clean, dan perawatan sepatu."
         : "Pesan layanan SERJAFAN dan tim operasional akan menugaskan teknisi internal.");
+
+const adminQuotedServicePatterns = ["kunci", "plat", "kipas", "fotokopi", "foto kopi", "fotocopy", "print", "jastip"];
+const serviceRequiresAdminQuote = (name?: string | null) => {
+  const normalized = serviceCategoryKey(name ?? "");
+  return adminQuotedServicePatterns.some((pattern) => normalized.includes(pattern));
+};
+const serviceQuoteGuide = (serviceName: string) => {
+  const normalized = serviceCategoryKey(serviceName);
+  if (normalized.includes("kunci")) return "Kirim foto kunci/pintu/kendaraan, lokasi, dan jelaskan kebutuhan: duplikat, buka kunci, atau ganti kunci.";
+  if (normalized.includes("plat")) return "Kirim foto STNK/plat lama bila ada, ukuran, warna, jumlah, dan lokasi pengambilan/pengantaran.";
+  if (normalized.includes("kipas")) return "Kirim foto/video kondisi kipas, merek bila ada, keluhan utama, dan alamat lengkap.";
+  if (normalized.includes("foto") || normalized.includes("copy") || normalized.includes("print")) return "Kirim file yang ingin diprint/fotokopi, jumlah halaman, warna atau hitam putih, ukuran kertas, dan alamat pengantaran/pengambilan.";
+  if (normalized.includes("jastip")) return "Kirim foto/link barang, toko/lokasi pembelian, jumlah barang, alamat tujuan, dan batas waktu kebutuhan.";
+  return "Kirim foto atau contoh kebutuhan, alamat lengkap, dan catatan khusus agar admin bisa memberi estimasi harga.";
+};
 
 const serviceToneByIndex = (index: number) =>
   [
@@ -1524,6 +1541,26 @@ export function SerjafanApp({ appRole = "switcher" }: { appRole?: AppRole }) {
     }
   };
 
+  const openServiceQuoteWhatsApp = (serviceName: string) => {
+    const waNumber = normalizeWhatsAppNumber(adminSettings.supportPhone);
+    if (!waNumber) {
+      notify("error", "Nomor WhatsApp Admin belum diatur. Isi Nomor Support di Pusat Edit Admin.");
+      return;
+    }
+    const customerName = accountUser.name && accountUser.name !== "Customer" ? accountUser.name : "Customer SERJAFAN";
+    const message = [
+      `Halo Admin SERJAFAN, saya ${customerName}.`,
+      `Saya ingin cek harga untuk ${serviceDisplayName(serviceName)}.`,
+      `Nomor HP: ${accountUser.phone || "Belum diisi"}`,
+      `Alamat/Lokasi: ${accountUser.location || orderDraft.address || "Belum diisi"}`,
+      "",
+      serviceQuoteGuide(serviceName),
+      "",
+      "Saya akan kirim foto/file/contoh kebutuhan di chat ini agar admin bisa memberi estimasi harga."
+    ].join("\n");
+    window.location.href = `https://wa.me/${waNumber}?text=${encodeURIComponent(message)}`;
+  };
+
   const openPhone = () => {
     playIncomingAlert("phone");
     setDrawer("phone");
@@ -1567,6 +1604,7 @@ export function SerjafanApp({ appRole = "switcher" }: { appRole?: AppRole }) {
       ? customerServices.find((item) => serviceCategoryKey(item.name) === serviceCategoryKey(category)) ?? null
       : null;
     const serviceName = service?.name ?? (category && category !== "Lainnya" ? category : "Layanan SERJAFAN");
+    const needsAdminQuote = serviceRequiresAdminQuote(serviceName);
     const operationalRequest: Partner = {
       ...emptyPartner,
       id: "",
@@ -1574,7 +1612,7 @@ export function SerjafanApp({ appRole = "switcher" }: { appRole?: AppRole }) {
       category: serviceName,
       Icon: service?.icon ?? serviceIconByName(serviceName),
       tone: service?.tone ?? emptyPartner.tone,
-      priceFrom: service?.basePrice ?? emptyPartner.priceFrom,
+      priceFrom: needsAdminQuote ? 0 : service?.basePrice ?? emptyPartner.priceFrom,
       eta: "Admin konfirmasi",
       status: "Online",
       acceptsCash: true
@@ -1586,11 +1624,11 @@ export function SerjafanApp({ appRole = "switcher" }: { appRole?: AppRole }) {
       ...draft,
       partnerId: "",
       serviceCategoryId: `SC-${serviceCategoryKey(serviceName).toUpperCase().replaceAll("-", "-")}`,
-      serviceFee: service?.basePrice ?? (serviceName === "Cuci Sepatu" ? 45000 : serviceName === "Servis Kipas" ? 65000 : 30000),
+      serviceFee: needsAdminQuote ? 0 : service?.basePrice ?? (serviceName === "Cuci Sepatu" ? 45000 : 30000),
       scheduleNote: "Tim SERJAFAN akan menghubungi Anda untuk konfirmasi jadwal.",
       discount: draft.promoStatus === "valid" ? adminSettings.promoDiscount : 0
     }));
-    goTo("order");
+    goTo(needsAdminQuote ? "partnerList" : "order");
   };
 
   const openWalletHistory = async () => {
@@ -2391,6 +2429,12 @@ export function SerjafanApp({ appRole = "switcher" }: { appRole?: AppRole }) {
       return;
     }
 
+    if (serviceRequiresAdminQuote(currentPartner.category || selectedCategory || orderDraft.serviceCategoryId)) {
+      notify("error", "Layanan ini perlu cek harga lewat WhatsApp Admin dulu.");
+      openServiceQuoteWhatsApp(currentPartner.category || selectedCategory || "Layanan SERJAFAN");
+      return;
+    }
+
     if (!orderDraft.paymentMethod) {
       notify("error", "Pilih metode pembayaran terlebih dahulu.");
       return;
@@ -2549,6 +2593,7 @@ export function SerjafanApp({ appRole = "switcher" }: { appRole?: AppRole }) {
             selectedCategory={selectedCategory}
             partners={partnerListPartners}
             onSelectPartner={selectPartner}
+            onOpenQuote={(serviceName) => openServiceQuoteWhatsApp(serviceName)}
             onBack={() => goTo("home")}
           />
         )}
@@ -3166,6 +3211,7 @@ function PartnerListScreen({
   selectedCategory,
   partners,
   onSelectPartner,
+  onOpenQuote,
   onBack
 }: {
   title: string;
@@ -3173,13 +3219,16 @@ function PartnerListScreen({
   selectedCategory: string | null;
   partners: Partner[];
   onSelectPartner: (partner: Partner) => void;
+  onOpenQuote: (serviceName: string) => void;
   onBack: () => void;
 }) {
   const Icon = selectedService?.icon ?? Wrench;
+  const serviceName = selectedCategory ?? selectedService?.name ?? "Layanan SERJAFAN";
+  const needsAdminQuote = serviceRequiresAdminQuote(serviceName);
   const assignedTechnician = partners.find((partner) => partner.status === "Online") ?? partners[0];
   const operationalRequest: Partner = assignedTechnician ?? {
     ...emptyPartner,
-    category: selectedCategory ?? selectedService?.name ?? "Jasa SERJAFAN",
+    category: serviceName,
     Icon,
     priceFrom: selectedService?.basePrice ?? emptyPartner.priceFrom,
     eta: "Admin konfirmasi",
@@ -3206,7 +3255,11 @@ function PartnerListScreen({
             <div className="min-w-0 flex-1">
               <p className="text-sm font-extrabold">Pesanan ditangani oleh SERJAFAN</p>
               <p className="mt-1 text-xs leading-5 text-white/70">
-                {selectedService ? serviceShortCopy(selectedService) : "Customer tidak memilih teknisi. SERJAFAN menerima order dan menugaskan teknisi lapangan yang sesuai."}
+                {needsAdminQuote
+                  ? "Harga layanan ini ditentukan setelah admin melihat contoh foto, file, atau detail barang. Customer diarahkan ke WhatsApp Admin sebelum transaksi."
+                  : selectedService
+                    ? serviceShortCopy(selectedService)
+                    : "Customer tidak memilih teknisi. SERJAFAN menerima order dan menugaskan teknisi lapangan yang sesuai."}
               </p>
             </div>
           </div>
@@ -3217,13 +3270,46 @@ function PartnerListScreen({
             </div>
             <div className="rounded-[14px] bg-white/10 p-3">
               <p className="text-[10px] font-bold uppercase text-white/55">Harga mulai</p>
-              <p className="mt-1 text-lg font-black">{selectedService?.basePrice ? `Rp ${formatRupiah(selectedService.basePrice)}` : "Cek admin"}</p>
+              <p className="mt-1 text-lg font-black">{needsAdminQuote ? "Cek WA" : selectedService?.basePrice ? `Rp ${formatRupiah(selectedService.basePrice)}` : "Cek admin"}</p>
             </div>
           </div>
         </div>
       </div>
 
       <div className="space-y-3 p-5">
+          {needsAdminQuote ? (
+          <div className="rounded-[24px] bg-white p-5 shadow-soft">
+            <div className="flex items-start gap-3">
+              <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-[16px] bg-[#eef4ff] text-[#0d47d9]">
+                <MessageCircle className="h-6 w-6" />
+              </span>
+              <div>
+                <h2 className="text-base font-black">Cek harga dulu lewat WhatsApp Admin</h2>
+                <p className="mt-2 text-sm leading-6 text-slate-500">
+                  Untuk {serviceDisplayName(serviceName).toLowerCase()}, harga belum bisa dibuat otomatis karena admin perlu melihat contoh kebutuhan Anda lebih dulu.
+                </p>
+              </div>
+            </div>
+            <div className="mt-4 rounded-[18px] bg-[#f4f8ff] p-4">
+              <p className="text-xs font-black uppercase tracking-[0.12em] text-[#0d47d9]">Yang perlu dikirim</p>
+              <p className="mt-2 text-sm font-bold leading-6 text-slate-700">{serviceQuoteGuide(serviceName)}</p>
+            </div>
+            <div className="mt-4 grid gap-2">
+              {["Admin cek contoh dan kebutuhan", "Admin memberi estimasi harga via WA", "Jika cocok, admin bantu lanjutkan order", "Pembayaran mengikuti metode resmi SERJAFAN"].map((item, index) => (
+                <div key={item} className="flex items-center gap-3 rounded-[14px] bg-slate-50 p-3">
+                  <span className="flex h-7 w-7 items-center justify-center rounded-full bg-[#0d47d9] text-xs font-black text-white">{index + 1}</span>
+                  <span className="text-sm font-bold text-slate-700">{item}</span>
+                </div>
+              ))}
+            </div>
+            <Button className="mt-5 h-12 w-full rounded-2xl bg-[#0d47d9] text-sm font-black text-white hover:bg-[#003cb5]" onClick={() => onOpenQuote(serviceName)}>
+              <MessageCircle className="h-4 w-4" /> Cek Harga via WhatsApp Admin
+            </Button>
+            <p className="mt-3 text-center text-[11px] font-semibold leading-5 text-slate-500">
+              Belum ada transaksi sebelum admin memberi estimasi harga dan customer menyetujui.
+            </p>
+          </div>
+          ) : (
           <div className="rounded-[24px] bg-white p-5 shadow-soft">
             <div className="flex items-start gap-3">
               <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-[16px] bg-[#eef4ff] text-[#0d47d9]">
@@ -3249,6 +3335,7 @@ function PartnerListScreen({
               Isi Detail Kebutuhan <ChevronRight className="h-4 w-4" />
             </Button>
           </div>
+          )}
       </div>
     </section>
   );
