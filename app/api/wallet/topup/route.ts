@@ -60,7 +60,7 @@ export async function POST(request: Request) {
     userId: session.user.id,
     kind: "SYSTEM",
     title: "Top Up berhasil",
-    body: `Saldo SERJAFAN Pay bertambah Rp ${new Intl.NumberFormat("id-ID").format(amount)}.`,
+    body: `Pembayaran SERJAFAN bertambah Rp ${new Intl.NumberFormat("id-ID").format(amount)}.`,
     targetUrl: session.user.role === "PARTNER" ? "/partner?screen=wallet" : session.user.role === "ADMIN" ? "/admin" : "/customer?screen=wallet",
     isRead: false,
     createdAt: now,

@@ -57,7 +57,7 @@ export async function GET() {
     checks: {
       hasAuditTrail: recentAuditLogs.length > 0,
       allPendingTopupsNeedAdminApproval: pendingTopups.every((item) => item.provider === "manual"),
-      commissionRule: "20% dari total order untuk pembayaran cash/direct transfer; SERJAFAN Pay memicu payout manual admin."
+      commissionRule: "20% dari total order untuk pembayaran cash/direct transfer; pembayaran saldo lama tetap dipantau sebagai transaksi manual admin."
     }
   });
 }

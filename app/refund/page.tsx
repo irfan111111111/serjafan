@@ -10,7 +10,7 @@ export default function RefundPage() {
         {
           title: "Transaksi top up",
           body: [
-            "Top up yang berhasil dibayar melalui gateway resmi akan masuk ke wallet pengguna setelah webhook payment diterima dan diverifikasi server.",
+            "Top up atau pembayaran manual yang berhasil dibayar akan dicatat setelah admin memeriksa uang masuk dan bukti transfer yang diupload pengguna.",
             "Jika saldo belum masuk setelah pembayaran valid, pengguna dapat menghubungi support dengan bukti pembayaran dan email akun."
           ]
         },

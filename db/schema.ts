@@ -167,6 +167,12 @@ export const orders = sqliteTable(
     scheduleSubtitle: text("schedule_subtitle").notNull(),
     note: text("note"),
     paymentMethod: text("payment_method", { enum: ["SERJAFAN_PAY", "DIRECT_TRANSFER", "CARD", "CASH"] }).notNull(),
+    paymentStatus: text("payment_status", { enum: ["PENDING", "WAITING_VERIFICATION", "VERIFIED", "CASH_ON_DELIVERY", "FAILED"] })
+      .notNull()
+      .default("PENDING"),
+    paymentProofImage: text("payment_proof_image"),
+    paymentSenderName: text("payment_sender_name"),
+    paymentReference: text("payment_reference"),
     promoCode: text("promo_code"),
     serviceFee: integer("service_fee").notNull(),
     platformFee: integer("platform_fee").notNull(),

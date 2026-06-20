@@ -22,7 +22,7 @@ export const serviceSeoItems: ServiceSeoItem[] = [
     faq: [
       { q: "Apakah teknisi bisa datang ke rumah?", a: "Ya, customer memasukkan alamat lengkap lalu SERJAFAN menugaskan teknisi internal ke lokasi." },
       { q: "Apakah bisa chat teknisi?", a: "Customer berkomunikasi dengan SERJAFAN. Tim operasional meneruskan instruksi ke teknisi internal." },
-      { q: "Bagaimana pembayaran service AC?", a: "Pembayaran dikelola SERJAFAN melalui metode yang tersedia seperti saldo SERJAFAN, transfer manual, atau tunai." }
+      { q: "Bagaimana pembayaran service AC?", a: "Pembayaran dikelola SERJAFAN melalui transfer ke rekening/DANA resmi SERJAFAN dengan upload bukti, atau bayar di tempat setelah pekerjaan selesai." }
     ]
   },
   {

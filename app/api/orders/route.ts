@@ -3,6 +3,7 @@ import { db } from "@/db";
 import { messages, notifications, orderTrackingEvents, orders, partnerProfiles, user, wallets } from "@/db/schema";
 import { createId, created, fail, ok, readJson, requireSession } from "@/lib/api";
 import { ensureMessageThreadColumns } from "@/lib/message-threads";
+import { ensureOrderPaymentColumns } from "@/lib/order-payments";
 import { sendPushToUser } from "@/lib/push";
 
 export const runtime = "nodejs";
@@ -57,6 +58,9 @@ type CreateOrderBody = {
   };
   note?: string;
   paymentMethod?: "SERJAFAN_PAY" | "DIRECT_TRANSFER" | "CARD" | "CASH";
+  paymentProofImage?: string;
+  paymentSenderName?: string;
+  paymentReference?: string;
   promoCode?: string | null;
   prices?: {
     serviceFee?: number;
@@ -68,6 +72,7 @@ type CreateOrderBody = {
 export async function GET() {
   const { session, response } = await requireSession();
   if (response || !session) return response;
+  await ensureOrderPaymentColumns();
 
   const customerOrders = await db
     .select()
@@ -82,6 +87,7 @@ export async function POST(request: Request) {
   const { session, response } = await requireSession();
   if (response || !session) return response;
   await ensureMessageThreadColumns();
+  await ensureOrderPaymentColumns();
 
   const body = await readJson<CreateOrderBody>(request);
   if (!body) return fail("Invalid JSON body.", 400);
@@ -89,6 +95,10 @@ export async function POST(request: Request) {
   if (!body.serviceCategoryId) return fail("serviceCategoryId is required.");
   if (!body.address?.title) return fail("address.title is required.");
   if (!body.paymentMethod) return fail("paymentMethod is required.");
+  if (body.paymentMethod === "SERJAFAN_PAY") return fail("Pembayaran saldo belum diaktifkan untuk pembayaran jasa. Pilih transfer ke SERJAFAN atau bayar di tempat.", 422);
+  if (body.paymentMethod === "DIRECT_TRANSFER" && !body.paymentProofImage?.trim()) {
+    return fail("Bukti transfer wajib diupload untuk pembayaran transfer ke SERJAFAN.", 422);
+  }
 
   const serviceFee = body.prices?.serviceFee ?? 0;
   const platformFee = body.prices?.platformFee ?? 0;
@@ -138,6 +148,15 @@ export async function POST(request: Request) {
     scheduleSubtitle: body.schedule?.subtitle ?? "Estimasi tiba segera",
     note: body.note ?? null,
     paymentMethod: body.paymentMethod,
+    paymentStatus:
+      body.paymentMethod === "CASH"
+        ? "CASH_ON_DELIVERY"
+        : body.paymentMethod === "DIRECT_TRANSFER"
+          ? "WAITING_VERIFICATION"
+          : "PENDING",
+    paymentProofImage: body.paymentProofImage?.trim() || null,
+    paymentSenderName: body.paymentSenderName?.trim() || null,
+    paymentReference: body.paymentReference?.trim() || null,
     promoCode: body.promoCode ?? null,
     serviceFee,
     platformFee,
@@ -165,7 +184,7 @@ export async function POST(request: Request) {
     kind: "ORDER",
     title: "Pesanan diterima SERJAFAN",
     body: `Pesanan ${orderId} sudah diterima SERJAFAN. Metode pembayaran: ${
-      body.paymentMethod === "CASH" ? "tunai" : body.paymentMethod === "DIRECT_TRANSFER" ? "transfer manual SERJAFAN" : "SERJAFAN Pay"
+      body.paymentMethod === "CASH" ? "bayar di tempat" : body.paymentMethod === "DIRECT_TRANSFER" ? "transfer ke SERJAFAN, bukti menunggu verifikasi admin" : "pembayaran SERJAFAN"
     }. Tim operasional akan menghubungi Anda dan menugaskan teknisi lapangan.`,
     targetUrl: `/orders/${orderId}`,
     createdAt: now,
@@ -198,7 +217,7 @@ export async function POST(request: Request) {
       title: `Tugas SERJAFAN - ${partner.category}`,
       body: `Pesanan ${orderId} menunggu konfirmasi Anda sebelum customer bisa lanjut proses. Arah layanan: ${
         body.fulfillmentMode === "CUSTOMER_TO_PARTNER" ? "customer menuju titik SERJAFAN" : "teknisi menuju lokasi customer"
-      }. Pembayaran: ${body.paymentMethod === "CASH" ? "tunai sesuai operasional" : body.paymentMethod === "DIRECT_TRANSFER" ? "transfer manual SERJAFAN" : "SERJAFAN Pay"}.`,
+      }. Pembayaran: ${body.paymentMethod === "CASH" ? "bayar di tempat" : body.paymentMethod === "DIRECT_TRANSFER" ? "transfer ke SERJAFAN, bukti menunggu cek admin" : "pembayaran SERJAFAN"}.`,
       orderId,
       partnerId: partner.id,
       partnerName: partner.name,

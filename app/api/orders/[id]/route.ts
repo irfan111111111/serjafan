@@ -2,12 +2,14 @@ import { and, eq } from "drizzle-orm";
 import { db } from "@/db";
 import { orders } from "@/db/schema";
 import { fail, ok, requireSession } from "@/lib/api";
+import { ensureOrderPaymentColumns } from "@/lib/order-payments";
 
 export const runtime = "nodejs";
 
 export async function GET(_request: Request, { params }: { params: Promise<{ id: string }> }) {
   const { session, response } = await requireSession();
   if (response || !session) return response;
+  await ensureOrderPaymentColumns();
 
   const { id } = await params;
   const order = await db.query.orders.findFirst({

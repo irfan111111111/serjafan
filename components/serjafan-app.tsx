@@ -70,7 +70,7 @@ type Screen =
   | "partner"
   | "partnerAccount"
   | "admin";
-type PayMethod = "SERJAFAN Pay" | "Transfer Manual SERJAFAN" | "Tunai";
+type PayMethod = "Transfer ke SERJAFAN" | "Bayar di Tempat";
 type PromoStatus = "idle" | "valid" | "invalid";
 type ToastKind = "success" | "error";
 type AppRole = "customer" | "partner" | "admin" | "switcher";
@@ -118,6 +118,9 @@ type OrderDraft = {
   note: string;
   noteMeta: string;
   paymentMethod: PayMethod;
+  paymentSenderName: string;
+  paymentReference: string;
+  paymentProofImage: string;
   promoCode: string;
   promoStatus: PromoStatus;
   serviceFee: number;
@@ -477,7 +480,10 @@ const initialDraft: OrderDraft = {
   fulfillmentMode: "PARTNER_TO_CUSTOMER",
   note: "",
   noteMeta: "Tanpa catatan tambahan",
-  paymentMethod: "SERJAFAN Pay",
+  paymentMethod: "Transfer ke SERJAFAN",
+  paymentSenderName: "",
+  paymentReference: "",
+  paymentProofImage: "",
   promoCode: "",
   promoStatus: "idle",
   serviceFee: 30000,
@@ -2390,17 +2396,17 @@ export function SerjafanApp({ appRole = "switcher" }: { appRole?: AppRole }) {
       return;
     }
 
-    if (orderDraft.paymentMethod === "SERJAFAN Pay" && accountUser.walletBalance < total) {
-      notify("error", "Saldo SERJAFAN Pay belum cukup untuk pesanan ini.");
-      return;
-    }
-
     if (
-      orderDraft.paymentMethod === "Transfer Manual SERJAFAN" &&
+      orderDraft.paymentMethod === "Transfer ke SERJAFAN" &&
       !adminSettings.manualBankAccount.trim() &&
       !adminSettings.manualDanaNumber.trim()
     ) {
-      notify("error", "Metode transfer manual SERJAFAN belum lengkap. Admin perlu mengisi rekening atau DANA.");
+      notify("error", "Metode transfer ke SERJAFAN belum lengkap. Admin perlu mengisi rekening atau DANA.");
+      return;
+    }
+
+    if (orderDraft.paymentMethod === "Transfer ke SERJAFAN" && !orderDraft.paymentProofImage.trim()) {
+      notify("error", "Upload bukti transfer dulu agar admin bisa memverifikasi pembayaran jasa.");
       return;
     }
 
@@ -2429,12 +2435,10 @@ export function SerjafanApp({ appRole = "switcher" }: { appRole?: AppRole }) {
           subtitle: orderDraft.scheduleNote
         },
         note: orderDraft.note,
-        paymentMethod:
-          orderDraft.paymentMethod === "SERJAFAN Pay"
-            ? "SERJAFAN_PAY"
-            : orderDraft.paymentMethod === "Transfer Manual SERJAFAN"
-              ? "DIRECT_TRANSFER"
-              : "CASH",
+        paymentMethod: orderDraft.paymentMethod === "Transfer ke SERJAFAN" ? "DIRECT_TRANSFER" : "CASH",
+        paymentSenderName: orderDraft.paymentSenderName,
+        paymentReference: orderDraft.paymentReference,
+        paymentProofImage: orderDraft.paymentProofImage,
         promoCode: orderDraft.promoStatus === "valid" ? orderDraft.promoCode : null,
         prices: {
           serviceFee: orderDraft.serviceFee,
@@ -3300,9 +3304,8 @@ function OrderFlow({
   const total = orderTotal(draft);
   const manualPaymentReady = Boolean(settings.manualBankAccount.trim() || settings.manualDanaNumber.trim());
   const payments: { name: PayMethod; Icon: React.ElementType }[] = [
-    { name: "SERJAFAN Pay", Icon: Wallet },
-    { name: "Transfer Manual SERJAFAN", Icon: CreditCard },
-    ...(partner.acceptsCash === false ? [] : [{ name: "Tunai" as PayMethod, Icon: Wallet }])
+    { name: "Transfer ke SERJAFAN", Icon: CreditCard },
+    ...(partner.acceptsCash === false ? [] : [{ name: "Bayar di Tempat" as PayMethod, Icon: Wallet }])
   ];
 
   return (
@@ -3373,7 +3376,7 @@ function OrderFlow({
       <Label>Metode Pembayaran</Label>
       <div className="mb-4 grid grid-cols-1 gap-2 min-[380px]:grid-cols-3">
         {payments.map(({ name, Icon }) => {
-          const disabled = name === "Transfer Manual SERJAFAN" && !manualPaymentReady;
+          const disabled = name === "Transfer ke SERJAFAN" && !manualPaymentReady;
           return (
           <button
             key={name}
@@ -3429,12 +3432,9 @@ function OrderFlow({
           <span>Total Bayar</span>
           <span className="text-flame">Rp {formatRupiah(total)}</span>
         </div>
-        {draft.paymentMethod === "SERJAFAN Pay" && (
-          <p className="mt-2 text-[11px] text-slate-500">Saldo tersedia: Rp {formatRupiah(user.walletBalance)}</p>
-        )}
-        {draft.paymentMethod === "Transfer Manual SERJAFAN" && (
+        {draft.paymentMethod === "Transfer ke SERJAFAN" && (
           <div className="mt-3 rounded-[14px] bg-white p-3 text-[11px] font-bold leading-5 text-slate-600">
-            <p className="text-navy">Customer mengikuti instruksi pembayaran manual SERJAFAN. Bukti transfer dikirim ke SERJAFAN agar admin dapat memverifikasi dan meneruskan proses layanan.</p>
+            <p className="text-navy">Transfer dilakukan dari aplikasi bank/DANA Anda sendiri. Bukti transfer wajib diupload di sini agar admin bisa memverifikasi pembayaran jasa.</p>
             {settings.manualBankAccount.trim() && (
               <div className="mt-2 rounded-[10px] bg-cloud p-2">
                 <p>Bank operasional: <span className="text-navy">{settings.manualBankName || "Bank SERJAFAN"}</span></p>
@@ -3449,18 +3449,23 @@ function OrderFlow({
               </div>
             )}
             {!manualPaymentReady && <p className="mt-2 text-red-600">Data pembayaran manual SERJAFAN belum lengkap. Admin perlu mengisi rekening atau DANA.</p>}
+            <div className="mt-3 grid gap-2 rounded-[12px] bg-slate-50 p-3">
+              <Input value={draft.paymentSenderName} onChange={(event) => onUpdateDraft({ paymentSenderName: event.target.value })} placeholder="Nama pengirim di rekening/DANA" />
+              <Input value={draft.paymentReference} onChange={(event) => onUpdateDraft({ paymentReference: event.target.value })} placeholder="No. referensi/catatan transfer" />
+              <AuthPhotoField label="Screenshot Bukti Transfer Jasa (Wajib)" required value={draft.paymentProofImage} onChange={(value) => onUpdateDraft({ paymentProofImage: value })} />
+            </div>
           </div>
         )}
-        {draft.paymentMethod === "Tunai" && (
+        {draft.paymentMethod === "Bayar di Tempat" && (
           <p className="mt-2 text-[11px] font-bold leading-5 text-slate-500">
-            Customer membayar tunai setelah pekerjaan selesai. Pesanan tetap tercatat di admin dan kualitas layanan dipantau SERJAFAN.
+            Customer membayar langsung setelah pekerjaan selesai. Pesanan tetap tercatat, admin memantau proses, dan status pembayaran ditutup oleh SERJAFAN.
           </p>
         )}
       </div>
 
       <Button variant="orange" size="lg" className="w-full" disabled={isSubmitting} onClick={onSubmit}>
         {isSubmitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />}
-        {isSubmitting ? "Memproses..." : draft.paymentMethod === "Tunai" ? `Konfirmasi Pesanan Tunai Rp ${formatRupiah(total)}` : `Konfirmasi & Bayar Rp ${formatRupiah(total)}`}
+        {isSubmitting ? "Memproses..." : draft.paymentMethod === "Bayar di Tempat" ? `Konfirmasi Bayar di Tempat Rp ${formatRupiah(total)}` : `Kirim Pesanan & Bukti Rp ${formatRupiah(total)}`}
       </Button>
 
       {editor && (
@@ -4064,10 +4069,10 @@ function ProfileScreen({
     .map((part) => part[0]?.toUpperCase())
     .join("") || "SF";
   const profileActions = [
-    { icon: Wallet, label: "Top Up Saldo", onClick: onOpenTopup },
-    { icon: ListOrdered, label: "Riwayat Saldo", onClick: onOpenWalletHistory },
+    { icon: Wallet, label: "Top Up Pembayaran", onClick: onOpenTopup },
+    { icon: ListOrdered, label: "Riwayat Pembayaran", onClick: onOpenWalletHistory },
     { icon: ShoppingBag, label: "Riwayat Pesanan", onClick: onOpenOrders },
-    { icon: Wallet, label: "Pembayaran Saya", onClick: onOpenWallet },
+    { icon: Wallet, label: "Pembayaran SERJAFAN", onClick: onOpenWallet },
     { icon: MapPin, label: "Alamat Saya", onClick: onEditProfile },
     { icon: Tag, label: "Kupon Saya", onClick: onOpenNotifications },
     { icon: Heart, label: "Favorit Layanan", onClick: onOpenSearch },
@@ -4129,10 +4134,10 @@ function ProfileScreen({
             {[
               { icon: ShoppingBag, value: String(orderCount), label: "Pesanan" },
               { icon: Star, value: orderCount ? "Aktif" : "Baru", label: "Status" },
-              { icon: Wallet, value: `Rp ${formatRupiah(user.walletBalance)}`, label: "Saldo" },
+              { icon: Wallet, value: `Rp ${formatRupiah(user.walletBalance)}`, label: "Pembayaran" },
               { icon: Tag, value: "Admin", label: "Promo" }
             ].map(({ icon: Icon, value, label }) => (
-              <button key={label} type="button" onClick={label === "Saldo" ? onOpenWallet : onOpenOrders} className="min-w-0 border-r border-slate-100 px-2 py-4 text-center last:border-r-0">
+              <button key={label} type="button" onClick={label === "Pembayaran" ? onOpenWallet : onOpenOrders} className="min-w-0 border-r border-slate-100 px-2 py-4 text-center last:border-r-0">
                 <Icon className="mx-auto h-5 w-5 text-[#075bdd]" />
                 <p className="mt-2 truncate text-sm font-black text-slate-950">{value}</p>
                 <p className="mt-1 truncate text-[10px] font-semibold text-slate-500">{label}</p>
@@ -4147,12 +4152,12 @@ function ProfileScreen({
               <ShieldCheck className="h-6 w-6" />
             </span>
             <div>
-              <p className="text-sm font-black text-slate-950">Jadi Member SERJAFAN</p>
-              <p className="mt-1 text-xs font-semibold leading-5 text-slate-500">Dapatkan diskon, cashback, dan berbagai keuntungan lainnya.</p>
+              <p className="text-sm font-black text-slate-950">Pembayaran Resmi SERJAFAN</p>
+              <p className="mt-1 text-xs font-semibold leading-5 text-slate-500">Transfer hanya ke rekening/DANA resmi admin dan upload bukti di aplikasi.</p>
             </div>
           </div>
           <button type="button" onClick={onOpenTopup} className="shrink-0 rounded-[12px] bg-[#075bdd] px-3 py-2 text-xs font-black text-white">
-            Gabung
+            Top Up
           </button>
         </div>
 
@@ -4202,14 +4207,14 @@ function WalletScreen({
         <Button size="icon" variant="secondary" className="rounded-[10px]" onClick={onBack}>
           <ArrowLeft className="h-5 w-5" />
         </Button>
-        <h1 className="text-xl font-extrabold">Dompet</h1>
+        <h1 className="text-xl font-extrabold">Pembayaran SERJAFAN</h1>
       </div>
       <div className="overflow-hidden rounded-[22px] bg-gradient-to-br from-navy via-[#12365f] to-flame p-5 text-white shadow-soft">
-        <p className="text-xs font-bold text-white/75">Saldo SERJAFAN Pay</p>
+        <p className="text-xs font-bold text-white/75">Dana customer terverifikasi</p>
         <p className="mt-1 text-3xl font-extrabold">Rp {formatRupiah(user.walletBalance)}</p>
         <div className="mt-5 flex items-center justify-between rounded-[16px] bg-white/10 p-3">
-          <span className="text-xs font-bold text-white/70">IDR wallet</span>
-          <span className="flex items-center gap-1 text-xs font-extrabold"><ShieldCheck className="h-4 w-4" /> Protected</span>
+          <span className="text-xs font-bold text-white/70">Pembayaran manual</span>
+          <span className="flex items-center gap-1 text-xs font-extrabold"><ShieldCheck className="h-4 w-4" /> Diverifikasi Admin</span>
         </div>
       </div>
       <div className="mt-4 grid grid-cols-2 gap-2">
@@ -4221,8 +4226,8 @@ function WalletScreen({
         </Button>
       </div>
       <div className="mt-4 rounded-[16px] bg-white p-4 shadow-soft">
-        <p className="text-sm font-extrabold">Standar produksi</p>
-        <p className="mt-1 text-xs leading-5 text-slate-500">Top up, pembayaran pesanan, dan riwayat transaksi membaca saldo yang sama dari database akun customer.</p>
+        <p className="text-sm font-extrabold">Cara pakai pembayaran V1</p>
+        <p className="mt-1 text-xs leading-5 text-slate-500">Customer dapat transfer ke rekening/DANA resmi SERJAFAN atau memilih bayar di tempat saat membuat pesanan. Semua bukti dan riwayat tersimpan untuk audit admin.</p>
       </div>
     </section>
   );
@@ -4320,7 +4325,7 @@ function TopUpScreen({
         <div className="rounded-[14px] border border-amber-200 bg-amber-50 p-3 text-[11px] font-bold leading-5 text-amber-800">
           {isPartnerTopUp
             ? "Saldo teknisi baru aktif setelah admin melihat uang masuk, bukti transfer lengkap, dan menekan Setujui. Minimal Rp 20.000 agar bisa menerima tugas SERJAFAN."
-            : "Saldo customer baru masuk setelah admin melihat uang masuk, bukti transfer lengkap, dan menekan Setujui. Setelah saldo masuk, pembayaran pesanan SERJAFAN Pay akan terpotong otomatis sesuai total jasa."}
+            : "Top up customer baru tercatat setelah admin melihat uang masuk, bukti transfer lengkap, dan menekan Setujui. Untuk pembayaran jasa langsung, pilih Transfer ke SERJAFAN di form pesanan dan upload bukti di sana."}
         </div>
         <div className="grid gap-2 rounded-[14px] bg-slate-50 p-3">
           <p className="text-xs font-extrabold uppercase text-slate-500">Data transfer manual</p>
@@ -5109,10 +5114,27 @@ function AdminDashboard({
                 <div className="mt-3 grid gap-2 rounded-[16px] bg-cloud p-3 text-[11px] font-semibold text-slate-600 min-[420px]:grid-cols-2">
                   <span className="truncate">Customer: <strong className="text-navy">{order.customerName ?? order.customerId}</strong></span>
                   <span className="truncate">Nomor HP: <strong className="text-navy">{order.customerPhone ?? "Belum ada"}</strong></span>
-                  <span className="truncate">Pembayaran: <strong className="text-navy">{order.paymentMethod}</strong></span>
+                  <span className="truncate">Pembayaran: <strong className="text-navy">{order.paymentMethod === "CASH" ? "Bayar di Tempat" : order.paymentMethod === "DIRECT_TRANSFER" ? "Transfer ke SERJAFAN" : order.paymentMethod}</strong></span>
                   <span className="truncate">Total: <strong className="text-navy">Rp {formatRupiah(order.total ?? 0)}</strong></span>
+                  <span className="truncate">Status bayar: <strong className="text-navy">{order.paymentStatus === "CASH_ON_DELIVERY" ? "Tunai di tempat" : order.paymentStatus === "WAITING_VERIFICATION" ? "Menunggu verifikasi" : order.paymentStatus === "VERIFIED" ? "Terverifikasi" : order.paymentStatus ?? "Pending"}</strong></span>
+                  <span className="truncate">Referensi: <strong className="text-navy">{order.paymentReference || order.paymentSenderName || "-"}</strong></span>
                   <span className="truncate min-[420px]:col-span-2">Alamat: <strong className="text-navy">{order.addressTitle || order.customerLocation || "Belum ada"}</strong></span>
                 </div>
+                {order.paymentMethod === "DIRECT_TRANSFER" && (
+                  <div className="mt-3 rounded-[14px] border border-blue-100 bg-blue-50 p-3 text-[11px] font-bold leading-5 text-blue-900">
+                    <div className="flex items-center justify-between gap-3">
+                      <p className="font-black">Bukti pembayaran customer</p>
+                      <span className="rounded-full bg-white px-2 py-1 text-[10px] text-[#0d47d9]">{order.paymentProofImage ? "Ada bukti" : "Belum ada"}</span>
+                    </div>
+                    {order.paymentSenderName && <p className="mt-2">Nama pengirim: {order.paymentSenderName}</p>}
+                    {order.paymentReference && <p>No. referensi: {order.paymentReference}</p>}
+                    {order.paymentProofImage ? (
+                      <img src={order.paymentProofImage} alt="Bukti pembayaran customer" className="mt-3 max-h-60 w-full rounded-[12px] bg-white object-contain" />
+                    ) : (
+                      <p className="mt-2 text-red-700">Jangan proses sebagai lunas sebelum bukti transfer lengkap dan uang masuk ke rekening/DANA SERJAFAN.</p>
+                    )}
+                  </div>
+                )}
                 {order.note && <p className="mt-3 rounded-[14px] bg-amber-50 p-3 text-[11px] font-bold leading-5 text-amber-800">Catatan customer: {order.note}</p>}
                 <div className="mt-3 grid grid-cols-3 gap-2">
                   <Button variant="outline" className="border-2 border-[#0d47d9] px-2 text-[11px] text-[#0d47d9]" disabled={!order.customerPhone} onClick={() => contactCustomer(order.customerPhone, order.id, "call")}>
@@ -7309,7 +7331,7 @@ function ProfileDrawer({
         <div className="p-4">
           <Card className="rounded-[18px] border-slate-100">
             <CardContent className="p-4">
-              <p className="text-[11px] font-bold text-slate-500">Dompet SERJAFAN Pay</p>
+              <p className="text-[11px] font-bold text-slate-500">Pembayaran SERJAFAN</p>
               <p className="mt-1 text-3xl font-extrabold">Rp {formatRupiah(user.walletBalance)}</p>
               <p className="mt-1 text-xs text-slate-500">{user.location}</p>
             </CardContent>

@@ -2,12 +2,14 @@ import { and, desc, eq, ne } from "drizzle-orm";
 import { db } from "@/db";
 import { addresses, orders, user } from "@/db/schema";
 import { ok, requireRole } from "@/lib/api";
+import { ensureOrderPaymentColumns } from "@/lib/order-payments";
 
 export const runtime = "nodejs";
 
 export async function GET(request: Request) {
   const { response } = await requireRole(["ADMIN"]);
   if (response) return response;
+  await ensureOrderPaymentColumns();
 
   const url = new URL(request.url);
   const status = url.searchParams.get("status");
@@ -29,6 +31,10 @@ export async function GET(request: Request) {
       scheduleSubtitle: orders.scheduleSubtitle,
       note: orders.note,
       paymentMethod: orders.paymentMethod,
+      paymentStatus: orders.paymentStatus,
+      paymentProofImage: orders.paymentProofImage,
+      paymentSenderName: orders.paymentSenderName,
+      paymentReference: orders.paymentReference,
       promoCode: orders.promoCode,
       serviceFee: orders.serviceFee,
       platformFee: orders.platformFee,

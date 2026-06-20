@@ -3,6 +3,7 @@ import { db } from "@/db";
 import { messages, notifications, orderTrackingEvents, orders, partnerProfiles, user, walletTransactions, wallets } from "@/db/schema";
 import { createId, fail, ok, requireRole } from "@/lib/api";
 import { writeAuditLog } from "@/lib/audit";
+import { ensureOrderPaymentColumns } from "@/lib/order-payments";
 import { sendPushToUser } from "@/lib/push";
 
 export const runtime = "nodejs";
@@ -14,6 +15,7 @@ const partnerCoordinates: Record<string, { latitude: number; longitude: number }
 export async function POST(_request: Request, { params }: { params: Promise<{ id: string }> }) {
   const { session, response } = await requireRole(["PARTNER", "ADMIN"]);
   if (response || !session) return response;
+  await ensureOrderPaymentColumns();
 
   const partner = await db.query.partnerProfiles.findFirst({
     where: eq(partnerProfiles.userId, session.user.id)
@@ -34,7 +36,7 @@ export async function POST(_request: Request, { params }: { params: Promise<{ id
       where: eq(wallets.userId, order.customerId)
     });
     if (!wallet || wallet.balance < order.total) {
-      return fail("Saldo SERJAFAN Pay customer tidak cukup saat tugas teknisi diterima.", 422);
+      return fail("Saldo pembayaran SERJAFAN customer tidak cukup saat tugas teknisi diterima.", 422);
     }
 
     await db.update(wallets).set({ balance: wallet.balance - order.total, updatedAt: now }).where(eq(wallets.id, wallet.id));
@@ -56,7 +58,7 @@ export async function POST(_request: Request, { params }: { params: Promise<{ id
           id: createId("notif"),
           userId: admin.id,
           kind: "SYSTEM" as const,
-          title: "Pembayaran SERJAFAN Pay diterima",
+          title: "Pembayaran SERJAFAN diterima",
           body: `Customer membayar pesanan ${order.id} Rp ${new Intl.NumberFormat("id-ID").format(order.total)} dari saldo. Estimasi komisi 20% Rp ${new Intl.NumberFormat("id-ID").format(commission)}, payout teknisi Rp ${new Intl.NumberFormat("id-ID").format(payout)} setelah pesanan selesai.`,
           targetUrl: "/admin",
           isRead: false,
@@ -70,8 +72,8 @@ export async function POST(_request: Request, { params }: { params: Promise<{ id
         id: createId("notif"),
         userId: partner.userId,
         kind: "SYSTEM",
-        title: "Customer sudah bayar SERJAFAN Pay",
-        body: `Pesanan ${order.id} sudah dibayar ke admin melalui saldo SERJAFAN Pay. Payout teknisi diproses admin setelah pekerjaan selesai.`,
+        title: "Customer sudah bayar SERJAFAN",
+        body: `Pesanan ${order.id} sudah dibayar ke admin melalui saldo pembayaran SERJAFAN. Payout teknisi diproses admin setelah pekerjaan selesai.`,
         targetUrl: "/partner",
         isRead: false,
         createdAt: now,
@@ -82,7 +84,11 @@ export async function POST(_request: Request, { params }: { params: Promise<{ id
 
   const updated = await db
     .update(orders)
-    .set({ status: "PARTNER_READY", updatedAt: now })
+    .set({
+      status: "PARTNER_READY",
+      paymentStatus: order.paymentMethod === "DIRECT_TRANSFER" || order.paymentMethod === "SERJAFAN_PAY" ? "VERIFIED" : order.paymentMethod === "CASH" ? "CASH_ON_DELIVERY" : order.paymentStatus,
+      updatedAt: now
+    })
     .where(and(eq(orders.id, id), eq(orders.partnerId, partner.id)))
     .returning();
 

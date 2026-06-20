@@ -3,6 +3,7 @@ import { db } from "@/db";
 import { messages, notifications, orderTrackingEvents, orders } from "@/db/schema";
 import { createId, fail, ok, readJson, requireRole } from "@/lib/api";
 import { writeAuditLog } from "@/lib/audit";
+import { ensureOrderPaymentColumns } from "@/lib/order-payments";
 import { sendPushToUser } from "@/lib/push";
 
 export const runtime = "nodejs";
@@ -46,6 +47,7 @@ const statusCopy: Record<AdminOrderStatus, { title: string; body: string; tracki
 export async function POST(request: Request, { params }: { params: Promise<{ id: string }> }) {
   const { session, response } = await requireRole(["ADMIN"]);
   if (response || !session) return response;
+  await ensureOrderPaymentColumns();
 
   const { id } = await params;
   const body = await readJson<StatusBody>(request);
@@ -61,9 +63,17 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
   }
 
   const now = new Date();
+  const paymentStatus =
+    body.status === "CANCELLED"
+      ? existing.paymentStatus
+      : existing.paymentMethod === "DIRECT_TRANSFER" && ["CONFIRMED", "PARTNER_READY", "ON_THE_WAY", "DONE"].includes(body.status)
+        ? "VERIFIED"
+        : existing.paymentMethod === "CASH"
+          ? "CASH_ON_DELIVERY"
+          : existing.paymentStatus;
   const updated = await db
     .update(orders)
-    .set({ status: body.status, updatedAt: now })
+    .set({ status: body.status, paymentStatus, updatedAt: now })
     .where(eq(orders.id, id))
     .returning();
 

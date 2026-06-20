@@ -10,7 +10,7 @@ export default function SupportPage() {
         {
           title: "Bantuan customer",
           body: [
-            "Customer dapat meminta bantuan untuk login, pendaftaran, pemesanan jasa, tracking, chat, telepon, pembayaran, promo, wallet, dan refund.",
+            "Customer dapat meminta bantuan untuk login, pendaftaran, pemesanan jasa, tracking, WhatsApp admin, telepon, pembayaran, promo, bukti transfer, dan refund.",
             "Sertakan email akun, nomor pesanan jika ada, bukti pembayaran, dan ringkasan masalah agar admin dapat memeriksa lebih cepat."
           ]
         },
@@ -24,7 +24,7 @@ export default function SupportPage() {
         {
           title: "Bantuan admin",
           body: [
-            "Admin bertanggung jawab memantau customer, teknisi, pesanan, wallet, promo, layanan, maps, dan sengketa.",
+            "Admin bertanggung jawab memantau customer, teknisi, pesanan, pembayaran manual, promo, layanan, maps, dan sengketa.",
             "Perubahan konfigurasi admin harus dilakukan dengan hati-hati karena langsung memengaruhi aplikasi customer dan teknisi."
           ]
         },

@@ -26,7 +26,7 @@ export async function POST(request: Request) {
 
   const wallet = await db.query.wallets.findFirst({ where: eq(wallets.userId, session.user.id) });
   if (!wallet) return fail("Dompet belum aktif.", 404);
-  if (wallet.balance < amount) return fail("Saldo SERJAFAN Pay tidak cukup.");
+  if (wallet.balance < amount) return fail("Saldo pembayaran SERJAFAN tidak cukup.");
 
   const now = new Date();
   const nextBalance = wallet.balance - amount;
