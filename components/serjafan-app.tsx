@@ -620,6 +620,15 @@ const initialAdminAuditData: AdminAuditData = {
 
 const formatRupiah = (value: number) => new Intl.NumberFormat("id-ID").format(value);
 const cleanText = (value: unknown) => String(value ?? "").trim();
+const normalizeWhatsAppNumber = (value?: string | null) => {
+  const raw = cleanText(value).toLowerCase();
+  if (!raw || raw.includes("x")) return "";
+  const cleaned = raw.replace(/[^\d+]/g, "");
+  if (cleaned.replace(/\D/g, "").length < 9) return "";
+  if (cleaned.startsWith("+")) return cleaned.slice(1);
+  if (cleaned.startsWith("0")) return `62${cleaned.slice(1)}`;
+  return cleaned;
+};
 const hasCompletePartnerBank = (partner?: Partial<Partner> | null) =>
   Boolean(cleanText(partner?.paymentBankName) && cleanText(partner?.paymentBankAccount) && cleanText(partner?.paymentBankHolder));
 const hasCompletePartnerDana = (partner?: Partial<Partner> | null) =>
@@ -1485,6 +1494,17 @@ export function SerjafanApp({ appRole = "switcher" }: { appRole?: AppRole }) {
   };
 
   const openMessages = async () => {
+    if (role === "CUSTOMER") {
+      const waNumber = normalizeWhatsAppNumber(adminSettings.supportPhone);
+      if (!waNumber) {
+        notify("error", "Nomor WhatsApp Admin belum diatur. Isi Nomor Support di Pusat Edit Admin.");
+        return;
+      }
+      const customerName = accountUser.name && accountUser.name !== "Customer" ? accountUser.name : "Customer SERJAFAN";
+      const message = `Halo Admin SERJAFAN, saya ${customerName}. Saya ingin bertanya atau memesan jasa SERJAFAN.`;
+      window.location.href = `https://wa.me/${waNumber}?text=${encodeURIComponent(message)}`;
+      return;
+    }
     setDrawer("messages");
     playIncomingAlert("message");
     setLoadingPanel("messages");
@@ -2692,7 +2712,16 @@ export function SerjafanApp({ appRole = "switcher" }: { appRole?: AppRole }) {
           onClose={() => setDrawer("notifications")}
         />
       )}
-      {showBottomNav && <BottomNav active={screen} unreadMessages={messages.filter((message) => message.unread).length} onNavigate={goTo} onOpenMessages={() => void openMessages()} onOpenProfile={openProfile} />}
+      {showBottomNav && (
+        <BottomNav
+          active={screen}
+          chatLabel={role === "CUSTOMER" ? "WA Admin" : "Pesan"}
+          unreadMessages={role === "CUSTOMER" ? 0 : messages.filter((message) => message.unread).length}
+          onNavigate={goTo}
+          onOpenMessages={() => void openMessages()}
+          onOpenProfile={openProfile}
+        />
+      )}
     </main>
   );
 }
@@ -7304,12 +7333,14 @@ function ProfileDrawer({
 
 function BottomNav({
   active,
+  chatLabel = "Chat",
   unreadMessages,
   onNavigate,
   onOpenMessages,
   onOpenProfile
 }: {
   active: Screen;
+  chatLabel?: string;
   unreadMessages: number;
   onNavigate: (screen: Screen) => void;
   onOpenMessages: () => void;
@@ -7318,7 +7349,7 @@ function BottomNav({
   const items = [
     { label: "Beranda", Icon: Home, screen: "home" as Screen },
     { label: "Pesanan", Icon: ShoppingBag, screen: "orders" as Screen },
-    { label: "Chat", Icon: MessageCircle, action: onOpenMessages },
+    { label: chatLabel, Icon: MessageCircle, action: onOpenMessages },
     { label: "Akun", Icon: UserCircle, action: onOpenProfile }
   ];
 
@@ -7333,7 +7364,7 @@ function BottomNav({
           onClick={() => (action ? action() : onNavigate(screen as Screen))}
           className={cn("tap-target relative flex min-w-0 flex-col items-center justify-center gap-1 px-2 text-[11px] font-bold", selected ? "text-[#075bdd]" : "text-slate-500")}
         >
-          {label === "Chat" && unreadMessages > 0 && <span className="absolute right-[30%] top-0 flex h-4 min-w-4 items-center justify-center rounded-full bg-red-500 px-1 text-[9px] font-black text-white">{Math.min(unreadMessages, 9)}</span>}
+          {(label === "Chat" || label === "Pesan") && unreadMessages > 0 && <span className="absolute right-[30%] top-0 flex h-4 min-w-4 items-center justify-center rounded-full bg-red-500 px-1 text-[9px] font-black text-white">{Math.min(unreadMessages, 9)}</span>}
           <Icon className={cn("h-6 w-6", selected && "fill-[#075bdd]/10")} />
           <span className="truncate">{label}</span>
         </button>
