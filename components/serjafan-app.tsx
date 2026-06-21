@@ -2015,6 +2015,34 @@ export function SerjafanApp({ appRole = "switcher" }: { appRole?: AppRole }) {
     }
   };
 
+  const createManualWhatsappOrder = async (payload: {
+    customerName: string;
+    customerPhone: string;
+    customerAddress: string;
+    serviceName: string;
+    finalPrice: number;
+    paymentMethod: "DIRECT_TRANSFER" | "CASH";
+    note: string;
+    paymentProofImage?: string;
+    paymentSenderName?: string;
+    paymentReference?: string;
+  }) => {
+    try {
+      const response = await apiFetch("/api/admin/orders/whatsapp", "ADMIN", {
+        method: "POST",
+        body: JSON.stringify(payload)
+      });
+      const result = (await parseJsonResponse(response)) as { data?: { order?: { id: string } }; error?: { message?: string } };
+      if (!response.ok) throw new Error(result.error?.message ?? "Gagal membuat order dari WhatsApp.");
+      notify("success", `Order resmi ${result.data?.order?.id ?? ""} dibuat dari WhatsApp.`);
+      await loadAdminData(true);
+      return true;
+    } catch (error) {
+      notify("error", error instanceof Error ? error.message : "Gagal membuat order dari WhatsApp.");
+      return false;
+    }
+  };
+
   const processAdminOrder = async (orderId: string, status: "CONFIRMED" | "PARTNER_READY" | "ON_THE_WAY" | "DONE" | "CANCELLED") => {
     try {
       const response = await apiFetch(`/api/admin/orders/${orderId}/status`, "ADMIN", {
@@ -2027,6 +2055,34 @@ export function SerjafanApp({ appRole = "switcher" }: { appRole?: AppRole }) {
       await loadAdminData(true);
     } catch (error) {
       notify("error", error instanceof Error ? error.message : "Gagal memproses pesanan.");
+    }
+  };
+
+  const createWhatsappOrder = async (payload: {
+    customerId?: string;
+    customerName: string;
+    customerPhone: string;
+    customerAddress: string;
+    serviceName: string;
+    finalPrice: number;
+    platformFee: number;
+    note: string;
+    paymentMethod: "DIRECT_TRANSFER" | "CASH";
+    paymentReference?: string;
+  }) => {
+    try {
+      const response = await apiFetch("/api/admin/orders/whatsapp", "ADMIN", {
+        method: "POST",
+        body: JSON.stringify(payload)
+      });
+      const result = (await parseJsonResponse(response)) as { data?: { order?: { id?: string } }; error?: { message?: string } };
+      if (!response.ok) throw new Error(result.error?.message ?? "Gagal membuat order dari WhatsApp.");
+      notify("success", `Order WhatsApp ${result.data?.order?.id ?? ""} berhasil dibuat dan tercatat resmi.`);
+      await loadAdminData(true);
+      return true;
+    } catch (error) {
+      notify("error", error instanceof Error ? error.message : "Gagal membuat order dari WhatsApp.");
+      return false;
     }
   };
 
@@ -2722,6 +2778,7 @@ export function SerjafanApp({ appRole = "switcher" }: { appRole?: AppRole }) {
             onUpdatePartner={updateAdminPartner}
             onDeletePartner={deleteAdminPartner}
             onAdjustWallet={(payload) => void adjustAdminWallet(payload)}
+            onCreateManualOrder={createManualWhatsappOrder}
             onProcessOrder={processAdminOrder}
             onOpenMessages={() => void openMessages()}
             onOpenNotificationSettings={() => setDrawer("notificationSettings")}
@@ -5009,6 +5066,7 @@ function AdminDashboard({
   onUpdatePartner,
   onDeletePartner,
   onAdjustWallet,
+  onCreateManualOrder,
   onProcessOrder,
   onOpenMessages,
   onOpenNotificationSettings
@@ -5030,6 +5088,18 @@ function AdminDashboard({
   onUpdatePartner: (partnerId: string, payload: any) => Promise<void>;
   onDeletePartner: (partnerId: string) => Promise<void>;
   onAdjustWallet: (payload: { userId?: string; amount?: number; description: string; action?: "ADJUST" | "APPROVE_TOPUP" | "REJECT_TOPUP"; paymentIntentId?: string }) => void;
+  onCreateManualOrder: (payload: {
+    customerName: string;
+    customerPhone: string;
+    customerAddress: string;
+    serviceName: string;
+    finalPrice: number;
+    paymentMethod: "DIRECT_TRANSFER" | "CASH";
+    note: string;
+    paymentProofImage?: string;
+    paymentSenderName?: string;
+    paymentReference?: string;
+  }) => Promise<boolean>;
   onProcessOrder: (orderId: string, status: "CONFIRMED" | "PARTNER_READY" | "ON_THE_WAY" | "DONE" | "CANCELLED") => Promise<void>;
   onOpenMessages: () => void;
   onOpenNotificationSettings: () => void;
@@ -5175,6 +5245,8 @@ function AdminDashboard({
 
       <AdminMapsCenter mapData={mapData} />
 
+      <AdminManualWhatsappOrder services={consoleData.settings.services} onCreate={onCreateManualOrder} />
+
       <div className="px-4 pb-4 sm:px-5">
         <div className="mb-2 flex items-center justify-between gap-3">
           <div>
@@ -5261,6 +5333,159 @@ function AdminDashboard({
       </div>
 
     </section>
+  );
+}
+
+function AdminManualWhatsappOrder({
+  services,
+  onCreate
+}: {
+  services: AdminConsoleData["settings"]["services"];
+  onCreate: (payload: {
+    customerName: string;
+    customerPhone: string;
+    customerAddress: string;
+    serviceName: string;
+    finalPrice: number;
+    paymentMethod: "DIRECT_TRANSFER" | "CASH";
+    note: string;
+    paymentProofImage?: string;
+    paymentSenderName?: string;
+    paymentReference?: string;
+  }) => Promise<boolean>;
+}) {
+  const activeServices = services.filter((service) => service.active);
+  const [customerName, setCustomerName] = useState("");
+  const [customerPhone, setCustomerPhone] = useState("");
+  const [customerAddress, setCustomerAddress] = useState("");
+  const [serviceName, setServiceName] = useState(activeServices[0]?.name ?? "Duplikat Kunci");
+  const [finalPrice, setFinalPrice] = useState("");
+  const [paymentMethod, setPaymentMethod] = useState<"DIRECT_TRANSFER" | "CASH">("CASH");
+  const [note, setNote] = useState("Harga final disepakati melalui WhatsApp Admin.");
+  const [paymentSenderName, setPaymentSenderName] = useState("");
+  const [paymentReference, setPaymentReference] = useState("");
+  const [paymentProofImage, setPaymentProofImage] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const numericPrice = Number(finalPrice.replace(/\D/g, "") || 0);
+  const canSubmit = customerName.trim() && customerPhone.trim() && customerAddress.trim().length >= 12 && serviceName.trim() && numericPrice > 0;
+
+  const reset = () => {
+    setCustomerName("");
+    setCustomerPhone("");
+    setCustomerAddress("");
+    setFinalPrice("");
+    setPaymentMethod("CASH");
+    setNote("Harga final disepakati melalui WhatsApp Admin.");
+    setPaymentSenderName("");
+    setPaymentReference("");
+    setPaymentProofImage("");
+  };
+
+  return (
+    <div className="px-4 pb-4 sm:px-5">
+      <div className="rounded-[22px] bg-white p-4 shadow-soft ring-1 ring-slate-100">
+        <div className="flex items-start gap-3">
+          <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-[16px] bg-[#eef4ff] text-[#0d47d9]">
+            <MessageCircle className="h-5 w-5" />
+          </span>
+          <div className="min-w-0">
+            <p className="text-[11px] font-black uppercase tracking-[0.14em] text-[#0d47d9]">Order dari WhatsApp</p>
+            <h2 className="mt-1 text-lg font-black leading-tight text-slate-950">Buat order resmi setelah harga disepakati.</h2>
+            <p className="mt-1 text-xs font-semibold leading-5 text-slate-500">
+              Gunakan ini setelah customer kirim foto/file di WA, admin menentukan harga final, dan customer setuju.
+            </p>
+          </div>
+        </div>
+
+        <div className="mt-4 grid gap-3">
+          <div className="grid gap-2 min-[430px]:grid-cols-2">
+            <Input value={customerName} onChange={(event) => setCustomerName(event.target.value)} placeholder="Nama customer" />
+            <Input value={customerPhone} onChange={(event) => setCustomerPhone(event.target.value)} placeholder="Nomor HP / WhatsApp" inputMode="tel" />
+          </div>
+          <Input value={customerAddress} onChange={(event) => setCustomerAddress(event.target.value)} placeholder="Alamat lengkap customer" />
+          <div className="grid gap-2 min-[430px]:grid-cols-2">
+            <select value={serviceName} onChange={(event) => setServiceName(event.target.value)} className="h-11 rounded-md border border-input bg-background px-3 text-sm font-semibold shadow-sm">
+              {(activeServices.length ? activeServices : services).map((service) => (
+                <option key={service.name} value={service.name}>
+                  {service.name}
+                </option>
+              ))}
+            </select>
+            <Input value={finalPrice} onChange={(event) => setFinalPrice(event.target.value.replace(/\D/g, ""))} placeholder="Harga final hasil WA" inputMode="numeric" />
+          </div>
+
+          <div className="grid grid-cols-2 gap-2">
+            {[
+              ["CASH", "Bayar di Tempat"],
+              ["DIRECT_TRANSFER", "Transfer ke SERJAFAN"]
+            ].map(([value, label]) => (
+              <button
+                key={value}
+                type="button"
+                onClick={() => setPaymentMethod(value as "DIRECT_TRANSFER" | "CASH")}
+                className={cn(
+                  "rounded-[14px] border-2 p-3 text-xs font-black transition",
+                  paymentMethod === value ? "border-[#0d47d9] bg-[#eef4ff] text-[#0d47d9]" : "border-slate-100 bg-white text-slate-500"
+                )}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+
+          {paymentMethod === "DIRECT_TRANSFER" && (
+            <div className="rounded-[16px] bg-blue-50 p-3">
+              <p className="text-xs font-black uppercase text-[#0d47d9]">Data bukti transfer jika sudah ada</p>
+              <div className="mt-2 grid gap-2">
+                <Input value={paymentSenderName} onChange={(event) => setPaymentSenderName(event.target.value)} placeholder="Nama pengirim" />
+                <Input value={paymentReference} onChange={(event) => setPaymentReference(event.target.value)} placeholder="No. referensi transfer" />
+                <AuthPhotoField label="Upload bukti transfer dari customer (opsional)" value={paymentProofImage} onChange={setPaymentProofImage} />
+              </div>
+            </div>
+          )}
+
+          <textarea
+            value={note}
+            onChange={(event) => setNote(event.target.value)}
+            rows={3}
+            className="rounded-[14px] border border-slate-200 bg-white p-3 text-sm font-semibold outline-none focus:border-[#0d47d9]"
+            placeholder="Catatan pekerjaan dari hasil chat WA"
+          />
+
+          <div className="rounded-[16px] bg-slate-50 p-3 text-xs font-bold leading-5 text-slate-600">
+            Order akan masuk ke Pusat Proses Order sebagai order resmi SERJAFAN. Customer juga akan mendapat notifikasi di akun customer berdasarkan nomor HP tersebut.
+          </div>
+
+          <Button
+            variant="orange"
+            className="h-12 w-full rounded-2xl"
+            disabled={submitting || !canSubmit}
+            onClick={async () => {
+              setSubmitting(true);
+              try {
+                const ok = await onCreate({
+                  customerName,
+                  customerPhone,
+                  customerAddress,
+                  serviceName,
+                  finalPrice: numericPrice,
+                  paymentMethod,
+                  note,
+                  paymentProofImage: paymentProofImage || undefined,
+                  paymentSenderName,
+                  paymentReference
+                });
+                if (ok) reset();
+              } finally {
+                setSubmitting(false);
+              }
+            }}
+          >
+            {submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <ListOrdered className="h-4 w-4" />} Buat Order Resmi Rp {formatRupiah(numericPrice)}
+          </Button>
+        </div>
+      </div>
+    </div>
   );
 }
 
